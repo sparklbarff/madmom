@@ -1,8 +1,167 @@
 [build-system]
 requires = [
-    "setuptools",
+    "setuptools>=61.0",
     "wheel",
     "cython>=0.25",
-    "numpy>2",
+    "numpy>=2.0",
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "madmom"
+version = "0.17.dev0"
+description = "Python audio signal processing library with focus on music information retrieval"
+readme = "README.rst"
+license = {text = "BSD-3-Clause AND CC-BY-NC-SA-4.0"}
+requires-python = ">=3.9"
+authors = [
+    {name = "Department of Computational Perception, JKU Linz & OFAI Vienna", email = "madmom-users@googlegroups.com"},
+]
+maintainers = [
+    {name = "Travis Inskeep", email = "sparklbarff@users.noreply.github.com"},
+]
+keywords = [
+    "audio",
+    "music",
+    "signal processing",
+    "MIR",
+    "music information retrieval",
+    "beat tracking",
+    "tempo estimation",
+    "onset detection",
+    "chord recognition",
+    "neural network",
+    "machine learning",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "License :: Free for non-commercial use",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Cython",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = [
+    "numpy>=2.0",
+    "scipy>=1.13",
+    "mido>=1.2.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.1.0",
+]
+docs = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/CPJKU/madmom"
+Documentation = "https://madmom.readthedocs.io"
+Repository = "https://github.com/sparklbarff/madmom.git"
+Issues = "https://github.com/sparklbarff/madmom/issues"
+Changelog = "https://github.com/CPJKU/madmom/blob/master/CHANGES.rst"
+
+# CLI scripts are installed via setup.py scripts= directive
+# See bin/ directory for standalone command-line tools
+
+[tool.setuptools]
+script-files = [
+    "bin/BarTracker",
+    "bin/BeatDetector",
+    "bin/BeatTracker",
+    "bin/CNNChordRecognition",
+    "bin/CNNOnsetDetector",
+    "bin/ComplexFlux",
+    "bin/CRFBeatDetector",
+    "bin/DBNBeatTracker",
+    "bin/DBNDownBeatTracker",
+    "bin/DCChordRecognition",
+    "bin/evaluate",
+    "bin/GMMPatternTracker",
+    "bin/KeyRecognition",
+    "bin/LogFiltSpecFlux",
+    "bin/MMBeatTracker",
+    "bin/OnsetDetector",
+    "bin/OnsetDetectorLL",
+    "bin/PianoTranscriptor",
+    "bin/PickleProcessor",
+    "bin/SpectralOnsetDetection",
+    "bin/SuperFlux",
+    "bin/SuperFluxNN",
+    "bin/TCNBeatTracker",
+    "bin/TCNTempoDetector",
+    "bin/TempoDetector",
+]
+packages = ["madmom", "madmom.audio", "madmom.evaluation", "madmom.features", "madmom.io", "madmom.ml", "madmom.ml.nn", "madmom.utils"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+madmom = [
+    "models/LICENSE",
+    "models/README.rst",
+    "models/beats/201[56]/*",
+    "models/chords/*/*",
+    "models/chroma/*/*",
+    "models/downbeats/*/*",
+    "models/key/2018/*",
+    "models/notes/*/*",
+    "models/onsets/*/*",
+    "models/patterns/*/*",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "UP",     # pyupgrade
+    "NPY201", # NumPy 2.0 compatibility
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["madmom"]
+
+[tool.coverage.run]
+source = ["madmom"]
+omit = ["*/tests/*", "*/models/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
