@@ -116,19 +116,13 @@ SECONDS_PER_TICK = SECONDS_PER_QUARTER_NOTE / RESOLUTION
 warnings.warn('Deprecated as of version 0.16. Please use madmom.io.midi '
               'instead. This module will be removed in version 0.18.')
 
-# Ensure Python2/3 compatibility when reading bytes from MIDI files
-if sys.version_info[0] == 2:
-    int2byte = chr
+# Convert bytes to/from integers for MIDI file handling
+int2byte = struct.Struct(">B").pack
 
-    def byte2int(byte):
-        """Convert a byte-character to an integer."""
-        return ord(byte)
-else:
-    int2byte = struct.Struct(">B").pack
 
-    def byte2int(byte):
-        """Convert a byte-character to an integer."""
-        return byte
+def byte2int(byte):
+    """Convert a byte to an integer."""
+    return byte
 
 
 # functions for packing / unpacking variable length data

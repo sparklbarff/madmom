@@ -305,8 +305,7 @@ def decode_to_pipe(infile, fmt='f32le', sample_rate=None, num_channels=1,
                          "are supported as `infile`, not %s." % infile)
     # Note: closing the file-like object only stops decoding because ffmpeg
     #       reacts on that. A cleaner solution would be calling proc.terminate
-    #       explicitly, but this is only available in Python 2.6+. proc.wait
-    #       needs to be called in any case.
+    #       explicitly. proc.wait needs to be called in any case.
     call = _ffmpeg_call(infile, "pipe:1", fmt, sample_rate, num_channels,
                         channel, skip, max_len, cmd,
                         replaygain_mode=replaygain_mode,

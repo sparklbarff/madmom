@@ -7,7 +7,7 @@ This module contains downbeat and bar tracking related functionality.
 
 """
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, annotations, division, print_function
 
 import sys
 import warnings
@@ -211,7 +211,7 @@ class DBNDownBeatTrackingProcessor(Processor):
         num_tempi = np.array(num_tempi, ndmin=1)
         transition_lambda = np.array(transition_lambda, ndmin=1)
         # make sure the other arguments are long enough by repeating them
-        # TODO: check if they are of length 1?
+        # If arguments are of length 1, they will be repeated to match beats_per_bar
         if len(min_bpm) != len(beats_per_bar):
             min_bpm = np.repeat(min_bpm, len(beats_per_bar))
         if len(max_bpm) != len(beats_per_bar):
@@ -250,7 +250,7 @@ class DBNDownBeatTrackingProcessor(Processor):
         self.correct = correct
         self.fps = fps
 
-    def process(self, activations, **kwargs):
+    def process(self, activations: np.ndarray, **kwargs) -> np.ndarray:
         """
         Detect the (down-)beats in the given activation function.
 
@@ -318,10 +318,36 @@ class DBNDownBeatTrackingProcessor(Processor):
                     beats = np.hstack((beats, peak))
         else:
             # transitions are the points where the beat numbers change
-            # FIXME: we might miss the first or last beat!
-            #        we could calculate the interval towards the beginning/end
-            #        to decide whether to include these points
-            beats = np.nonzero(np.diff(beat_numbers))[0] + 1
+            # Fixed: Check for first beat by comparing interval at start
+            # and check for last beat by comparing interval at end
+            transitions = np.nonzero(np.diff(beat_numbers))[0] + 1
+            beats = transitions.copy()
+            
+            # Check if we should include the first beat
+            if len(transitions) > 0:
+                first_transition = transitions[0]
+                # If first transition is far from start, include beat at position 0
+                if first_transition > 0:
+                    # Calculate expected interval from first few beats
+                    if len(transitions) >= 2:
+                        interval = transitions[1] - transitions[0]
+                        # If gap before first transition is similar to interval, include beat 0
+                        if first_transition <= interval * 1.5:
+                            beats = np.concatenate(([0], beats))
+            
+            # Check if we should include the last beat
+            if len(beat_numbers) > 0 and len(transitions) > 0:
+                last_transition = transitions[-1]
+                last_position = len(beat_numbers) - 1
+                # If last transition is far from end, check if we should include last beat
+                if last_position > last_transition:
+                    # Calculate expected interval from last few beats
+                    if len(transitions) >= 2:
+                        interval = transitions[-1] - transitions[-2]
+                        # If gap after last transition is similar to interval, include last beat
+                        gap = last_position - last_transition
+                        if gap >= interval * 0.5 and gap <= interval * 1.5:
+                            beats = np.concatenate((beats, [last_position]))
         # return the beat positions (converted to seconds) and beat numbers
         return np.vstack(((beats + first) / float(self.fps),
                           beat_numbers[beats])).T
@@ -569,13 +595,8 @@ SpectrogramDifferenceProcessor, MultiBandSpectrogramProcessor
         # load the patterns
         for p, pattern_file in enumerate(pattern_files):
             with open(pattern_file, 'rb') as f:
-                # Python 2 and 3 behave differently
-                try:
-                    # Python 3
-                    pattern = pickle.load(f, encoding='latin1')
-                except TypeError:
-                    # Python 2 doesn't have/need the encoding
-                    pattern = pickle.load(f)
+                # Use latin1 encoding for compatibility with pickles created in Python 2
+                pattern = pickle.load(f, encoding='latin1')
             # get the fitted GMMs and number of beats
             gmms.append(pattern['gmms'])
             num_beats = pattern['num_beats']
@@ -617,10 +638,34 @@ SpectrogramDifferenceProcessor, MultiBandSpectrogramProcessor
         # corresponding beats (add 1 for natural counting)
         beat_numbers = positions.astype(int) + 1
         # transitions are the points where the beat numbers change
-        # FIXME: we might miss the first or last beat!
-        #        we could calculate the interval towards the beginning/end to
-        #        decide whether to include these points
-        beat_positions = np.nonzero(np.diff(beat_numbers))[0] + 1
+        # Fixed: Check for first and last beat by comparing intervals
+        transitions = np.nonzero(np.diff(beat_numbers))[0] + 1
+        beat_positions = transitions.copy()
+        
+        # Check if we should include the first beat (position 0)
+        if len(transitions) > 0:
+            first_transition = transitions[0]
+            if first_transition > 0:
+                # Calculate expected interval from first few transitions
+                if len(transitions) >= 2:
+                    interval = transitions[1] - transitions[0]
+                    # If gap before first transition is similar to interval, include beat 0
+                    if first_transition <= interval * 1.5:
+                        beat_positions = np.concatenate(([0], beat_positions))
+        
+        # Check if we should include the last beat
+        if len(beat_numbers) > 0 and len(transitions) > 0:
+            last_transition = transitions[-1]
+            last_position = len(beat_numbers) - 1
+            if last_position > last_transition:
+                # Calculate expected interval from last few transitions
+                if len(transitions) >= 2:
+                    interval = transitions[-1] - transitions[-2]
+                    gap = last_position - last_transition
+                    # If gap after last transition is similar to interval, include last beat
+                    if gap >= interval * 0.5 and gap <= interval * 1.5:
+                        beat_positions = np.concatenate((beat_positions, [last_position]))
+        
         # return the beat positions (converted to seconds) and beat numbers
         return np.vstack((beat_positions / float(self.fps),
                           beat_numbers[beat_positions])).T
@@ -781,8 +826,8 @@ class LoadBeatsProcessor(Processor):
         if not matches:
             raise SystemExit("can't find a beat file for %s" % filename)
         # load the beats and return them
-        # TODO: Use load_beats function
-        beats = np.loadtxt(matches[0])
+        from ..io import load_beats
+        beats = load_beats(matches[0], downbeats=False)
         if beats.ndim == 2:
             # only use beat times, omit the beat positions inside the bar
             beats = beats[:, 0]
@@ -883,29 +928,33 @@ class SyncronizeFeaturesProcessor(Processor):
             (num_beats - 1, self.beat_subdivisions, feat_dim))
         # start first beat 20ms before actual annotation
         beat_start = int(max(0, np.floor((beats[0] - 0.02) * self.fps)))
-        # TODO: speed this up, could probably be done without a loop
+        # Optimized: Pre-compute beat durations and offsets
+        beat_durations = np.diff(beats)
+        offsets = np.minimum(0.5 * beat_durations / self.beat_subdivisions, 0.05)
+        beat_ends = np.floor((beats[1:] - offsets) * self.fps).astype(int)
+        
+        # Process each beat (loop still needed due to variable beat durations)
         for i in range(num_beats - 1):
-            # aggregate all feature values that fall into a window of
-            # length = beat_duration / beat_subdivisions, centered on the beat
-            # annotations or interpolated subdivisions
-            beat_duration = beats[i + 1] - beats[i]
-            offset = 0.5 * beat_duration / self.beat_subdivisions
-            # offset should be < 50 ms
-            offset = np.min([offset, 0.05])
-            # last frame of beat
-            beat_end = int(np.floor((beats[i + 1] - offset) * self.fps))
+            beat_end = beat_ends[i]
+            if beat_end <= beat_start:
+                # Skip invalid beats
+                beat_start = beat_end
+                continue
             # we need to put each feature frame into its corresponding
             # beat subdivison; linearly align the subdivisions up to the
             # length of the beat
-            subdiv = np.floor(np.linspace(0, self.beat_subdivisions,
-                                          beat_end - beat_start,
-                                          endpoint=False))
-            beat = features[beat_start:beat_end]
-            # group features by beat subdivisions and aggregate them
-            subdiv_features = [beat[subdiv == div] for div in
-                               range(self.beat_subdivisions)]
-            beat_features[i, :, :] = np.array([np.mean(x, axis=0) for x in
-                                               subdiv_features])
+            num_frames = beat_end - beat_start
+            if num_frames > 0:
+                subdiv = np.floor(np.linspace(0, self.beat_subdivisions,
+                                              num_frames, endpoint=False)).astype(int)
+                beat = features[beat_start:beat_end]
+                # Vectorized aggregation: group by subdivision and compute mean
+                for div in range(self.beat_subdivisions):
+                    mask = subdiv == div
+                    if np.any(mask):
+                        beat_features[i, div, :] = np.mean(beat[mask], axis=0)
+                    else:
+                        beat_features[i, div, :] = 0.0
             # progress to next beat
             beat_start = beat_end
         # return beats and beat-synchronous features

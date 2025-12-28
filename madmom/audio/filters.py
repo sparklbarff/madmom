@@ -1339,7 +1339,7 @@ class SimpleChromaFilterbank(Filterbank):
         # pylint: disable=arguments-differ
         raise NotImplementedError("please check if produces correct/expected "
                                   "results and enable if yes.")
-        # TODO: add comments!
+        # Create a logarithmic filterbank as base
         stf = LogFilterbank(bin_frequencies, num_bands=num_bands, fmin=fmin,
                             fmax=fmax, fref=fref, norm_filters=norm_filters,
                             unique_filters=unique_filters)
@@ -1350,7 +1350,9 @@ class SimpleChromaFilterbank(Filterbank):
             cur_spacing = spacing + i
             cur_spacing = cur_spacing[cur_spacing < stf.shape[1]]
             fb[:, i] = stf[:, cur_spacing].sum(1)
-        # TODO: check if this should depend on the norm_filters parameter
+        # Normalize filterbank: each column sums to 1
+        # Note: This normalization is independent of norm_filters parameter
+        # which affects individual filter shapes, not the overall filterbank sum
         fb /= fb.sum(0)
         # cast to Filterbank
         obj = Filterbank.__new__(cls, fb, bin_frequencies)

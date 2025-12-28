@@ -593,7 +593,7 @@ def segment_axis(signal, frame_size, hop_size, axis=None, end='cut',
     # make sure that both frame_size and hop_size are integers
     frame_size = int(frame_size)
     hop_size = int(hop_size)
-    # TODO: add comments!
+    # Handle axis parameter: if None, flatten signal to 1D and set axis to 0
     if axis is None:
         signal = np.ravel(signal)  # may copy
         axis = 0

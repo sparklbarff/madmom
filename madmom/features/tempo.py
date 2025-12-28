@@ -7,7 +7,7 @@ This module contains tempo related functionality.
 
 """
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, annotations, division, print_function
 
 import sys
 import warnings
@@ -783,7 +783,7 @@ class TempoEstimationProcessor(OnlineProcessor):
         """Reset to initial state."""
         self.histogram_processor.reset()
 
-    def process_offline(self, activations, **kwargs):
+    def process_offline(self, activations: np.ndarray, **kwargs) -> np.ndarray:
         """
         Detect the tempi from the (beat) activations.
 
@@ -810,7 +810,7 @@ class TempoEstimationProcessor(OnlineProcessor):
         # detect the tempi and return them
         return detect_tempo(histogram, self.fps, interpolate=self.interpolate)
 
-    def process_online(self, activations, reset=True, **kwargs):
+    def process_online(self, activations: np.ndarray, reset: bool = True, **kwargs) -> np.ndarray:
         """
         Detect the tempi from the (beat) activations in online mode.
 

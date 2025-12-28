@@ -625,7 +625,11 @@ class Signal(np.ndarray):
             data = resample(data, sample_rate)
         # save start and stop position
         if start is not None:
-            # FIXME: start and stop settings are not checked
+            # Validate start and stop settings
+            if start < 0:
+                raise ValueError("start position must be >= 0, got %f" % start)
+            if stop is not None and stop <= start:
+                raise ValueError("stop position must be > start, got start=%f, stop=%f" % (start, stop))
             data.start = start
             data.stop = start + float(len(data)) / sample_rate
         # return the object

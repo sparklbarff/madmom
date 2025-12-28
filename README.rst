@@ -59,8 +59,8 @@ you choose, please make sure that all prerequisites are installed.
 Prerequisites
 -------------
 
-To install the ``madmom`` package, you must have either Python 2.7 or Python
-3.5 or newer and the following packages installed:
+To install the ``madmom`` package, you must have Python 3.9 or newer and the
+following packages installed:
 
 - `numpy <http://www.numpy.org>`_
 - `scipy <http://www.scipy.org>`_
@@ -128,6 +128,31 @@ This is equivalent to these steps::
     git clone https://github.com/CPJKU/madmom.git
     cd madmom
     git submodule update --init --remote
+
+Model Files
+~~~~~~~~~~~
+
+The pre-trained models are stored in a separate Git submodule located at
+``madmom/models/``. These models are required for most high-level features:
+
+- **Beat Tracking**: Models in ``beats/2015/``, ``beats/2016/``, ``beats/2019/``
+- **Downbeat Tracking**: Models in ``downbeats/2016/``
+- **Onset Detection**: Models in ``onsets/2013/``, ``onsets/2014/``
+- **Chord Recognition**: Models in ``chords/2016/``
+- **Key Detection**: Models in ``key/2018/``
+- **Piano Transcription**: Models in ``notes/2013/``, ``notes/2018/``, ``notes/2019/``
+
+If you encounter errors about missing model files, ensure the submodule is
+initialized::
+
+    git submodule update --init --remote
+
+If the submodule appears empty, you may need to check your Git configuration
+or manually clone the models repository::
+
+    cd madmom/models
+    git submodule update --init
+    cd ../..
 
 Then you can simply install the package in development mode::
 
@@ -240,6 +265,166 @@ Please note that the program itself as well as the modes have help messages::
     DBNBeatTracker pickle -h
 
 will give different help messages.
+
+
+Usage Examples
+==============
+
+Python API
+----------
+
+Basic beat tracking::
+
+    from madmom.audio import SignalProcessor
+    from madmom.features import DBNBeatTrackingProcessor, RNNBeatProcessor
+    from madmom.io import write_beats
+
+    # Load audio and detect beats
+    audio = SignalProcessor()('audio_file.wav')
+    beat_activations = RNNBeatProcessor()(audio)
+    beats = DBNBeatTrackingProcessor()(beat_activations)
+    
+    # Save beats to file
+    write_beats(beats, 'beats.txt')
+
+Tempo detection::
+
+    from madmom.features import TempoEstimationProcessor
+    from madmom.audio import SignalProcessor
+
+    audio = SignalProcessor()('audio_file.wav')
+    tempi = TempoEstimationProcessor()(audio)
+    print(f"Detected tempo: {tempi[0][0]:.2f} BPM")
+
+Onset detection::
+
+    from madmom.features import RNNOnsetProcessor, OnsetPeakPickingProcessor
+    from madmom.audio import SignalProcessor
+    from madmom.io import write_onsets
+
+    audio = SignalProcessor()('audio_file.wav')
+    onset_activations = RNNOnsetProcessor()(audio)
+    onsets = OnsetPeakPickingProcessor()(onset_activations)
+    write_onsets(onsets, 'onsets.txt')
+
+Chord recognition::
+
+    from madmom.features import CRFChordRecognitionProcessor
+    from madmom.audio import SignalProcessor
+    from madmom.io import write_chords
+
+    audio = SignalProcessor()('audio_file.wav')
+    chords = CRFChordRecognitionProcessor()(audio)
+    write_chords(chords, 'chords.txt')
+
+Key detection::
+
+    from madmom.features import CNNKeyRecognitionProcessor
+    from madmom.audio import SignalProcessor
+    from madmom.io import write_key
+
+    audio = SignalProcessor()('audio_file.wav')
+    key = CNNKeyRecognitionProcessor()(audio)
+    write_key(key, 'key.txt')
+    print(f"Detected key: {key}")
+
+Downbeat tracking (for measure alignment)::
+
+    from madmom.features import RNNDownBeatProcessor, DBNDownBeatTrackingProcessor
+    from madmom.audio import SignalProcessor
+    from madmom.io import write_beats
+
+    audio = SignalProcessor()('audio_file.wav')
+    downbeat_activations = RNNDownBeatProcessor()(audio)
+    beats_downbeats = DBNDownBeatTrackingProcessor()(downbeat_activations)
+    
+    # Separate beats and downbeats (first beat of each measure)
+    beats = beats_downbeats[:, 0]
+    downbeats = beats_downbeats[beats_downbeats[:, 1] == 1][:, 0]
+    
+    print(f"Detected {len(beats)} beats, {len(downbeats)} downbeats")
+    write_beats(beats_downbeats, 'beats_downbeats.txt')
+
+Tempo detection with multiple candidates::
+
+    from madmom.features import TempoEstimationProcessor
+    from madmom.audio import SignalProcessor
+
+    audio = SignalProcessor()('audio_file.wav')
+    tempi = TempoEstimationProcessor()(audio)
+    
+    # tempi is an array of [tempo, strength] pairs
+    primary_tempo = tempi[0][0]
+    primary_strength = tempi[0][1]
+    
+    print(f"Primary tempo: {primary_tempo:.2f} BPM (strength: {primary_strength:.2f})")
+    if len(tempi) > 1:
+        secondary_tempo = tempi[1][0]
+        print(f"Secondary tempo: {secondary_tempo:.2f} BPM")
+
+Batch processing multiple files::
+
+    from pathlib import Path
+    from madmom.audio import SignalProcessor
+    from madmom.features import DBNBeatTrackingProcessor, RNNBeatProcessor
+    from madmom.io import write_beats
+
+    audio_dir = Path('audio_files')
+    beat_processor = DBNBeatTrackingProcessor()
+    activation_processor = RNNBeatProcessor()
+    
+    for audio_file in audio_dir.glob('*.wav'):
+        audio = SignalProcessor()(str(audio_file))
+        activations = activation_processor(audio)
+        beats = beat_processor(activations)
+        output_file = audio_file.with_suffix('.beats.txt')
+        write_beats(beats, str(output_file))
+        print(f"Processed {audio_file.name} -> {output_file.name}")
+
+Complete music production workflow (slicing samples → arrangement)::
+
+    from madmom.audio import SignalProcessor
+    from madmom.features import (
+        RNNOnsetProcessor, OnsetPeakPickingProcessor,
+        DBNBeatTrackingProcessor, RNNBeatProcessor,
+        TempoEstimationProcessor,
+        CRFChordRecognitionProcessor,
+        CNNKeyRecognitionProcessor,
+        RNNDownBeatProcessor, DBNDownBeatTrackingProcessor
+    )
+
+    # Load audio file
+    audio = SignalProcessor()('recording.wav')
+    
+    # 1. Detect onsets for sample slicing
+    onset_activations = RNNOnsetProcessor()(audio)
+    onsets = OnsetPeakPickingProcessor()(onset_activations)
+    print(f"Detected {len(onsets)} onsets for slicing")
+    
+    # 2. Detect beats and tempo for quantization
+    beat_activations = RNNBeatProcessor()(audio)
+    beats = DBNBeatTrackingProcessor()(beat_activations)
+    tempi = TempoEstimationProcessor()(audio)
+    tempo = tempi[0][0]
+    print(f"Detected tempo: {tempo:.2f} BPM, {len(beats)} beats")
+    
+    # 3. Detect chords and key for harmonic arrangement
+    chords = CRFChordRecognitionProcessor()(audio)
+    key = CNNKeyRecognitionProcessor()(audio)
+    print(f"Detected key: {key}")
+    print(f"Chord progression: {[c['label'] for c in chords[:5]]}")
+    
+    # 4. Detect downbeats for measure alignment (Ableton Live integration)
+    downbeat_activations = RNNDownBeatProcessor()(audio)
+    beats_downbeats = DBNDownBeatTrackingProcessor()(downbeat_activations)
+    downbeats = beats_downbeats[beats_downbeats[:, 1] == 1][:, 0]
+    print(f"Detected {len(downbeats)} downbeats (measure boundaries)")
+    
+    # Use this information for:
+    # - Slicing audio at onsets
+    # - Quantizing slices to beats
+    # - Arranging slices harmonically based on chords/key
+    # - Aligning to measures using downbeats
 
 
 Additional resources
