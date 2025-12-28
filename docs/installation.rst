@@ -12,11 +12,8 @@ all :ref:`prerequisites <install_prerequisites>` are installed.
 Prerequisites
 -------------
 
-To install the ``madmom`` package, you must have either Python 2.7 or Python
-3.3 or newer and the following packages installed:
-
-To install the ``madmom`` package, you must have either Python 2.7 or Python
-3.5 or newer and the following packages installed:
+To install the ``madmom`` package, you must have Python 3.9 or newer and the
+following packages installed:
 
 - `numpy <http://www.numpy.org>`_
 - `scipy <http://www.scipy.org>`_

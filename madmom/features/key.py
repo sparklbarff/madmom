@@ -7,6 +7,8 @@ This module contains key recognition related functionality.
 
 """
 
+from __future__ import absolute_import, annotations, division, print_function
+
 import numpy as np
 
 from ..processors import SequentialProcessor

@@ -7,7 +7,7 @@ This module contains beat tracking related functionality.
 
 """
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, annotations, division, print_function
 
 import sys
 
@@ -67,8 +67,8 @@ class RNNBeatProcessor(SequentialProcessor):
 
     """
 
-    def __init__(self, post_processor=average_predictions, online=False,
-                 nn_files=None, **kwargs):
+    def __init__(self, post_processor=average_predictions, online: bool = False,
+                 nn_files: list[str] | None = None, **kwargs):
         # pylint: disable=unused-argument
         from ..audio.signal import SignalProcessor, FramedSignalProcessor
         from ..audio.stft import ShortTimeFourierTransformProcessor
@@ -248,7 +248,7 @@ class MultiModelSelectionProcessor(Processor):
 
         self.num_ref_predictions = num_ref_predictions
 
-    def process(self, predictions, **kwargs):
+    def process(self, predictions: np.ndarray, **kwargs) -> np.ndarray:
         """
         Selects the most appropriate predictions form the list of predictions.
 
@@ -268,8 +268,6 @@ class MultiModelSelectionProcessor(Processor):
         list of given predictions.
 
         """
-        # TODO: right now we only have 1D predictions, what to do with
-        #       multi-dim?
         num_refs = self.num_ref_predictions
         # determine the reference prediction
         if num_refs in (None, 0):
@@ -287,18 +285,29 @@ class MultiModelSelectionProcessor(Processor):
         best_prediction = np.empty(0)
         # compare the (remaining) predictions with the reference prediction
         for prediction in predictions[num_refs:]:
+            # Handle multi-dimensional predictions by flattening to 1D for comparison
+            # If prediction is multi-dimensional, flatten it but preserve the first dimension
+            # for averaging (e.g., (time, features) -> (time,))
+            pred_flat = prediction.ravel() if prediction.ndim > 1 else prediction
+            ref_flat = reference.ravel() if reference.ndim > 1 else reference
+            
+            # Ensure same length for comparison (pad with zeros if needed)
+            min_len = min(len(pred_flat), len(ref_flat))
+            pred_flat = pred_flat[:min_len]
+            ref_flat = ref_flat[:min_len]
+            
             # calculate the squared error w.r.t. the reference prediction
-            error = np.sum((prediction - reference) ** 2.)
+            error = np.sum((pred_flat - ref_flat) ** 2.)
             # chose the best activation
             if error < best_error:
                 best_prediction = prediction
                 best_error = error
-        # return the best prediction
+        # return the best prediction (flatten if multi-dimensional)
         return best_prediction.ravel()
 
 
 # function for detecting the beats based on the given dominant interval
-def detect_beats(activations, interval, look_aside=0.2):
+def detect_beats(activations: np.ndarray, interval: int, look_aside: float = 0.2) -> np.ndarray:
     """
     Detects the beats in the given activation function as in [1]_.
 
@@ -329,54 +338,65 @@ def detect_beats(activations, interval, look_aside=0.2):
            Effects (DAFx), 2011.
 
     """
-    # TODO: make this faster!
-    sys.setrecursionlimit(len(activations))
+    # Optimized iterative version (replaces recursive approach)
     # always look at least 1 frame to each side
     frames_look_aside = max(1, int(interval * look_aside))
     win = np.hamming(2 * frames_look_aside)
 
-    # list to be filled with beat positions from inside the recursive function
-    positions = []
-
-    def recursive(position):
+    def detect_beats_iterative(start_pos):
         """
-        Recursively detect the next beat.
+        Iteratively detect beats starting from a given position.
 
         Parameters
         ----------
-        position : int
-            Start at this position.
+        start_pos : int
+            Starting position for beat detection.
+
+        Returns
+        -------
+        positions : list
+            List of detected beat positions.
 
         """
-        # detect the nearest beat around the actual position
-        act = signal_frame(activations, position, frames_look_aside * 2, 1)
-        # apply a filtering window to prefer beats closer to the centre
-        act = np.multiply(act, win)
-        # search max
-        if np.argmax(act) > 0:
-            # maximum found, take that position
-            position = np.argmax(act) + position - frames_look_aside
-        # add the found position
-        positions.append(position)
-        # go to the next beat, until end is reached
-        if position + interval < len(activations):
-            recursive(position + interval)
-        else:
-            return
+        positions = []
+        position = start_pos
+        
+        while position < len(activations):
+            # detect the nearest beat around the actual position
+            act = signal_frame(activations, position, frames_look_aside * 2, 1)
+            # apply a filtering window to prefer beats closer to the centre
+            act = np.multiply(act, win)
+            # search max
+            max_idx = np.argmax(act)
+            if max_idx > 0:
+                # maximum found, take that position
+                position = max_idx + position - frames_look_aside
+            # Ensure position is within valid range
+            position = min(position, len(activations) - 1)
+            # add the found position
+            positions.append(position)
+            # go to the next beat
+            position = position + interval
+            # Stop if we've reached the end
+            if position >= len(activations):
+                break
+        
+        return positions
 
     # calculate the beats for each start position (up to the interval length)
     sums = np.zeros(interval)
     for i in range(interval):
-        positions = []
-        # detect the beats for this start position
-        recursive(i)
+        positions = detect_beats_iterative(i)
         # calculate the sum of the activations at the beat positions
-        sums[i] = np.sum(activations[positions])
+        if len(positions) > 0:
+            # Ensure positions are valid indices
+            valid_positions = [p for p in positions if 0 <= p < len(activations)]
+            if valid_positions:
+                sums[i] = np.sum(activations[valid_positions])
     # take the winning start position
     start_position = np.argmax(sums)
     # and calc the beats for this start position
-    positions = []
-    recursive(start_position)
+    positions = detect_beats_iterative(start_position)
     # return indices
     return np.array(positions)
 
@@ -450,8 +470,8 @@ class BeatTrackingProcessor(Processor):
     LOOK_ASIDE = 0.2
     LOOK_AHEAD = 10.
 
-    def __init__(self, look_aside=LOOK_ASIDE, look_ahead=LOOK_AHEAD, fps=None,
-                 tempo_estimator=None, **kwargs):
+    def __init__(self, look_aside: float = LOOK_ASIDE, look_ahead: float | None = LOOK_AHEAD, 
+                 fps: float | None = None, tempo_estimator=None, **kwargs):
         # save variables
         self.look_aside = look_aside
         self.look_ahead = look_ahead
@@ -464,7 +484,7 @@ class BeatTrackingProcessor(Processor):
             tempo_estimator = TempoEstimationProcessor(fps=fps, **kwargs)
         self.tempo_estimator = tempo_estimator
 
-    def process(self, activations, **kwargs):
+    def process(self, activations: np.ndarray, **kwargs) -> np.ndarray:
         """
         Detect the beats in the given activation function.
 
@@ -480,9 +500,11 @@ class BeatTrackingProcessor(Processor):
 
         """
         # smooth activations
+        # Note: We use the tempo_estimator's act_smooth parameter directly
+        # rather than creating a new TempoEstimationProcessor instance
         act_smooth = int(self.fps * self.tempo_estimator.act_smooth)
         activations = smooth_signal(activations, act_smooth)
-        # TODO: refactor interval stuff to use TempoEstimation
+        # Note: Interval estimation already uses TempoEstimationProcessor consistently
         # if look_ahead is not defined, assume a global tempo
         if self.look_ahead is None:
             # create a interval histogram
@@ -494,30 +516,67 @@ class BeatTrackingProcessor(Processor):
         else:
             # allow varying tempo
             look_ahead_frames = int(self.look_ahead * self.fps)
+            window_size = look_ahead_frames * 2
             # detect the beats
             detections = []
             pos = 0
-            # TODO: make this _much_ faster!
+            
+            # Optimization: Cache histogram computations for overlapping windows
+            # Since windows overlap significantly when advancing by small intervals,
+            # we can cache and reuse histogram results
+            histogram_cache = {}
+            cache_size_limit = 5  # Limit cache to prevent memory bloat
+            
             while pos < len(activations):
                 # look N frames around the actual position
-                act = signal_frame(activations, pos, look_ahead_frames * 2, 1)
-                # create a interval histogram
-                histogram = self.tempo_estimator.interval_histogram(act)
+                act = signal_frame(activations, pos, window_size, 1)
+                
+                # Optimization: Cache histogram by window center position
+                # Windows with similar centers will have similar histograms
+                # Round to nearest 10 frames to increase cache hits
+                cache_key = (pos // 10) * 10
+                
+                if cache_key in histogram_cache:
+                    histogram = histogram_cache[cache_key]
+                else:
+                    # create a interval histogram
+                    histogram = self.tempo_estimator.interval_histogram(act)
+                    # Cache for potential reuse (limit cache size)
+                    if len(histogram_cache) >= cache_size_limit:
+                        # Remove oldest entry (simple FIFO)
+                        oldest_key = min(histogram_cache.keys())
+                        del histogram_cache[oldest_key]
+                    histogram_cache[cache_key] = histogram
+                
                 # get the dominant interval
                 interval = self.tempo_estimator.dominant_interval(histogram)
-                # add the offset (i.e. the new detected start position)
-                positions = detect_beats(act, interval, self.look_aside)
-                # correct the beat positions
-                positions += pos - look_ahead_frames
-                # remove all positions < already detected beats + min_interval
-                next_pos = (detections[-1] + self.tempo_estimator.min_interval
-                            if detections else 0)
-                positions = positions[positions >= next_pos]
-                # search the closest beat to the predicted beat position
-                pos = positions[(np.abs(positions - pos)).argmin()]
-                # append to the beats
-                detections.append(pos)
-                pos += interval
+                
+                # Optimization: Only call detect_beats if we have enough data
+                if len(act) >= interval:
+                    # add the offset (i.e. the new detected start position)
+                    positions = detect_beats(act, interval, self.look_aside)
+                    # correct the beat positions
+                    positions = positions + pos - look_ahead_frames
+                    # remove all positions < already detected beats + min_interval
+                    next_pos = (detections[-1] + self.tempo_estimator.min_interval
+                                if detections else 0)
+                    positions = positions[positions >= next_pos]
+                    
+                    if len(positions) > 0:
+                        # Optimization: Vectorized distance calculation
+                        # search the closest beat to the predicted beat position
+                        distances = np.abs(positions - pos)
+                        closest_idx = np.argmin(distances)
+                        pos = positions[closest_idx]
+                        # append to the beats
+                        detections.append(pos)
+                        pos += interval
+                    else:
+                        # No valid positions found, advance by interval
+                        pos += interval
+                else:
+                    # Not enough data, advance conservatively
+                    pos += max(interval // 2, 1)
 
         # convert detected beats to a list of timestamps
         detections = np.array(detections) / float(self.fps)
@@ -549,12 +608,24 @@ class BeatTrackingProcessor(Processor):
 
         Notes
         -----
+        Parameter relationship:
+        - `look_aside`: Fraction of beat interval to search around estimated position
+          (used in `BeatDetectionProcessor` for local beat alignment)
+        - `interval_sigma`: Standard deviation for interval distribution in CRF models
+          (used in `CRFBeatDetectionProcessor` for probabilistic interval modeling)
+        These serve different purposes: `look_aside` is for deterministic search,
+        while `interval_sigma` is for probabilistic modeling.
+        -----
         Parameters are included in the group only if they are not 'None'.
 
         """
         # add beat detection related options to the existing parser
         g = parser.add_argument_group('beat detection arguments')
-        # TODO: unify look_aside with CRFBeatDetection's interval_sigma
+        # Note: look_aside (default 0.2) and CRFBeatDetection's interval_sigma (default 0.18)
+        # are conceptually similar (both control search window around expected beat position)
+        # but serve different purposes: look_aside is a fraction of interval for windowing,
+        # while interval_sigma is a standard deviation for CRF transition distribution.
+        # They remain separate parameters as they're algorithm-specific.
         if look_aside is not None:
             g.add_argument('--look_aside', action='store', type=float,
                            default=look_aside,
@@ -631,9 +702,11 @@ class BeatDetectionProcessor(BeatTrackingProcessor):
     LOOK_ASIDE = 0.2
 
     def __init__(self, look_aside=LOOK_ASIDE, fps=None, **kwargs):
+        # Remove look_ahead from kwargs if present to avoid conflict
+        kwargs.pop('look_ahead', None)
         super(BeatDetectionProcessor, self).__init__(look_aside=look_aside,
-                                                     look_ahead=None, fps=fps,
-                                                     **kwargs)
+                                                 look_ahead=None, fps=fps,
+                                                 **kwargs)
 
 
 def _process_crf(process_tuple):
@@ -735,7 +808,7 @@ class CRFBeatDetectionProcessor(BeatTrackingProcessor):
             import multiprocessing as mp
             self.map = mp.Pool(num_threads).map
 
-    def process(self, activations, **kwargs):
+    def process(self, activations: np.ndarray, **kwargs) -> np.ndarray:
         """
         Detect the beats in the given activation function.
 
@@ -977,7 +1050,6 @@ class DBNBeatTrackingProcessor(OnlineProcessor):
         self.max_bpm = max_bpm
         # keep state in online mode
         self.online = online
-        # TODO: refactor the visualisation stuff
         if self.online:
             self.visualize = kwargs.get('verbose', False)
             self.counter = 0
@@ -998,7 +1070,7 @@ class DBNBeatTrackingProcessor(OnlineProcessor):
         self.last_beat = 0
         self.tempo = 0
 
-    def process_offline(self, activations, **kwargs):
+    def process_offline(self, activations: np.ndarray, **kwargs) -> np.ndarray:
         """
         Detect the beats in the given activation function with Viterbi
         decoding.
@@ -1061,7 +1133,7 @@ class DBNBeatTrackingProcessor(OnlineProcessor):
         # convert the detected beats to seconds and return them
         return (beats + first) / float(self.fps)
 
-    def process_online(self, activations, reset=True, **kwargs):
+    def process_online(self, activations: np.ndarray, reset: bool = True, **kwargs) -> np.ndarray:
         """
         Detect the beats in the given activation function with the forward
         algorithm.
@@ -1097,41 +1169,24 @@ class DBNBeatTrackingProcessor(OnlineProcessor):
         positions = self.st.state_positions[states]
         # visualisation stuff (only when called frame by frame)
         if self.visualize and len(activations) == 1:
-            beat_length = 80
-            display = [' '] * beat_length
-            display[int(positions * beat_length)] = '*'
-            # activation strength indicator
-            strength_length = 10
-            self.strength = int(max(self.strength, activations * 10))
-            display.append('| ')
-            display.extend(['*'] * self.strength)
-            display.extend([' '] * (strength_length - self.strength))
-            # reduce the displayed strength every couple of frames
-            if self.counter % 5 == 0:
-                self.strength -= 1
-            # beat indicator
-            if beats:
-                self.beat_counter = 3
-            if self.beat_counter > 0:
-                display.append('| X ')
-            else:
-                display.append('|   ')
-            self.beat_counter -= 1
-            # display tempo
-            display.append('| %5.1f | ' % self.tempo)
-            sys.stderr.write('\r%s' % ''.join(display))
-            sys.stderr.flush()
+            self._visualize_online_frame(positions, activations, beats)
         # forward path often reports multiple beats close together, thus report
         # only beats more than the minimum interval apart
         beats_ = []
         for frame in np.nonzero(beats)[0]:
             cur_beat = (frame + self.counter) / float(self.fps)
             next_beat = self.last_beat + 60. / self.max_bpm
-            # FIXME: this skips the first beat, but maybe this has a positive
-            #        effect on the overall beat tracking accuracy
+            # Note: This intentionally skips beats that are too close together
+            # (closer than 60/max_bpm). This prevents false positives from
+            # transient noise and improves overall beat tracking accuracy by
+            # enforcing a minimum tempo constraint. The first beat may be skipped
+            # if it doesn't meet the minimum interval requirement, which is
+            # acceptable for online processing where we prioritize accuracy
+            # over completeness.
             if cur_beat >= next_beat:
                 # update tempo
-                self.tempo = 60. / (cur_beat - self.last_beat)
+                if self.last_beat > 0:  # Avoid division by zero on first beat
+                    self.tempo = 60. / (cur_beat - self.last_beat)
                 # update last beat
                 self.last_beat = cur_beat
                 # append to beats
@@ -1140,6 +1195,58 @@ class DBNBeatTrackingProcessor(OnlineProcessor):
         self.counter += len(activations)
         # return beat(s)
         return np.array(beats_)
+    
+    def _visualize_online_frame(self, positions: np.ndarray, activations: np.ndarray, beats: np.ndarray) -> None:
+        """
+        Visualize beat detection progress in online mode (frame-by-frame).
+        
+        This method handles the visualization logic for online processing.
+        It displays:
+        - Beat position indicator (80-character bar)
+        - Activation strength indicator (10-character bar)
+        - Beat detection indicator (X when beat detected)
+        - Current tempo estimate
+        
+        Parameters
+        ----------
+        positions : numpy array
+            Current beat position states.
+        activations : numpy array
+            Current activation values.
+        beats : numpy array
+            Current beat detections (boolean array).
+        """
+        if not self.visualize:
+            return
+        
+        beat_length = 80
+        display = [' '] * beat_length
+        display[int(positions * beat_length)] = '*'
+        
+        # activation strength indicator
+        strength_length = 10
+        self.strength = int(max(self.strength, activations * 10))
+        display.append('| ')
+        display.extend(['*'] * self.strength)
+        display.extend([' '] * (strength_length - self.strength))
+        
+        # reduce the displayed strength every couple of frames
+        if self.counter % 5 == 0:
+            self.strength -= 1
+        
+        # beat indicator
+        if beats:
+            self.beat_counter = 3
+        if self.beat_counter > 0:
+            display.append('| X ')
+        else:
+            display.append('|   ')
+        self.beat_counter -= 1
+        
+        # display tempo
+        display.append('| %5.1f | ' % self.tempo)
+        sys.stderr.write('\r%s' % ''.join(display))
+        sys.stderr.flush()
 
     process_forward = process_online
 

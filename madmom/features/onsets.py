@@ -7,7 +7,7 @@ This module contains onset detection related functionality.
 
 """
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, annotations, division, print_function
 
 import numpy as np
 from scipy.ndimage import maximum_filter, minimum_filter, uniform_filter
@@ -1141,10 +1141,12 @@ class OnsetPeakPickingProcessor(OnlineProcessor):
         else:
             buffer = self.buffer(activations)
         # convert timing information to frames and set default values
-        # TODO: use at least 1 frame if any of these values are > 0?
+        # Ensure at least 1 frame if any timing value is > 0 (prevents zero-frame operations)
         timings = np.array([self.smooth, self.pre_avg, self.post_avg,
                             self.pre_max, self.post_max]) * self.fps
         timings = np.round(timings).astype(int)
+        # Use at least 1 frame if any value is > 0 to ensure meaningful processing
+        timings = np.maximum(timings, (timings > 0).astype(int))
         # detect the peaks (function returns int indices)
         peaks = peak_picking(buffer, self.threshold, *timings)
         # convert to onset timings

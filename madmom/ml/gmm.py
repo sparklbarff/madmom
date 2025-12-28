@@ -256,7 +256,8 @@ class GMM(object):
         self.covars = None
 
     def __setstate__(self, state):
-        # TODO: old models have underscores at some variable names, thus rename
+        # Backward compatibility: old models have underscores at some variable names, thus rename
+        # This allows loading GMM models saved with older versions of madmom
         #       them; remove this unpickling code after updating all models
         try:
             import warnings

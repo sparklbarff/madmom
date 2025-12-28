@@ -185,10 +185,12 @@ class NoteOnsetPeakPickingProcessor(OnsetPeakPickingProcessor):
 
         """
         # convert timing information to frames and set default values
-        # TODO: use at least 1 frame if any of these values are > 0?
+        # Ensure at least 1 frame if any timing value is > 0 (prevents zero-frame operations)
         timings = np.array([self.smooth, self.pre_avg, self.post_avg,
                             self.pre_max, self.post_max]) * self.fps
         timings = np.round(timings).astype(int)
+        # Use at least 1 frame if any value is > 0 to ensure meaningful processing
+        timings = np.maximum(timings, (timings > 0).astype(int))
         # detect the peaks (function returns int indices)
         onsets, pitches = peak_picking(activations, self.threshold, *timings)
         # if no note onsets are detected, return empty array

@@ -3,7 +3,7 @@
 This module contains chord recognition related functionality.
 
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, annotations, division, print_function
 
 from functools import partial
 

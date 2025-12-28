@@ -20,11 +20,11 @@ tmp_file = tempfile.NamedTemporaryFile(delete=False).name
 class TestProcessor(unittest.TestCase):
 
     def test_unicode(self):
-        if sys.version_info[0] == 2:
-            # load from unicode string
-            rnn = NeuralNetwork.load(unicode(ONSETS_RNN[0]))
-            # save to unicode string
-            rnn.dump(unicode(tmp_file))
+        # Unicode strings are the default in Python 3
+        # load from string
+        rnn = NeuralNetwork.load(ONSETS_RNN[0])
+        # save to string
+        rnn.dump(tmp_file)
 
 
 class TestBufferProcessor(unittest.TestCase):

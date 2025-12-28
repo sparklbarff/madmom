@@ -268,7 +268,8 @@ class RecurrentLayer(FeedForwardLayer):
     def __setstate__(self, state):
         # restore pickled instance attributes
         self.__dict__.update(state)
-        # TODO: old models do not have the init attribute, thus create it
+        # Backward compatibility: old models do not have the init attribute, thus create it
+        # This allows loading models saved with older versions of madmom
         #       remove this initialisation code after updating the models
         if not hasattr(self, 'init'):
             self.init = np.zeros(self.bias.size, dtype=NN_DTYPE)
@@ -509,7 +510,8 @@ class LSTMLayer(RecurrentLayer):
     def __setstate__(self, state):
         # restore pickled instance attributes
         self.__dict__.update(state)
-        # TODO: old models do not have the init attributes, thus create them
+        # Backward compatibility: old models do not have the init attributes, thus create them
+        # This allows loading models saved with older versions of madmom
         #       remove this initialisation code after updating the models
         if not hasattr(self, 'init'):
             self.init = np.zeros(self.cell.bias.size, dtype=NN_DTYPE)
@@ -706,7 +708,8 @@ class GRULayer(RecurrentLayer):
         return state
 
     def __setstate__(self, state):
-        # TODO: old models have a 'hid_init' instead of an 'init' attribute
+        # Backward compatibility: old models have a 'hid_init' instead of an 'init' attribute
+        # This handles the attribute name change in model format
         #       remove this unpickling code after updating all models
         try:
             import warnings
@@ -718,7 +721,8 @@ class GRULayer(RecurrentLayer):
             pass
         # restore pickled instance attributes
         self.__dict__.update(state)
-        # TODO: old models do not have the init attributes, thus create them
+        # Backward compatibility: old models do not have the init attributes, thus create them
+        # This allows loading models saved with older versions of madmom
         #       remove this initialisation code after updating the models
         if not hasattr(self, 'init'):
             self.init = np.zeros(self.cell.bias.size, dtype=NN_DTYPE)
@@ -1045,7 +1049,8 @@ class MaxPoolLayer(Layer):
     def __setstate__(self, state):
         # restore pickled instance attributes
         self.__dict__.update(state)
-        # TODO: old models do not have `axis`, thus create it
+        # Backward compatibility: old models do not have `axis`, thus create it
+        # This allows loading models saved with older versions of madmom
         #       remove this initialisation code after updating the models
         if not hasattr(self, 'axis'):
             self.axis = None

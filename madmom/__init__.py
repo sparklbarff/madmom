@@ -23,7 +23,7 @@ from importlib.metadata import distribution
 from . import audio, evaluation, features, io, ml, models, processors, utils
 
 # define a version variable
-__version__ = distribution("madmom")  .version
+__version__ = distribution("madmom").version
 
 # Create a doctest output checker that optionally ignores the unicode string
 # literal.

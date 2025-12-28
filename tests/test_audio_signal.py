@@ -1334,9 +1334,6 @@ class TestFramedSignalClass(unittest.TestCase):
         _ = frames[range(frames.num_frames)[0]]
         _ = frames[np.arange(frames.num_frames)[0]]
         _ = frames[np.arange(frames.num_frames, dtype=int)[0]]
-        if sys.version_info[0] == 2:
-            _ = frames[range(frames.num_frames)[0]]
-            _ = frames[np.long(range(frames.num_frames)[0])]
 
 
 class TestFramedSignalProcessorClass(unittest.TestCase):

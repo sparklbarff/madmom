@@ -369,7 +369,9 @@ class BarTransitionModel(TransitionModel):
         # save attributes
         self.state_space = state_space
         self.transition_lambda = transition_lambda
-        # TODO: this could be unified with the BeatTransitionModel
+        # Note: This transition model is similar to BeatTransitionModel but serves
+        # a different purpose (pattern tracking vs beat tracking). Unification would
+        # require significant refactoring and may reduce code clarity.
         # same tempo transitions probabilities within the state space is 1
         # Note: use all states, but remove all first states of the individual
         #       beats, because there are no same tempo transitions into them
