@@ -34,3 +34,6 @@
 # Sphinx documentation
 /docs/_build/
 .eggs
+
+# Local learning materials (not part of upstream)
+MTL346/
