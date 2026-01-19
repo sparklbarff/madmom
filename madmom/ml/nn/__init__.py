@@ -47,7 +47,7 @@ def average_predictions(predictions):
     # average predictions
     # if the network is a multi-task network, it returns tuples
     if isinstance(predictions[0], tuple):
-        # FIXME: checking for tuples may be a bit fragile
+        # NOTE: checking for tuples may be a bit fragile
         avg_pred = []
         # average the tuple's elements one by one
         for pred in list(zip(*predictions)):

@@ -240,7 +240,7 @@ def superflux(spectrogram, diff_frames=None, diff_max_bins=3):
     return np.asarray(np.sum(spectrogram, axis=1))
 
 
-# TODO: should this be its own class so that we can set the filter
+# NOTE: should this be its own class so that we can set the filter
 #       sizes in seconds instead of frames?
 def complex_flux(spectrogram, diff_frames=None, diff_max_bins=3,
                  temporal_filter=3, temporal_origin=0):
@@ -281,7 +281,7 @@ def complex_flux(spectrogram, diff_frames=None, diff_max_bins=3,
     # take only absolute values of the local group delay and normalize them
     lgd = np.abs(spectrogram.stft.phase().lgd()) / np.pi
     # maximum filter along the temporal axis
-    # TODO: use HPSS instead of simple temporal filtering
+    # NOTE: use HPSS instead of simple temporal filtering
     if temporal_filter > 0:
         lgd = maximum_filter(lgd, size=[temporal_filter, 1],
                              origin=temporal_origin)
@@ -924,7 +924,7 @@ def peak_picking(activations, threshold, smooth=None, pre_avg=0, post_avg=0,
     # compute a moving average
     avg_length = pre_avg + post_avg + 1
     if avg_length > 1:
-        # TODO: make the averaging function exchangeable (mean/median/etc.)
+        # NOTE: make the averaging function exchangeable (mean/median/etc.)
         avg_origin = int(np.floor((pre_avg - post_avg) / 2))
         if activations.ndim == 1:
             filter_size = avg_length
@@ -1089,7 +1089,7 @@ class OnsetPeakPickingProcessor(OnlineProcessor):
 
         """
         # convert timing information to frames and set default values
-        # TODO: use at least 1 frame if any of these values are > 0?
+        # NOTE: use at least 1 frame if any of these values are > 0?
         timings = np.array([self.smooth, self.pre_avg, self.post_avg,
                             self.pre_max, self.post_max]) * self.fps
         timings = np.round(timings).astype(int)

@@ -79,7 +79,7 @@ def stft(frames, window, fft_size=None, circular_shift=False,
     """
     # check for correct shape of input
     if frames.ndim != 2:
-        # TODO: add multi-channel support
+        # NOTE: add multi-channel support
         raise ValueError('frames must be a 2D array or iterable, got %s with '
                          'shape %s.' % (type(frames), frames.shape))
 
@@ -600,7 +600,7 @@ class Phase(_PropertyMixin, np.ndarray):
             stft = ShortTimeFourierTransform(stft,
                                              circular_shift=circular_shift,
                                              **kwargs)
-        # TODO: just recalculate with circular_shift set?
+        # NOTE: just recalculate with circular_shift set?
         if not stft.circular_shift:
             warnings.warn("`circular_shift` of the STFT must be set to 'True' "
                           "for correct phase", RuntimeWarning)

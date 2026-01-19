@@ -119,10 +119,10 @@ def run_help(program):
     return False
 
 
-# TODO: parametrize tests, don't know how to do with nose, should be simple
+# NOTE: parametrize tests, don't know how to do with nose, should be simple
 #       with pytest: http://pytest.org/latest/parametrize.html
 
-# TODO: can we speed up these tests?
+# NOTE: can we speed up these tests?
 
 class TestDifferentFileFormats(unittest.TestCase):
 
@@ -186,7 +186,7 @@ class TestBarTrackerProgram(unittest.TestCase):
         result = np.loadtxt(tmp_result)
         self.assertTrue(np.allclose(result, self.beats))
 
-    # TODO: investigate why this fails on Windows
+    # NOTE: investigate why this fails on Windows
     @unittest.skipIf(sys.platform.startswith('win'), "fails on Windows")
     def test_batch(self):
         # run using beat detections in batch mode
@@ -1179,7 +1179,7 @@ class TestSuperFluxProgram(unittest.TestCase):
         else:
             self.assertTrue(np.allclose(result, self.result, atol=1e-5))
 
-    # TODO: investigate why this fails on Windows
+    # NOTE: investigate why this fails on Windows
     @unittest.skipIf(sys.platform.startswith('win'), "fails on Windows")
     def test_batch(self):
         # test in batch mode with a given output directory

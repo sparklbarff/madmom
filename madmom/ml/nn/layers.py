@@ -847,7 +847,7 @@ try:
         sx, ex, sy, ey = _kernel_margins(k.shape, margin_shift=False, pad=pad)
         anchor = (-1, -1)
         if pad == 'same':
-            # TODO: check if this is correct in all cases
+            # NOTE: check if this is correct in all cases
             anchor = tuple(-1 * (np.array(k.shape) % 2))
         # opencv computes a correlation, thus flip the kernel
         return filter2D(x, -1, k[::-1, ::-1], anchor=anchor,
@@ -1082,7 +1082,7 @@ class MaxPoolLayer(Layer):
                             data.shape[1] - (self.size[1] - 1) // 2,
                             self.stride[1])
 
-        # TODO: is constant mode the most appropriate?
+        # NOTE: is constant mode the most appropriate?
         if len(data.shape) == 2:
             # filter the data as is
             return maximum_filter(data, self.size,

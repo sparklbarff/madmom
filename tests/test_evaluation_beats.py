@@ -125,7 +125,7 @@ class TestCalcIntervalFunction(unittest.TestCase):
         intervals = calc_intervals(DETECTIONS, fwd=True)
         correct = [0.99, 0.95, 1.05, 2, 1, 1, 1.1, 0.9, 1, 1]
         self.assertTrue(np.allclose(intervals, correct))
-        # TODO: same tests with matches given
+        # NOTE: same tests with matches given
 
 
 class TestFindClosestIntervalFunction(unittest.TestCase):
@@ -158,7 +158,7 @@ class TestFindClosestIntervalFunction(unittest.TestCase):
         intervals = find_closest_intervals(ANNOTATIONS, DETECTIONS)
         correct = [0.99, 0.99, 1.05, 1.05, 2, 2, 1, 1, 1.1, 0.9]
         self.assertTrue(np.allclose(intervals, correct))
-        # TODO: same tests with matches given
+        # NOTE: same tests with matches given
 
 
 class TestFindLongestContinuousSegmentFunction(unittest.TestCase):
@@ -230,7 +230,7 @@ class TestCalcRelativeErrorsFunction(unittest.TestCase):
         errors_ = np.asarray([-0.01, 0, 0.05, 0, -1, 0, 0, 0, -0.1, 0])
         intervals_ = np.asarray([0.99, 0.99, 1.05, 1.05, 2, 2, 1, 1, 1.1, 0.9])
         self.assertTrue(np.allclose(errors, errors_ / intervals_))
-        # TODO: same tests with matches given
+        # NOTE: same tests with matches given
 
 
 class TestBeatConstantsClass(unittest.TestCase):
@@ -989,7 +989,7 @@ class TestBeatMeanEvaluationClass(unittest.TestCase):
         self.assertTrue(math.isnan(e.information_gain))
         self.assertTrue(np.allclose(e.global_information_gain, 0))
         self.assertEqual(len(e), 0)
-        # TODO: should this also return nan?
+        # NOTE: should this also return nan?
         self.assertTrue(np.allclose(e.error_histogram, np.zeros(0)))
 
         # mean evaluation of empty beat evaluation

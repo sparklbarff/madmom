@@ -615,7 +615,7 @@ def cml(detections, annotations, phase_tolerance=CONTINUITY_PHASE_TOLERANCE,
     if len(annotations) < 2:
         raise BeatIntervalError("At least 2 annotations are needed for "
                                 "continuity scores, %s given." % annotations)
-    # TODO: remove this, see TODO below
+    # NOTE: remove this, see NOTE below
     if len(detections) < 2:
         raise BeatIntervalError("At least 2 detections are needed for "
                                 "continuity scores, %s given." % detections)
@@ -641,7 +641,7 @@ def cml(detections, annotations, phase_tolerance=CONTINUITY_PHASE_TOLERANCE,
     #       we count a correct beat just because its predecessor is not? and
     #       b) the original Matlab implementation does not enforce it either
     # 2) the tempo, i.e. the intervals, must be within the tempo tolerance
-    # TODO: as agreed with Matthew, this should only be enforced from the 2nd
+    # NOTE: as agreed with Matthew, this should only be enforced from the 2nd
     #       beat onwards.
     correct_tempo = detections[abs(1 - (det_interval / ann_interval)) <=
                                tempo_tolerance]

@@ -497,7 +497,7 @@ class ACFTempoHistogramProcessor(TempoHistogramProcessor):
         if reset:
             self.reset()
         # iterate over all activations
-        # TODO: speed this up!
+        # NOTE: speed this up!
         for act in activations:
             # online ACF (y[n] = x[n] * x[n - τ])
             bins = act * self._act_buffer[-self.intervals].T

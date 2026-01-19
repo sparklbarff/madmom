@@ -177,7 +177,7 @@ class TestHiddenMarkovModelClass(unittest.TestCase):
         state_seq, log_p = hmm.viterbi([0, 1, 0, 2])
         self.assertTrue(np.allclose(state_seq, []))
         self.assertAlmostEqual(log_p, -np.inf)
-        # TODO: assertWarns exist only for Python 3.2+, test in all versions
+        # NOTE: assertWarns exist only for Python 3.2+, test in all versions
         if sys.version_info >= (3, 2):
             with self.assertWarns(RuntimeWarning):
                 hmm.viterbi([0, 1, 0, 2])

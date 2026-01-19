@@ -202,7 +202,7 @@ class TestFilteredSpectrogramClass(unittest.TestCase):
     def test_methods(self):
         result = FilteredSpectrogram(sample_file)
         self.assertIsInstance(result.diff(), SpectrogramDifference)
-        # TODO: should we return a LogarithmicFilteredSpectrogram?
+        # NOTE: should we return a LogarithmicFilteredSpectrogram?
         self.assertIsInstance(result.log(), LogarithmicSpectrogram)
 
 

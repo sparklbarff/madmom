@@ -1030,7 +1030,7 @@ class RNNBarProcessor(Processor):
             fps=fps, fmin=27.5, fmax=4200., compression_factor=100,
             norm=True, threshold=0.001)
         # sync features to the beats
-        # TODO: can beat_subdivisions extracted from somewhere?
+        # NOTE: can beat_subdivisions extracted from somewhere?
         self.perc_beat_sync = SyncronizeFeaturesProcessor(
             beat_subdivisions[0], fps=fps, **kwargs)
         self.harm_beat_sync = SyncronizeFeaturesProcessor(
@@ -1187,7 +1187,7 @@ class DBNBarTrackingProcessor(Processor):
         activations = data[:, 1]
         # remove unsynchronised (usually the last) values
         activations = activations[:-1]
-        # TODO: expand to generic extrapolation of values? e.g.:
+        # NOTE: expand to generic extrapolation of values? e.g.:
         #       activations = activations[~np.isnan(activations)]
         # Viterbi decoding
         path, _ = self.hmm.viterbi(activations)

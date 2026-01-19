@@ -499,7 +499,7 @@ class IOProcessor(OutputProcessor):
     """
 
     def __init__(self, in_processor, out_processor=None):
-        # TODO: check the input and output processors!?
+        # NOTE: check the input and output processors!?
         #       as input a Processor, SequentialProcessor, ParallelProcessor
         #       or a function with only one argument should be accepted
         #       as output a OutputProcessor, IOProcessor or function with two
@@ -741,7 +741,7 @@ class BufferProcessor(Processor):
         # if buffer_size is int, make a tuple
         elif isinstance(buffer_size, integer_types):
             buffer_size = (buffer_size, )
-        # TODO: use np.pad for fancy initialisation (can be done in process())
+        # NOTE: use np.pad for fancy initialisation (can be done in process())
         # init buffer if needed
         if buffer_size is not None and init is None:
             init = np.ones(buffer_size) * init_value
@@ -880,7 +880,7 @@ def process_online(processor, infile, outfile, **kwargs):
         hop_size = kwargs.get('hop_size', HOP_SIZE)
         fps = kwargs.get('fps', FPS)
         num_channels = kwargs.get('num_channels', NUM_CHANNELS)
-        # FIXME: overwrite the frame size with the maximum value of all used
+        # NOTE: overwrite the frame size with the maximum value of all used
         #        processors. This is needed if multiple frame sizes are used
         import warnings
         warnings.warn('make sure that the `frame_size` (%d) is equal to the '

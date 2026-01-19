@@ -74,7 +74,7 @@ class TestMIDIFileClass(unittest.TestCase):
         self.assertTrue(np.allclose(notes, notes_, atol=1e-3))
         # write to a temporary file
         midi.write(tmp_file)
-        # FIXME: re-read this file and compare the notes
+        # NOTE: re-read this file and compare the notes
         tmp_midi = MIDIFile.from_file(tmp_file)
         notes_ = tmp_midi.notes()[:, :4]
         self.assertTrue(np.allclose(notes, notes_, atol=1e-3))
