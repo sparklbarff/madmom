@@ -655,7 +655,7 @@ def segment_axis(signal, frame_size, hop_size, axis=None, end='cut',
                                   shape=new_shape, buffer=signal,
                                   dtype=signal.dtype)
     except TypeError:
-        # TODO: remove warning?
+        # NOTE: remove warning?
         import warnings
         warnings.warn("Problem with ndarray creation forces copy.")
         signal = signal.copy()

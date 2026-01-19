@@ -146,7 +146,7 @@ class TestHz2BarkFunction(unittest.TestCase):
 
     def test_raises_warning(self):
         with self.assertRaises(NotImplementedError):
-            # TODO: write test when implemented
+            # NOTE: write test when implemented
             hz2bark(HZ)
 
 
@@ -154,7 +154,7 @@ class TestBark2HzFunction(unittest.TestCase):
 
     def test_raises_warning(self):
         with self.assertRaises(NotImplementedError):
-            # TODO: write test when implemented
+            # NOTE: write test when implemented
             bark2hz(BARK)
 
 
@@ -462,7 +462,7 @@ class TestFilterClass(unittest.TestCase):
         with self.assertRaises(TypeError):
             Filter(np.arange(5), [0, 1])
         with self.assertRaises(NotImplementedError):
-            # TODO: write test when implemented
+            # NOTE: write test when implemented
             Filter(np.zeros((10, 2)), 1)
 
     def test_value(self):
@@ -489,7 +489,7 @@ class TestFilterClass(unittest.TestCase):
 
     def test_filters_method(self):
         with self.assertRaises(NotImplementedError):
-            # TODO: write test when implemented
+            # NOTE: write test when implemented
             Filter(np.arange(5)).filters(3, norm=True)
 
 
@@ -610,7 +610,7 @@ class TestRectangularFilterClass(unittest.TestCase):
                               types.GeneratorType)
 
     def test_errors(self):
-        # TODO: why is this error not raised? it does not really matter, though
+        # NOTE: why is this error not raised? it does not really matter, though
         # # integer bin numbers
         # with self.assertRaises(ValueError):
         #     RectangularFilter(0, 1.1, False)
@@ -1030,11 +1030,11 @@ class TestLogarithmicFilterbankClass(unittest.TestCase):
 
     def test_errors(self):
         with self.assertRaises(NotImplementedError):
-            # TODO: write test when implemented
+            # NOTE: write test when implemented
             LogarithmicFilterbank(np.arange(20000), bands_per_octave=False)
 
     def test_constant_types(self):
-        # TODO: why can't we test the inherited constants? it does not matter
+        # NOTE: why can't we test the inherited constants? it does not matter
         # self.assertIsInstance(LogarithmicFilterbank.FMIN, float))
         # self.assertIsInstance(LogarithmicFilterbank.FMAX, float))
         self.assertIsInstance(LogarithmicFilterbank.NUM_BANDS_PER_OCTAVE, int)
@@ -1107,7 +1107,7 @@ class TestSimpleChromaFilterbankClass(unittest.TestCase):
 
     def test_error(self):
         with self.assertRaises(NotImplementedError):
-            # TODO: write test when implemented
+            # NOTE: write test when implemented
             SimpleChromaFilterbank(FFT_FREQS_1024)
 
 
@@ -1115,7 +1115,7 @@ class TestHarmonicFilterbankClass(unittest.TestCase):
 
     def test_error(self):
         with self.assertRaises(NotImplementedError):
-            # TODO: write test when implemented
+            # NOTE: write test when implemented
             HarmonicFilterbank()
 
 

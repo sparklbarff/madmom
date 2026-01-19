@@ -53,7 +53,7 @@ class Cepstrogram(np.ndarray):
         obj = np.asarray(data).view(cls)
         # save additional attributes
         obj.spectrogram = spectrogram
-        # TODO: what are the frequencies of the bins?
+        # NOTE: what are the frequencies of the bins?
         # obj.bin_frequencies = ???
         obj.transform = transform
         # return the object

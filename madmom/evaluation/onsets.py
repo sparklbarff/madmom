@@ -63,7 +63,7 @@ def onset_evaluation(detections, annotations, window=WINDOW):
     # make sure the arrays have the correct types and dimensions
     detections = np.asarray(detections, dtype=float)
     annotations = np.asarray(annotations, dtype=float)
-    # TODO: right now, it only works with 1D arrays
+    # NOTE: right now, it only works with 1D arrays
     if detections.ndim > 1 or annotations.ndim > 1:
         raise NotImplementedError('please implement multi-dim support')
 

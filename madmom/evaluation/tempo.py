@@ -136,7 +136,7 @@ def tempo_evaluation(detections, annotations, tolerance=TOLERANCE):
     # the P-Score is the sum of the strengths of the correctly identified tempi
     pscore = np.sum(strengths[correct])
     # return the scores
-    # TODO: also return the errors?
+    # NOTE: also return the errors?
     return pscore, correct.any(), correct.all()
 
 
@@ -359,7 +359,7 @@ def add_parser(parser):
     g.add_argument('--no_sort', dest='sort', action='store_false',
                    help='do not sort the tempi by strength [default: sort '
                         'them by strength]')
-    # TODO: add option to evaluate any other than the default number of tempi?
+    # NOTE: add option to evaluate any other than the default number of tempi?
     # g.add_argument('--num', dest='max_len', action='store', type=int,
     #                help='evaluate NUM tempi [default: evaluate only the '
     #                     'first (after sorting them)]')

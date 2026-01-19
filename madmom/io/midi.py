@@ -17,7 +17,7 @@ DEFAULT_TICKS_PER_BEAT = 480  # ticks per quarter note
 DEFAULT_TIME_SIGNATURE = (4, 4)
 
 
-# TODO: remove these unit conversion functions after upstream PR is merged
+# NOTE: remove these unit conversion functions after upstream PR is merged
 #       https://github.com/olemb/mido/pull/114
 def tick2second(tick, ticks_per_beat=DEFAULT_TICKS_PER_BEAT,
                 tempo=DEFAULT_TEMPO):
@@ -221,7 +221,7 @@ class MIDIFile(mido.MidiFile):
         self.unit = unit
         self.timing = timing
 
-    # TODO: remove this method after upstream PR is merged
+    # NOTE: remove this method after upstream PR is merged
     #       https://github.com/olemb/mido/pull/115
     def __iter__(self):
         # The tracks of type 2 files are not in sync, so they can
@@ -293,7 +293,7 @@ class MIDIFile(mido.MidiFile):
         if not tempi or tempi[0][0] > 0:
             tempi.insert(0, (0, DEFAULT_TEMPO))
         # tempo is given in microseconds per quarter note
-        # TODO: add option to return in BPM
+        # NOTE: add option to return in BPM
         return np.asarray(tempi, float)
 
     @property

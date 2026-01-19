@@ -38,7 +38,7 @@ def find_closest_matches(detections, annotations):
     # make sure the arrays have the correct types
     detections = np.asarray(detections, dtype=float)
     annotations = np.asarray(annotations, dtype=float)
-    # TODO: right now, it only works with 1D arrays
+    # NOTE: right now, it only works with 1D arrays
     if detections.ndim > 1 or annotations.ndim > 1:
         raise NotImplementedError('please implement multi-dim support')
     # if no detections or annotations are given
@@ -88,7 +88,7 @@ def calc_errors(detections, annotations, matches=None):
     annotations = np.asarray(annotations, dtype=float)
     if matches is not None:
         matches = np.asarray(matches, dtype=int)
-    # TODO: right now, it only works with 1D arrays
+    # NOTE: right now, it only works with 1D arrays
     if detections.ndim > 1 or annotations.ndim > 1:
         raise NotImplementedError('please implement multi-dim support')
     # if no detections or annotations are given
@@ -133,7 +133,7 @@ def calc_absolute_errors(detections, annotations, matches=None):
     annotations = np.asarray(annotations, dtype=float)
     if matches is not None:
         matches = np.asarray(matches, dtype=int)
-    # TODO: right now, it only works with 1D arrays
+    # NOTE: right now, it only works with 1D arrays
     if detections.ndim > 1 or annotations.ndim > 1:
         raise NotImplementedError('please implement multi-dim support')
     # return the errors
@@ -169,7 +169,7 @@ def calc_relative_errors(detections, annotations, matches=None):
     annotations = np.asarray(annotations, dtype=float)
     if matches is not None:
         matches = np.asarray(matches, dtype=int)
-    # TODO: right now, it only works with 1D arrays
+    # NOTE: right now, it only works with 1D arrays
     if detections.ndim > 1 or annotations.ndim > 1:
         raise NotImplementedError('please implement multi-dim support')
     # if no detections or annotations are given
@@ -684,7 +684,7 @@ class MeanEvaluation(SumEvaluation):
         ret = ''
         if self.name is not None:
             ret += '%s\n  ' % self.name
-        # TODO: unify this with SimpleEvaluation but
+        # NOTE: unify this with SimpleEvaluation but
         #       add option to provide field formatters (e.g. 3d or 5.2f)
         # format with floats instead of integers
         ret += 'Annotations: %5.2f TP: %5.2f FP: %5.2f FN: %5.2f ' \
@@ -746,7 +746,7 @@ def tocsv(eval_objects, metric_names=None, float_format='{:.3f}', **kwargs):
     metric_names, metric_labels = list(zip(*metric_names))
     # add header
     lines = ['Name,' + ','.join(metric_labels)]
-    # TODO: use e.metrics dict?
+    # NOTE: use e.metrics dict?
     # add the evaluation objects
     for e in eval_objects:
         values = [float_format.format(getattr(e, mn)) for mn in metric_names]
@@ -788,8 +788,8 @@ def totex(eval_objects, metric_names=None, float_format='{:.3f}', **kwargs):
     metric_names, metric_labels = list(zip(*metric_names))
     # add header
     lines = ['Name & ' + ' & '.join(metric_labels) + '\\\\']
-    # TODO: use e.metrics dict
-    # TODO: add a generic totable() function which accepts columns separator,
+    # NOTE: use e.metrics dict
+    # NOTE: add a generic totable() function which accepts columns separator,
     #       newline stuff (e.g. tex \\\\) and others
     # add the evaluation objects
     for e in eval_objects:

@@ -208,7 +208,7 @@ def remix(signal, num_channels, channel=None):
             # down-mix to mono
             # Note: to prevent clipping, the signal is converted to float first
             #       and then converted back to the original dtype
-            # TODO: add weighted mixing
+            # NOTE: add weighted mixing
             return np.mean(signal, axis=-1).astype(signal.dtype)
         else:
             # Use the requested channel verbatim
@@ -1477,7 +1477,7 @@ class Stream(object):
         # buffer the data (i.e. append hop_size samples and rotate)
         data = self.buffer(data)
         # wrap the last frame_size samples as a Signal
-        # TODO: check float / int hop size; theoretically a float hop size
+        # NOTE: check float / int hop size; theoretically a float hop size
         #       can be accomplished by making the buffer N samples bigger and
         #       take the correct portion of the buffer
         start = (self.frame_idx * float(self.hop_size) / self.sample_rate)
@@ -1495,7 +1495,7 @@ class Stream(object):
 
     def close(self):
         self.stream.close()
-        # TODO: is this the correct place to terminate PyAudio?
+        # NOTE: is this the correct place to terminate PyAudio?
         self.pa.terminate()
 
     @property

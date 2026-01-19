@@ -457,7 +457,7 @@ class MultiPatternTransitionModel(TransitionModel):
             first_states.append(tm.state_space.first_states[0] + offset)
             last_states.append(tm.state_space.last_states[-1] + offset)
         # retrieve a dense representation in order to add transitions
-        # TODO: operate directly on the sparse representation?
+        # NOTE: operate directly on the sparse representation?
         states, prev_states, probabilities = self.make_dense(states, pointers,
                                                              probabilities)
         # translate float transition_prob value to transition_prob matrix
@@ -677,7 +677,7 @@ class GMMPatternTrackingObservationModel(ObservationModel):
             # number of fitted GMMs for this pattern
             num_gmms = len(gmms)
             # number of beats in this pattern
-            # TODO: save the number of beats in the pattern files so we don't
+            # NOTE: save the number of beats in the pattern files so we don't
             #       need to save references to all state spaces
             num_beats = self.state_space.state_spaces[p].num_beats
             # distribute the observation densities defined by the GMMs

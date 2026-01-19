@@ -117,7 +117,7 @@ def note_onset_evaluation(detections, annotations, window=WINDOW):
         # all annotations are FN
         return tp, tp, tn, annotations, errors
 
-    # TODO: extend to also evaluate the duration and velocity of notes
+    # NOTE: extend to also evaluate the duration and velocity of notes
     # for onset evaluation use only the onset time and midi note number
     detections = detections[:, :2]
     annotations = annotations[:, :2]
@@ -160,7 +160,7 @@ def note_onset_evaluation(detections, annotations, window=WINDOW):
 
 # for note evaluation with Precision, Recall, F-measure use the Evaluation
 # class and just define the evaluation function
-# TODO: extend to also report the measures without octave errors
+# NOTE: extend to also report the measures without octave errors
 class NoteEvaluation(MultiClassEvaluation):
     """
     Evaluation class for measuring Precision, Recall and F-measure of notes.

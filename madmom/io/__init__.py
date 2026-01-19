@@ -436,7 +436,7 @@ def load_tempo(filename, split_value=1., sort=None, norm_strengths=None,
     # try to load the data from file
     values = np.loadtxt(filename, ndmin=1)
     # split the filename according to their filename into tempi and strengths
-    # TODO: this is kind of hack-ish, find a better solution
+    # NOTE: this is kind of hack-ish, find a better solution
     tempi = values[values > split_value]
     strengths = values[values <= split_value]
     # make the strengths behave properly

@@ -95,7 +95,7 @@ def hz2bark(f):
     """
     raise NotImplementedError('please check this function, it produces '
                               'negative values')
-    # TODO: use Zwicker's formula?
+    # NOTE: use Zwicker's formula?
     #       return 13 * arctan(0.00076 * f) + 3.5 * arctan((f / 7500.) ** 2)
     return (26.81 / (1. + 1960. / np.asarray(f))) - 0.53
 
@@ -117,7 +117,7 @@ def bark2hz(z):
     """
     raise NotImplementedError('please check this function, it produces weird '
                               'values')
-    # TODO: use Zwicker's formula? what's the inverse of the above?
+    # NOTE: use Zwicker's formula? what's the inverse of the above?
     return 1960. / (26.81 / (np.asarray(z) + 0.53) - 1.)
 
 
@@ -779,7 +779,7 @@ class Filterbank(np.ndarray):
             stop = len(band)
         # put the filter in place
         filter_position = band[start:stop]
-        # TODO: if needed, allow other handling (like summing values)
+        # NOTE: if needed, allow other handling (like summing values)
         np.maximum(filt, filter_position, out=filter_position)
 
     @classmethod
@@ -954,7 +954,7 @@ class FilterbankProcessor(Processor, Filterbank):
         # add filterbank related options to the existing parser
         g = parser.add_argument_group('filterbank arguments')
         # filterbank
-        # TODO: add a list with filterbank options?
+        # NOTE: add a list with filterbank options?
         if filterbank is not None:
             if issubclass(filterbank, Filterbank):
                 g.add_argument('--no_filter', dest='filterbank',
@@ -967,7 +967,7 @@ class FilterbankProcessor(Processor, Filterbank):
                                help='filter the spectrogram with a filterbank '
                                     'of this type')
         # number of bands
-        # TODO: add a second argument with num_bands_per_octave and rename the
+        # NOTE: add a second argument with num_bands_per_octave and rename the
         #       option at the relevant filterbanks accordingly?
         # depending on the type of num_bands, use different options
         if isinstance(num_bands, int):
@@ -1452,12 +1452,12 @@ class PitchClassProfileFilterbank(Filterbank):
 
     @property
     def corner_frequencies(self):
-        # TODO: property should return multiple corner frequencies
+        # NOTE: property should return multiple corner frequencies
         raise NotImplementedError('please implement if needed')
 
     @property
     def center_frequencies(self):
-        # TODO: property should return multiple center frequencies
+        # NOTE: property should return multiple center frequencies
         raise NotImplementedError('please implement if needed')
 
 

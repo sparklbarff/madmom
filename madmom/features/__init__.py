@@ -182,7 +182,7 @@ class Activations(np.ndarray):
             header = "FPS:%f" % self.fps
             np.savetxt(outfile, np.atleast_2d(self), fmt=fmt, delimiter=sep,
                        header=header)
-        # TODO: check if closing the file is really the best option to avoid
+        # NOTE: check if closing the file is really the best option to avoid
         #       fails in tests/test_bin.py
         try:
             outfile.close()
@@ -244,7 +244,7 @@ class ActivationsProcessor(Processor):
         if self.mode in ('r', 'in', 'load'):
             return Activations.load(data, fps=self.fps, sep=self.sep)
         if self.mode in ('w', 'out', 'save'):
-            # TODO: should we return the data or the Activations instance?
+            # NOTE: should we return the data or the Activations instance?
             Activations(data, fps=self.fps).save(output, sep=self.sep)
         else:
             raise ValueError("wrong mode %s; choose {'r', 'w', 'in', 'out', "

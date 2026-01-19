@@ -802,7 +802,7 @@ class UnknownMetaEvent(MetaEvent):
 
     def __init__(self, **kwargs):
         super(UnknownMetaEvent, self).__init__(**kwargs)
-        # TODO: is this needed, should be handled by Event already
+        # NOTE: is this needed, should be handled by Event already
         self.meta_command = kwargs['meta_command']
 
 
@@ -1218,7 +1218,7 @@ class MIDITrack(object):
                 track_data.extend(event.data)
             else:
                 raise ValueError("Unknown MIDI Event: " + str(event))
-        # TODO: should we add a EndOfTrackEvent?
+        # NOTE: should we add a EndOfTrackEvent?
         # convert events back to absolute ticks
         self._make_ticks_abs()
         # prepare the data
@@ -1474,14 +1474,14 @@ class MIDIFile(object):
         elif isinstance(tracks, MIDITrack):
             self.tracks = [tracks]
         elif isinstance(tracks, list):
-            # TODO: test if the items of the list are of type MIDITrack
+            # NOTE: test if the items of the list are of type MIDITrack
             self.tracks = tracks
         else:
             raise ValueError('file_format of `tracks` not supported.')
         self.resolution = resolution  # i.e. ticks per quarter note
         # format 0 stores all information in 1 track
         # format 1 has multiple tracks but plays them back simultaneously
-        # TODO: format 2 has multiple tracks but plays them back one after
+        # NOTE: format 2 has multiple tracks but plays them back one after
         #       another. This type is not supported (yet).
         if file_format > 1:
             raise ValueError('Only MIDI file formats 0 and 1 supported.')
