@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git remote add:*)",
+      "Bash(git checkout:*)",
+      "Bash(ruff check:*)",
+      "Bash(git submodule:*)",
+      "Bash(/usr/bin/find:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(pip show:*)",
+      "Bash(python3:*)",
+      "Bash(source:*)",
+      "Bash(pip install:*)",
+      "Bash(pytest:*)",
+      "Bash(ffmpeg:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
