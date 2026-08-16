@@ -105,7 +105,14 @@ script-files = [
     "bin/TCNTempoDetector",
     "bin/TempoDetector",
 ]
-packages = ["madmom", "madmom.audio", "madmom.evaluation", "madmom.features", "madmom.io", "madmom.ml", "madmom.ml.nn", "madmom.utils"]
+# madmom.models added 2026-08-15. Without it the 34M of model data still installs via the
+# package-data globs below, but madmom/models/__init__.py — the module defining BEATS_LSTM,
+# ONSETS_CNN, KEY_CNN, DOWNBEATS_BLSTM as importable constants — does not. The package then
+# imports cleanly while every neural capability raises "cannot import name ... (unknown location)"
+# on processor instantiation. It fails SILENTLY: callers set MADMOM_AVAILABLE from whether the
+# feature classes import, which succeeds, so tools report the neural path active and quietly fall
+# back to heuristics.
+packages = ["madmom", "madmom.models", "madmom.audio", "madmom.evaluation", "madmom.features", "madmom.io", "madmom.ml", "madmom.ml.nn", "madmom.utils"]
 include-package-data = true
 
 [tool.setuptools.package-data]
