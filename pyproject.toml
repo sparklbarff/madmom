@@ -115,15 +115,31 @@ script-files = [
 packages = ["madmom", "madmom.models", "madmom.audio", "madmom.evaluation", "madmom.features", "madmom.io", "madmom.ml", "madmom.ml.nn", "madmom.utils"]
 include-package-data = true
 
+# Year-pinned globs are a trap here, and 2026-08-15 sprung it. `models/beats/201[56]/*` matched
+# the two model years that existed when it was written and silently stopped at the third:
+# madmom/models/__init__.py:40 defines BEATS_TCN = models("beats/2019/beats_tcn_[1-8].pkl"), the
+# eight .pkl files are present in the source tree, and they were simply never packaged. models()
+# is `return sorted(glob.glob(...))`, so a miss yields [] rather than raising — TCNBeatProcessor
+# constructs fine and dies later on use with "IndexError: list index out of range", naming
+# nothing, while bin/TCNBeatTracker and bin/TCNTempoDetector ship as console scripts regardless.
+# That is the default beat tracker, dark since the packaging commit.
+#
+# So every family globs */* now. `models/key/2018/*` had the identical shape and was latent only
+# because no constant references key/2017 yet; leaving it would have preserved the bug for the
+# next model year. Cost is ~4.9 MB of unreferenced models (beats/2013, key/2017) in the wheel,
+# which is a fraction of the 34 MB already shipping and much cheaper than a silently dead engine.
+#
+# This list and the constants in madmom/models/__init__.py are two lists that must agree, with
+# nothing checking that they do. tests/test_model_constants_resolve.py is that check.
 [tool.setuptools.package-data]
 madmom = [
     "models/LICENSE",
     "models/README.rst",
-    "models/beats/201[56]/*",
+    "models/beats/*/*",
     "models/chords/*/*",
     "models/chroma/*/*",
     "models/downbeats/*/*",
-    "models/key/2018/*",
+    "models/key/*/*",
     "models/notes/*/*",
     "models/onsets/*/*",
     "models/patterns/*/*",
