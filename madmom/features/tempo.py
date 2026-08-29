@@ -689,8 +689,14 @@ class TCNTempoHistogramProcessor(TempoHistogramProcessor):
             Corresponding tempi [bpm].
 
         """
-        # if data is a tuple, tempo is usually last item of TCN output
-        if type(data) == tuple:
+        # if data is a tuple, tempo is usually last item of TCN output.
+        # isinstance, not `type(data) == tuple`: the exact-type test misses every
+        # tuple SUBCLASS, so a namedtuple output would fall straight through and be
+        # treated as the tempo array itself, silently reading the whole multi-task
+        # output as a histogram. Latent rather than live -- the TCN returns a plain
+        # tuple today -- but it fails in the direction that produces numbers instead
+        # of an error, which is the worse direction for this library.
+        if isinstance(data, tuple):
             data = itemgetter(-1)(data)
         # use a linear tempo range
         tempi = np.arange(len(data))
