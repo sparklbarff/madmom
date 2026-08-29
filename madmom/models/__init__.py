@@ -9,7 +9,6 @@ Please see the LICENSE file for licensing details of this package.
 from __future__ import absolute_import, division, print_function
 
 import os
-import glob
 
 MODEL_PATH = os.path.dirname(__file__)
 
@@ -31,6 +30,13 @@ def models(pattern, path=MODEL_PATH):
         Sorted list of matching model file names.
 
     """
+    # Imported here rather than at module scope because this module ends with `del os` to keep
+    # the package namespace clean. A module-level `import glob` alongside `del os, glob` left
+    # this function reading a global that no longer existed by the time any caller could reach
+    # it: the constants below are assigned during the module body, while glob was still bound,
+    # so they were always correct, and models() raised NameError for everybody else.
+    import glob
+
     return sorted(glob.glob("%s/%s" % (path, pattern)))
 
 
@@ -70,5 +76,6 @@ CHORDS_CFCRF = models("chords/2016/chords_cnncrf.pkl")
 # key
 KEY_CNN = models("key/2018/key_cnn.pkl")
 
-# keep namespace clean
-del os, glob
+# keep namespace clean. glob is deliberately not listed: it is a function-local import now, so it
+# was never added to this namespace and naming it here would raise NameError on import instead.
+del os
