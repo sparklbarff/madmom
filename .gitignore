@@ -37,3 +37,6 @@
 
 # Local learning materials (not part of upstream)
 MTL346/
+
+# Hookify rules (local, not committed)
+.claude/*.local.md
