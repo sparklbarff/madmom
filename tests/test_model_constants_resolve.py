@@ -9,6 +9,11 @@ the default TCN beat tracker -- resolved to an empty list in every install. `mod
 constructs, reports nothing wrong, and dies later on use with an IndexError that names neither
 the model nor the missing file.
 
+That "yields [] rather than raising" is about resolution DURING the module body, which is when the
+constants are assigned. It was not true of models() itself until 2026-08-28: the module ended with
+`del os, glob`, so calling the function after import raised NameError instead. See
+test_models_callable_after_import.py, which pins both halves now that they finally agree.
+
 The trap in testing this: importing madmom from the SOURCE tree resolves every constant against
 the working directory, where all the .pkl files are present. Such a test passes while the wheel
 ships nothing, which is the exact failure it was written to catch. So this compares the two
@@ -29,7 +34,9 @@ REPO = Path(__file__).resolve().parents[1]
 MODELS_INIT = REPO / "madmom" / "models" / "__init__.py"
 PYPROJECT = REPO / "pyproject.toml"
 
-# BEATS_TCN uses double quotes, the rest single: match either.
+# Match either quote style. Until 2026-08-28 that was load-bearing (BEATS_TCN used double quotes
+# and the rest single); black now normalises them all to double, but this stays permissive so a
+# hand-edit in either style cannot silently drop a constant out of the scraped set.
 _CONSTANT_RE = re.compile(r"^([A-Z][A-Z0-9_]*)\s*=\s*models\(\s*['\"](.+?)['\"]", re.MULTILINE)
 
 
