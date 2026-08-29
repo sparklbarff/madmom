@@ -1,11 +1,9 @@
 #!/usr/bin/env python
-# encoding: utf-8
 """
 TCNTempoDetector beat tracking algorithm.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import argparse
 
@@ -22,7 +20,8 @@ def main():
 
     # define parser
     p = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter, description='''
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""
     The TCNTempoDetector program detects the tempo in an audio file according
     to the method described in:
 
@@ -47,12 +46,12 @@ def main():
     The 'pickle' mode can be used to store the used parameters to be able to
     exactly reproduce experiments.
 
-    ''')
+    """,
+    )
     # version
-    p.add_argument('--version', action='version',
-                   version='TCNTempoDetector')
+    p.add_argument("--version", action="version", version="TCNTempoDetector")
     # input/output options
-    io_arguments(p, output_suffix='.bpm.txt', online=True)
+    io_arguments(p, output_suffix=".bpm.txt", online=True)
     ActivationsProcessor.add_arguments(p)
     # signal processing arguments
     SignalProcessor.add_arguments(p, norm=False, gain=0)
@@ -63,7 +62,7 @@ def main():
     args = p.parse_args()
 
     # set immutable arguments
-    args.tasks = (1, )
+    args.tasks = (1,)
     args.interpolate = True
     args.method = None
     args.act_smooth = None
@@ -75,7 +74,7 @@ def main():
     # input processor
     if args.load:
         # load the activations from file
-        in_processor = ActivationsProcessor(mode='r', **vars(args))
+        in_processor = ActivationsProcessor(mode="r", **vars(args))
     else:
         # use a TCN to predict beats and tempo
         in_processor = TCNBeatProcessor(**vars(args))
@@ -83,7 +82,7 @@ def main():
     # output processor
     if args.save:
         # save the TCN activations to file
-        out_processor = ActivationsProcessor(mode='w', **vars(args))
+        out_processor = ActivationsProcessor(mode="w", **vars(args))
     else:
         # extract the tempo histogram from the NN output
         args.histogram_processor = TCNTempoHistogramProcessor(**vars(args))
@@ -101,5 +100,5 @@ def main():
     args.func(processor, **vars(args))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

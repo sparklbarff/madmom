@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -8,11 +7,10 @@ Neural Network package.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import numpy as np
 
-from ...processors import Processor, ParallelProcessor, SequentialProcessor
+from ...processors import ParallelProcessor, Processor, SequentialProcessor
 
 
 def average_predictions(predictions):
@@ -166,12 +164,9 @@ class NeuralNetworkEnsemble(SequentialProcessor):
 
     """
 
-    def __init__(self, networks, ensemble_fn=average_predictions,
-                 num_threads=None, **kwargs):
-        networks_processor = ParallelProcessor(networks,
-                                               num_threads=num_threads)
-        super(NeuralNetworkEnsemble, self).__init__((networks_processor,
-                                                     ensemble_fn))
+    def __init__(self, networks, ensemble_fn=average_predictions, num_threads=None, **kwargs):
+        networks_processor = ParallelProcessor(networks, num_threads=num_threads)
+        super(NeuralNetworkEnsemble, self).__init__((networks_processor, ensemble_fn))
 
     @classmethod
     def load(cls, nn_files, **kwargs):
@@ -214,12 +209,17 @@ class NeuralNetworkEnsemble(SequentialProcessor):
         """
         # pylint: disable=signature-differs
         from madmom.utils import OverrideDefaultListAction
+
         # add neural network options
-        g = parser.add_argument_group('neural network arguments')
-        g.add_argument('--nn_files', action=OverrideDefaultListAction,
-                       type=str, default=nn_files,
-                       help='average the predictions of these pre-trained '
-                            'neural networks (multiple files can be given, '
-                            'one file per argument)')
+        g = parser.add_argument_group("neural network arguments")
+        g.add_argument(
+            "--nn_files",
+            action=OverrideDefaultListAction,
+            type=str,
+            default=nn_files,
+            help="average the predictions of these pre-trained "
+            "neural networks (multiple files can be given, "
+            "one file per argument)",
+        )
         # return the argument group so it can be modified if needed
         return g

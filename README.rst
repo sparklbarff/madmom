@@ -109,7 +109,7 @@ This will also install the executable programs to a common place (e.g.
 installed the package locally, the programs will be copied to a folder which
 might not be included in your ``$PATH`` (e.g. ``~/Library/Python/2.7/bin``
 on Mac OS X or ``~/.local/bin`` on Ubuntu Linux, ``pip`` will tell you). Thus
-the programs need to be called explicitely or you can add their install path
+the programs need to be called explicitly or you can add their install path
 to your ``$PATH`` environment variable::
 
     export PATH='path/to/scripts':$PATH
@@ -283,7 +283,7 @@ Basic beat tracking::
     audio = SignalProcessor()('audio_file.wav')
     beat_activations = RNNBeatProcessor()(audio)
     beats = DBNBeatTrackingProcessor()(beat_activations)
-    
+
     # Save beats to file
     write_beats(beats, 'beats.txt')
 
@@ -337,11 +337,11 @@ Downbeat tracking (for measure alignment)::
     audio = SignalProcessor()('audio_file.wav')
     downbeat_activations = RNNDownBeatProcessor()(audio)
     beats_downbeats = DBNDownBeatTrackingProcessor()(downbeat_activations)
-    
+
     # Separate beats and downbeats (first beat of each measure)
     beats = beats_downbeats[:, 0]
     downbeats = beats_downbeats[beats_downbeats[:, 1] == 1][:, 0]
-    
+
     print(f"Detected {len(beats)} beats, {len(downbeats)} downbeats")
     write_beats(beats_downbeats, 'beats_downbeats.txt')
 
@@ -352,11 +352,11 @@ Tempo detection with multiple candidates::
 
     audio = SignalProcessor()('audio_file.wav')
     tempi = TempoEstimationProcessor()(audio)
-    
+
     # tempi is an array of [tempo, strength] pairs
     primary_tempo = tempi[0][0]
     primary_strength = tempi[0][1]
-    
+
     print(f"Primary tempo: {primary_tempo:.2f} BPM (strength: {primary_strength:.2f})")
     if len(tempi) > 1:
         secondary_tempo = tempi[1][0]
@@ -372,7 +372,7 @@ Batch processing multiple files::
     audio_dir = Path('audio_files')
     beat_processor = DBNBeatTrackingProcessor()
     activation_processor = RNNBeatProcessor()
-    
+
     for audio_file in audio_dir.glob('*.wav'):
         audio = SignalProcessor()(str(audio_file))
         activations = activation_processor(audio)
@@ -395,31 +395,31 @@ Complete music production workflow (slicing samples → arrangement)::
 
     # Load audio file
     audio = SignalProcessor()('recording.wav')
-    
+
     # 1. Detect onsets for sample slicing
     onset_activations = RNNOnsetProcessor()(audio)
     onsets = OnsetPeakPickingProcessor()(onset_activations)
     print(f"Detected {len(onsets)} onsets for slicing")
-    
+
     # 2. Detect beats and tempo for quantization
     beat_activations = RNNBeatProcessor()(audio)
     beats = DBNBeatTrackingProcessor()(beat_activations)
     tempi = TempoEstimationProcessor()(audio)
     tempo = tempi[0][0]
     print(f"Detected tempo: {tempo:.2f} BPM, {len(beats)} beats")
-    
+
     # 3. Detect chords and key for harmonic arrangement
     chords = CRFChordRecognitionProcessor()(audio)
     key = CNNKeyRecognitionProcessor()(audio)
     print(f"Detected key: {key}")
     print(f"Chord progression: {[c['label'] for c in chords[:5]]}")
-    
+
     # 4. Detect downbeats for measure alignment (Ableton Live integration)
     downbeat_activations = RNNDownBeatProcessor()(audio)
     beats_downbeats = DBNDownBeatTrackingProcessor()(downbeat_activations)
     downbeats = beats_downbeats[beats_downbeats[:, 1] == 1][:, 0]
     print(f"Detected {len(downbeats)} downbeats (measure boundaries)")
-    
+
     # Use this information for:
     # - Slicing audio at onsets
     # - Quantizing slices to beats

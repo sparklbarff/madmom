@@ -378,4 +378,3 @@ This document lists all TODO, FIXME, and HACK comments found in the madmom codeb
 5. Documentation and comments
 
 **Note**: These are enhancement opportunities, not bugs. The codebase is functional and all tests pass. These items represent potential improvements for future development.
-

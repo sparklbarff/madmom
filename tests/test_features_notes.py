@@ -1,11 +1,9 @@
-# encoding: utf-8
 # pylint: skip-file
 """
 This file contains tests for the madmom.features.notes module.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import unittest
 from os.path import join as pj
@@ -13,15 +11,13 @@ from os.path import join as pj
 from madmom.features import Activations
 from madmom.features.notes import *
 from madmom.io import load_notes
+
 from . import ACTIVATIONS_PATH, AUDIO_PATH, DETECTIONS_PATH
 
 sample_file = pj(AUDIO_PATH, "stereo_sample.wav")
-sample_act_rnn = Activations(pj(ACTIVATIONS_PATH,
-                                "stereo_sample.notes_brnn.npz"))
-sample_act_cnn = Activations(pj(ACTIVATIONS_PATH,
-                                "stereo_sample.notes_cnn.npz"))
-sample_det = load_notes(pj(DETECTIONS_PATH,
-                           "stereo_sample.piano_transcriptor.txt"))
+sample_act_rnn = Activations(pj(ACTIVATIONS_PATH, "stereo_sample.notes_brnn.npz"))
+sample_act_cnn = Activations(pj(ACTIVATIONS_PATH, "stereo_sample.notes_cnn.npz"))
+sample_det = load_notes(pj(DETECTIONS_PATH, "stereo_sample.piano_transcriptor.txt"))
 
 
 class TestRNNOnsetProcessorClass(unittest.TestCase):
@@ -38,10 +34,15 @@ class TestNoteOnsetPeakPickingProcessorClass(unittest.TestCase):
 
     def setUp(self):
         self.processor = NoteOnsetPeakPickingProcessor(
-            threshold=0.35, smooth=0.09, combine=0.05, pre_max=0.01,
-            post_max=0.01, pitch_offset=21, fps=100)
-        self.result = np.array([[0.14, 72], [1.56, 41],
-                                [2.52, 77], [3.37, 75]])
+            threshold=0.35,
+            smooth=0.09,
+            combine=0.05,
+            pre_max=0.01,
+            post_max=0.01,
+            pitch_offset=21,
+            fps=100,
+        )
+        self.result = np.array([[0.14, 72], [1.56, 41], [2.52, 77], [3.37, 75]])
 
     def test_process(self):
         notes = self.processor(sample_act_rnn)

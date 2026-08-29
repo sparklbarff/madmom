@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -18,7 +17,6 @@ All commits until 0650d5502e01e6b4245ce99729fc8e7a71aacff3 are incorporated.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import numpy as np
 from scipy import linalg
@@ -95,18 +93,18 @@ def pinvh(a, cond=None, rcond=None, lower=True):
         cond = rcond
     if cond in [None, -1]:
         t = u.dtype.char.lower()
-        factor = {'f': 1E3, 'd': 1E6}
+        factor = {"f": 1e3, "d": 1e6}
         cond = factor[t] * np.finfo(t).eps
 
     # unlike svd case, eigh can lead to negative eigenvalues
-    above_cutoff = (abs(s) > cond * np.max(abs(s)))
+    above_cutoff = abs(s) > cond * np.max(abs(s))
     psigma_diag = np.zeros_like(s)
     psigma_diag[above_cutoff] = 1.0 / s[above_cutoff]
 
     return np.dot(u * psigma_diag, np.conjugate(u).T)
 
 
-def log_multivariate_normal_density(x, means, covars, covariance_type='diag'):
+def log_multivariate_normal_density(x, means, covars, covariance_type="diag"):
     """
     Compute the log probability under a multivariate Gaussian distribution.
 
@@ -138,21 +136,24 @@ def log_multivariate_normal_density(x, means, covars, covariance_type='diag'):
 
     """
     log_multivariate_normal_density_dict = {
-        'spherical': _log_multivariate_normal_density_spherical,
-        'tied': _log_multivariate_normal_density_tied,
-        'diag': _log_multivariate_normal_density_diag,
-        'full': _log_multivariate_normal_density_full}
-    return log_multivariate_normal_density_dict[covariance_type](
-        x, means, covars)
+        "spherical": _log_multivariate_normal_density_spherical,
+        "tied": _log_multivariate_normal_density_tied,
+        "diag": _log_multivariate_normal_density_diag,
+        "full": _log_multivariate_normal_density_full,
+    }
+    return log_multivariate_normal_density_dict[covariance_type](x, means, covars)
 
 
 def _log_multivariate_normal_density_diag(x, means, covars):
     """Compute Gaussian log-density at x for a diagonal model."""
     _, n_dim = x.shape
-    lpr = -0.5 * (n_dim * np.log(2 * np.pi) + np.sum(np.log(covars), 1) +
-                  np.sum((means ** 2) / covars, 1) -
-                  2 * np.dot(x, (means / covars).T) +
-                  np.dot(x ** 2, (1.0 / covars).T))
+    lpr = -0.5 * (
+        n_dim * np.log(2 * np.pi)
+        + np.sum(np.log(covars), 1)
+        + np.sum((means**2) / covars, 1)
+        - 2 * np.dot(x, (means / covars).T)
+        + np.dot(x**2, (1.0 / covars).T)
+    )
     return lpr
 
 
@@ -172,7 +173,7 @@ def _log_multivariate_normal_density_tied(x, means, covars):
     return _log_multivariate_normal_density_full(x, means, cv)
 
 
-def _log_multivariate_normal_density_full(x, means, covars, min_covar=1.e-7):
+def _log_multivariate_normal_density_full(x, means, covars, min_covar=1.0e-7):
     """Log probability for full covariance matrices."""
     n_samples, n_dim = x.shape
     nmix = len(means)
@@ -184,22 +185,19 @@ def _log_multivariate_normal_density_full(x, means, covars, min_covar=1.e-7):
             # The model is most probably stuck in a component with too
             # few observations, we need to reinitialize this components
             try:
-                cv_chol = linalg.cholesky(cv + min_covar * np.eye(n_dim),
-                                          lower=True)
+                cv_chol = linalg.cholesky(cv + min_covar * np.eye(n_dim), lower=True)
             except linalg.LinAlgError:
-                raise ValueError("'covars' must be symmetric, "
-                                 "positive-definite")
+                raise ValueError("'covars' must be symmetric, " "positive-definite")
 
         cv_log_det = 2 * np.sum(np.log(np.diagonal(cv_chol)))
         cv_sol = linalg.solve_triangular(cv_chol, (x - mu).T, lower=True).T
-        log_prob[:, c] = - .5 * (np.sum(cv_sol ** 2, axis=1) +
-                                 n_dim * np.log(2 * np.pi) + cv_log_det)
+        log_prob[:, c] = -0.5 * (np.sum(cv_sol**2, axis=1) + n_dim * np.log(2 * np.pi) + cv_log_det)
 
     return log_prob
 
 
 # provide a basic GMM implementation which has the score() method implemented
-class GMM(object):
+class GMM:
     """
     Gaussian Mixture Model
 
@@ -242,11 +240,10 @@ class GMM(object):
 
     """
 
-    def __init__(self, n_components=1, covariance_type='full'):
+    def __init__(self, n_components=1, covariance_type="full"):
 
-        if covariance_type not in ['spherical', 'tied', 'diag', 'full']:
-            raise ValueError('Invalid value for covariance_type: %s' %
-                             covariance_type)
+        if covariance_type not in ["spherical", "tied", "diag", "full"]:
+            raise ValueError("Invalid value for covariance_type: %s" % covariance_type)
         # save parameters
         self.n_components = n_components
         self.covariance_type = covariance_type
@@ -261,12 +258,15 @@ class GMM(object):
         #       them; remove this unpickling code after updating all models
         try:
             import warnings
-            warnings.warn('Please update your GMM models by loading them and '
-                          'saving them again. Loading old models will not '
-                          'work from version 0.16 onwards.')
-            state['weights'] = state.pop('weights_')
-            state['means'] = state.pop('means_')
-            state['covars'] = state.pop('covars_')
+
+            warnings.warn(
+                "Please update your GMM models by loading them and "
+                "saving them again. Loading old models will not "
+                "work from version 0.16 onwards."
+            )
+            state["weights"] = state.pop("weights_")
+            state["means"] = state.pop("means_")
+            state["covars"] = state.pop("covars_")
         except KeyError:
             pass
         # restore pickled instance attributes
@@ -302,11 +302,11 @@ class GMM(object):
         if x.size == 0:
             return np.array([]), np.empty((0, self.n_components))
         if x.shape[1] != self.means.shape[1]:
-            raise ValueError('The shape of x is not compatible with self')
+            raise ValueError("The shape of x is not compatible with self")
 
-        lpr = (log_multivariate_normal_density(x, self.means, self.covars,
-                                               self.covariance_type) +
-               np.log(self.weights))
+        lpr = log_multivariate_normal_density(
+            x, self.means, self.covars, self.covariance_type
+        ) + np.log(self.weights)
         log_prob = logsumexp(lpr, axis=1)
         responsibilities = np.exp(lpr - log_prob[:, np.newaxis])
         return log_prob, responsibilities
@@ -330,8 +330,17 @@ class GMM(object):
         log_prob, _ = self.score_samples(x)
         return log_prob
 
-    def fit(self, x, random_state=None, tol=1e-3, min_covar=1e-3,
-            n_iter=100, n_init=1, params='wmc', init_params='wmc'):
+    def fit(
+        self,
+        x,
+        random_state=None,
+        tol=1e-3,
+        min_covar=1e-3,
+        n_iter=100,
+        n_init=1,
+        params="wmc",
+        init_params="wmc",
+    ):
         """
         Estimate model parameters with the expectation-maximization algorithm.
 
@@ -369,13 +378,19 @@ class GMM(object):
 
         """
         import sklearn.mixture
+
         # first initialise a sklearn.mixture.GMM object
-        gmm = sklearn.mixture.GMM(n_components=self.n_components,
-                                  covariance_type=self.covariance_type,
-                                  random_state=random_state, tol=tol,
-                                  min_covar=min_covar, n_iter=n_iter,
-                                  n_init=n_init, params=params,
-                                  init_params=init_params)
+        gmm = sklearn.mixture.GMM(
+            n_components=self.n_components,
+            covariance_type=self.covariance_type,
+            random_state=random_state,
+            tol=tol,
+            min_covar=min_covar,
+            n_iter=n_iter,
+            n_init=n_init,
+            params=params,
+            init_params=init_params,
+        )
         # fit this GMM
         gmm.fit(x)
         # copy the needed information

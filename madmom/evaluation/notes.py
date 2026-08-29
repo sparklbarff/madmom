@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -7,16 +6,14 @@ This module contains note evaluation functionality.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import warnings
 
 import numpy as np
 
-from . import (evaluation_io, MultiClassEvaluation, SumEvaluation,
-               MeanEvaluation)
-from .onsets import onset_evaluation, OnsetEvaluation
 from ..io import load_notes
+from . import MeanEvaluation, MultiClassEvaluation, SumEvaluation, evaluation_io
+from .onsets import OnsetEvaluation, onset_evaluation
 
 # default note evaluation values
 WINDOW = 0.025
@@ -46,7 +43,8 @@ def remove_duplicate_notes(data):
     # found here: http://stackoverflow.com/questions/2828059/
     # find the unique rows
     order = np.ascontiguousarray(data).view(
-        np.dtype((np.void, data.dtype.itemsize * data.shape[1])))
+        np.dtype((np.void, data.dtype.itemsize * data.shape[1]))
+    )
     unique = np.unique(order, return_index=True)[1]
     # only use the unique rows
     data = data[unique]
@@ -96,7 +94,7 @@ def note_onset_evaluation(detections, annotations, window=WINDOW):
     annotations = np.asarray(annotations, dtype=float)
     # check dimensions
     if detections.ndim != 2 or annotations.ndim != 2:
-        raise ValueError('detections and annotations must be 2D arrays')
+        raise ValueError("detections and annotations must be 2D arrays")
 
     # init TP, FP, TN and FN lists
     tp = np.zeros((0, 2))
@@ -123,8 +121,7 @@ def note_onset_evaluation(detections, annotations, window=WINDOW):
     annotations = annotations[:, :2]
 
     # get a list of all notes detected / annotated
-    notes = np.unique(np.concatenate((detections[:, 1],
-                                      annotations[:, 1]))).tolist()
+    notes = np.unique(np.concatenate((detections[:, 1], annotations[:, 1]))).tolist()
     # iterate over all notes
     for note in notes:
         # perform normal onset detection on each note
@@ -137,16 +134,15 @@ def note_onset_evaluation(detections, annotations, window=WINDOW):
         fp = np.vstack((fp, det[np.isin(det[:, 0], fp_)]))
         fn = np.vstack((fn, ann[np.isin(ann[:, 0], fn_)]))
         # append the note number to the errors
-        err_ = np.vstack((np.array(err_),
-                          np.repeat(np.asarray([note]), len(err_)))).T
+        err_ = np.vstack((np.array(err_), np.repeat(np.asarray([note]), len(err_)))).T
         errors = np.vstack((errors, err_))
     # check calculations
     if len(tp) + len(fp) != len(detections):
-        raise AssertionError('bad TP / FP calculation')
+        raise AssertionError("bad TP / FP calculation")
     if len(tp) + len(fn) != len(annotations):
-        raise AssertionError('bad FN calculation')
+        raise AssertionError("bad FN calculation")
     if len(tp) != len(errors):
-        raise AssertionError('bad errors calculation')
+        raise AssertionError("bad errors calculation")
     # sort the arrays
     # Note: The errors must have the same sorting order as the TPs, so they
     #       must be done first (before the TPs get sorted)
@@ -178,8 +174,7 @@ class NoteEvaluation(MultiClassEvaluation):
 
     """
 
-    def __init__(self, detections, annotations, window=WINDOW, delay=0,
-                 **kwargs):
+    def __init__(self, detections, annotations, window=WINDOW, delay=0, **kwargs):
         # convert to numpy array
         detections = np.array(detections, dtype=float, ndmin=2)
         annotations = np.array(annotations, dtype=float, ndmin=2)
@@ -199,7 +194,7 @@ class NoteEvaluation(MultiClassEvaluation):
     @property
     def mean_error(self):
         """Mean of the errors."""
-        warnings.warn('mean_error is given for all notes, this will change!')
+        warnings.warn("mean_error is given for all notes, this will change!")
         if len(self.errors) == 0:
             return np.nan
         return np.mean(self.errors[:, 0])
@@ -207,7 +202,7 @@ class NoteEvaluation(MultiClassEvaluation):
     @property
     def std_error(self):
         """Standard deviation of the errors."""
-        warnings.warn('std_error is given for all notes, this will change!')
+        warnings.warn("std_error is given for all notes, this will change!")
         if len(self.errors) == 0:
             return np.nan
         return np.std(self.errors[:, 0])
@@ -226,9 +221,9 @@ class NoteEvaluation(MultiClassEvaluation):
             Evaluation metrics formatted as a human readable string.
 
         """
-        ret = ''
+        ret = ""
         if self.name is not None:
-            ret += '%s\n  ' % self.name
+            ret += "%s\n  " % self.name
         # add statistics for the individual note
         if notes:
             # determine which notes are present
@@ -246,17 +241,28 @@ class NoteEvaluation(MultiClassEvaluation):
                 # detections and annotations for this note (only onset times)
                 det = self.detections[self.detections[:, 1] == note][:, 0]
                 ann = self.annotations[self.annotations[:, 1] == note][:, 0]
-                name = 'MIDI note %s' % note
+                name = "MIDI note %s" % note
                 e = OnsetEvaluation(det, ann, self.window, name=name)
                 # append to the output string
-                ret += '  %s\n' % e.tostring(notes=False)
+                ret += "  %s\n" % e.tostring(notes=False)
         # normal formatting
-        ret += 'Notes: %5d TP: %5d FP: %4d FN: %4d ' \
-               'Precision: %.3f Recall: %.3f F-measure: %.3f ' \
-               'Acc: %.3f mean: %5.1f ms std: %5.1f ms' % \
-               (self.num_annotations, self.num_tp, self.num_fp, self.num_fn,
-                self.precision, self.recall, self.fmeasure, self.accuracy,
-                self.mean_error * 1000., self.std_error * 1000.)
+        ret += (
+            "Notes: %5d TP: %5d FP: %4d FN: %4d "
+            "Precision: %.3f Recall: %.3f F-measure: %.3f "
+            "Acc: %.3f mean: %5.1f ms std: %5.1f ms"
+            % (
+                self.num_annotations,
+                self.num_tp,
+                self.num_fp,
+                self.num_fn,
+                self.precision,
+                self.recall,
+                self.fmeasure,
+                self.accuracy,
+                self.mean_error * 1000.0,
+                self.std_error * 1000.0,
+            )
+        )
         # return
         return ret
 
@@ -285,13 +291,13 @@ class NoteMeanEvaluation(MeanEvaluation, NoteSumEvaluation):
     @property
     def mean_error(self):
         """Mean of the errors."""
-        warnings.warn('mean_error is given for all notes, this will change!')
+        warnings.warn("mean_error is given for all notes, this will change!")
         return np.nanmean([e.mean_error for e in self.eval_objects])
 
     @property
     def std_error(self):
         """Standard deviation of the errors."""
-        warnings.warn('std_error is given for all notes, this will change!')
+        warnings.warn("std_error is given for all notes, this will change!")
         return np.nanmean([e.std_error for e in self.eval_objects])
 
     def tostring(self, **kwargs):
@@ -305,15 +311,26 @@ class NoteMeanEvaluation(MeanEvaluation, NoteSumEvaluation):
 
         """
         # format with floats instead of integers
-        ret = ''
+        ret = ""
         if self.name is not None:
-            ret += '%s\n  ' % self.name
-        ret += 'Notes: %5.2f TP: %5.2f FP: %5.2f FN: %5.2f ' \
-               'Precision: %.3f Recall: %.3f F-measure: %.3f ' \
-               'Acc: %.3f mean: %5.1f ms std: %5.1f ms' % \
-               (self.num_annotations, self.num_tp, self.num_fp, self.num_fn,
-                self.precision, self.recall, self.fmeasure, self.accuracy,
-                self.mean_error * 1000., self.std_error * 1000.)
+            ret += "%s\n  " % self.name
+        ret += (
+            "Notes: %5.2f TP: %5.2f FP: %5.2f FN: %5.2f "
+            "Precision: %.3f Recall: %.3f F-measure: %.3f "
+            "Acc: %.3f mean: %5.1f ms std: %5.1f ms"
+            % (
+                self.num_annotations,
+                self.num_tp,
+                self.num_fp,
+                self.num_fn,
+                self.precision,
+                self.recall,
+                self.fmeasure,
+                self.accuracy,
+                self.mean_error * 1000.0,
+                self.std_error * 1000.0,
+            )
+        )
         return ret
 
 
@@ -335,11 +352,13 @@ def add_parser(parser):
 
     """
     import argparse
+
     # add tempo evaluation sub-parser to the existing parser
     p = parser.add_parser(
-        'notes', help='note evaluation',
+        "notes",
+        help="note evaluation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description='''
+        description="""
     This program evaluates pairs of files containing the note annotations and
     detections. Suffixes can be given to filter them from the list of files.
 
@@ -349,19 +368,33 @@ def add_parser(parser):
 
     Lines starting with # are treated as comments and are ignored.
 
-    ''')
+    """,
+    )
     # set defaults
-    p.set_defaults(eval=NoteEvaluation, sum_eval=NoteSumEvaluation,
-                   mean_eval=NoteMeanEvaluation, load_fn=load_notes)
+    p.set_defaults(
+        eval=NoteEvaluation,
+        sum_eval=NoteSumEvaluation,
+        mean_eval=NoteMeanEvaluation,
+        load_fn=load_notes,
+    )
     # file I/O
-    evaluation_io(p, ann_suffix='.notes', det_suffix='.notes.txt')
+    evaluation_io(p, ann_suffix=".notes", det_suffix=".notes.txt")
     # evaluation parameters
-    g = p.add_argument_group('note evaluation arguments')
-    g.add_argument('-w', dest='window', action='store', type=float,
-                   default=0.025,
-                   help='evaluation window (+/- the given size) '
-                        '[seconds, default=%(default)s]')
-    g.add_argument('--delay', action='store', type=float, default=0.,
-                   help='add given delay to all detections [seconds]')
+    g = p.add_argument_group("note evaluation arguments")
+    g.add_argument(
+        "-w",
+        dest="window",
+        action="store",
+        type=float,
+        default=0.025,
+        help="evaluation window (+/- the given size) " "[seconds, default=%(default)s]",
+    )
+    g.add_argument(
+        "--delay",
+        action="store",
+        type=float,
+        default=0.0,
+        help="add given delay to all detections [seconds]",
+    )
     # return the sub-parser and evaluation argument group
     return p, g

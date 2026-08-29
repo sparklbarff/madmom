@@ -17,6 +17,7 @@ from madmom.features import (
     RNNBeatProcessor,
     TempoEstimationProcessor,
 )
+
 from . import AUDIO_PATH
 
 sample_file = Path(AUDIO_PATH) / "sample.wav"
@@ -57,12 +58,15 @@ class TestPerformance(unittest.TestCase):
         # Performance expectations (should complete in reasonable time)
         # For a typical 3-minute song, beat tracking should take < 5 seconds
         from madmom.audio.signal import Signal
+
         if isinstance(audio, Signal):
             sample_rate = audio.sample_rate
         else:
             sample_rate = 44100.0  # Default sample rate
         audio_duration = len(audio) / sample_rate
-        expected_max_time = max(5.0, audio_duration * 0.1)  # 10% of audio duration or 5s, whichever is larger
+        expected_max_time = max(
+            5.0, audio_duration * 0.1
+        )  # 10% of audio duration or 5s, whichever is larger
 
         self.assertLess(
             total_time,
@@ -96,6 +100,7 @@ class TestPerformance(unittest.TestCase):
 
         # Performance expectations
         from madmom.audio.signal import Signal
+
         if isinstance(audio, Signal):
             sample_rate = audio.sample_rate
         else:
@@ -131,6 +136,7 @@ class TestPerformance(unittest.TestCase):
 
         # Batch processing should be reasonably fast
         from madmom.audio.signal import Signal
+
         if isinstance(audio, Signal):
             sample_rate = audio.sample_rate
         else:
@@ -173,11 +179,11 @@ class TestPerformance(unittest.TestCase):
         # Verify results
         self.assertGreater(len(beats), 0, "Should detect at least one beat")
         self.assertLess(detection_time, 1.0, "Beat detection should be fast (< 1s)")
-        
+
         # Verify beats are within valid range
         self.assertTrue(np.all(beats >= 0), "All beats should be non-negative")
         self.assertTrue(np.all(beats < num_frames), "All beats should be within activation range")
-        
+
         # Verify beats are in ascending order
         if len(beats) > 1:
             self.assertTrue(np.all(np.diff(beats) > 0), "Beats should be in ascending order")
@@ -185,4 +191,3 @@ class TestPerformance(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

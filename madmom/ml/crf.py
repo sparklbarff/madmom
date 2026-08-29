@@ -1,7 +1,7 @@
-# encoding: utf-8
 """
 This module contains an implementation of Conditional Random Fields (CRFs)
 """
+
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 import numpy as np

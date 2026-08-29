@@ -64,7 +64,7 @@ This will also install the executable programs to a common place (e.g.
 installed the package locally, the programs will be copied to a folder which
 might not be included in your ``$PATH`` (e.g. ``~/Library/Python/2.7/bin``
 on Mac OS X or ``~/.local/bin`` on Ubuntu Linux, ``pip`` will tell you). Thus
-the programs need to be called explicitely or you can add their install path
+the programs need to be called explicitly or you can add their install path
 to your ``$PATH`` environment variable::
 
     export PATH='path/to/scripts':$PATH

@@ -1,36 +1,43 @@
-# encoding: utf-8
 # pylint: skip-file
 """
 This file contains tests for the madmom.evaluation.notes module.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import math
 import unittest
 
 from madmom.evaluation.notes import *
+
 from . import ANNOTATIONS_PATH, DETECTIONS_PATH
 
-DETECTIONS = np.asarray([[0.147, 72],  # TP
-                         [0.147, 80],  # FP
-                         [0.147, 60],  # FP, octave error
-                         #  [1.567, 41], FN
-                         [2.540, 77],  # 14ms too late
-                         [2.520, 60],  # 29ms too early
-                         #  [2.563, 65], FN
-                         #  [2.577, 57], FN + FP, 1 note off
-                         [3.368, 75],  # 1ms too early
-                         [3.449, 43]])
-ANNOTATIONS = np.asarray([[0.147, 72, 3.323, 63],
-                          [1.567, 41, 0.223, 29],
-                          [2.526, 77, 0.930, 72],
-                          [2.549, 60, 0.211, 28],
-                          [2.563, 65, 0.202, 34],
-                          [2.577, 56, 0.234, 31],
-                          [3.369, 75, 0.780, 64],
-                          [3.449, 43, 0.272, 35]])
+DETECTIONS = np.asarray(
+    [
+        [0.147, 72],  # TP
+        [0.147, 80],  # FP
+        [0.147, 60],  # FP, octave error
+        #  [1.567, 41], FN
+        [2.540, 77],  # 14ms too late
+        [2.520, 60],  # 29ms too early
+        #  [2.563, 65], FN
+        #  [2.577, 57], FN + FP, 1 note off
+        [3.368, 75],  # 1ms too early
+        [3.449, 43],
+    ]
+)
+ANNOTATIONS = np.asarray(
+    [
+        [0.147, 72, 3.323, 63],
+        [1.567, 41, 0.223, 29],
+        [2.526, 77, 0.930, 72],
+        [2.549, 60, 0.211, 28],
+        [2.563, 65, 0.202, 34],
+        [2.577, 56, 0.234, 31],
+        [3.369, 75, 0.780, 64],
+        [3.449, 43, 0.272, 35],
+    ]
+)
 
 
 # test functions
@@ -58,8 +65,7 @@ class TestNoteConstantsClass(unittest.TestCase):
 class TestNoteOnsetEvaluationFunction(unittest.TestCase):
 
     def test_types(self):
-        tp, fp, tn, fn, errors = note_onset_evaluation(DETECTIONS, ANNOTATIONS,
-                                                       0.025)
+        tp, fp, tn, fn, errors = note_onset_evaluation(DETECTIONS, ANNOTATIONS, 0.025)
         self.assertIsInstance(tp, np.ndarray)
         self.assertIsInstance(fp, np.ndarray)
         self.assertIsInstance(tn, np.ndarray)
@@ -97,39 +103,32 @@ class TestNoteOnsetEvaluationFunction(unittest.TestCase):
         self.assertTrue(np.allclose(fn, ANNOTATIONS))
         self.assertTrue(np.allclose(errors, np.zeros((0, 2))))
         # window = 0.01
-        tp, fp, tn, fn, errors = note_onset_evaluation(DETECTIONS, ANNOTATIONS,
-                                                       0.01)
-        self.assertTrue(np.allclose(tp, [[0.147, 72], [3.368, 75],
-                                         [3.449, 43]]))
-        self.assertTrue(np.allclose(fp, [[0.147, 60], [0.147, 80],
-                                         [2.520, 60], [2.540, 77]]))
+        tp, fp, tn, fn, errors = note_onset_evaluation(DETECTIONS, ANNOTATIONS, 0.01)
+        self.assertTrue(np.allclose(tp, [[0.147, 72], [3.368, 75], [3.449, 43]]))
+        self.assertTrue(np.allclose(fp, [[0.147, 60], [0.147, 80], [2.520, 60], [2.540, 77]]))
         self.assertTrue(np.allclose(tn, np.zeros((0, 2))))
-        self.assertTrue(np.allclose(fn, [[1.567, 41], [2.526, 77], [2.549, 60],
-                                         [2.563, 65], [2.577, 56]]))
+        self.assertTrue(
+            np.allclose(fn, [[1.567, 41], [2.526, 77], [2.549, 60], [2.563, 65], [2.577, 56]])
+        )
         self.assertTrue(np.allclose(errors, [[0, 72], [-0.001, 75], [0, 43]]))
         # default window (= 0.025)
         tp, fp, tn, fn, errors = note_onset_evaluation(DETECTIONS, ANNOTATIONS)
-        self.assertTrue(np.allclose(tp, [[0.147, 72], [2.540, 77],
-                                         [3.368, 75], [3.449, 43]]))
-        self.assertTrue(np.allclose(fp, [[0.147, 60], [0.147, 80],
-                                         [2.520, 60]]))
+        self.assertTrue(np.allclose(tp, [[0.147, 72], [2.540, 77], [3.368, 75], [3.449, 43]]))
+        self.assertTrue(np.allclose(fp, [[0.147, 60], [0.147, 80], [2.520, 60]]))
         self.assertTrue(np.allclose(tn, np.zeros((0, 2))))
-        self.assertTrue(np.allclose(fn, [[1.567, 41], [2.549, 60],
-                                         [2.563, 65], [2.577, 56]]))
-        self.assertTrue(np.allclose(errors, [[0, 72], [0.014, 77],
-                                             [-0.001, 75], [0, 43]]))
+        self.assertTrue(np.allclose(fn, [[1.567, 41], [2.549, 60], [2.563, 65], [2.577, 56]]))
+        self.assertTrue(np.allclose(errors, [[0, 72], [0.014, 77], [-0.001, 75], [0, 43]]))
         # window = 0.03
-        tp, fp, tn, fn, errors = note_onset_evaluation(DETECTIONS, ANNOTATIONS,
-                                                       0.03)
-        self.assertTrue(np.allclose(tp, [[0.147, 72], [2.520, 60], [2.540, 77],
-                                         [3.368, 75], [3.449, 43]]))
+        tp, fp, tn, fn, errors = note_onset_evaluation(DETECTIONS, ANNOTATIONS, 0.03)
+        self.assertTrue(
+            np.allclose(tp, [[0.147, 72], [2.520, 60], [2.540, 77], [3.368, 75], [3.449, 43]])
+        )
         self.assertTrue(np.allclose(fp, [[0.147, 60], [0.147, 80]]))
         self.assertTrue(np.allclose(tn, np.zeros((0, 2))))
-        self.assertTrue(np.allclose(fn, [[1.567, 41], [2.563, 65],
-                                         [2.577, 56]]))
-        self.assertTrue(np.allclose(errors, [[0, 72], [-0.029, 60],
-                                             [0.014, 77], [-0.001, 75],
-                                             [0, 43]]))
+        self.assertTrue(np.allclose(fn, [[1.567, 41], [2.563, 65], [2.577, 56]]))
+        self.assertTrue(
+            np.allclose(errors, [[0, 72], [-0.029, 60], [0.014, 77], [-0.001, 75], [0, 43]])
+        )
 
 
 # test evaluation class
@@ -178,32 +177,27 @@ class TestNoteEvaluationClass(unittest.TestCase):
 
         # real detections / annotations
         e = NoteEvaluation(DETECTIONS, ANNOTATIONS)
-        self.assertTrue(np.allclose(e.tp, [[0.147, 72], [2.540, 77],
-                                           [3.368, 75], [3.449, 43]]))
-        self.assertTrue(np.allclose(e.fp, [[0.147, 60], [0.147, 80],
-                                           [2.520, 60]]))
+        self.assertTrue(np.allclose(e.tp, [[0.147, 72], [2.540, 77], [3.368, 75], [3.449, 43]]))
+        self.assertTrue(np.allclose(e.fp, [[0.147, 60], [0.147, 80], [2.520, 60]]))
         self.assertTrue(np.allclose(e.tn, np.zeros((0, 2))))
-        self.assertTrue(np.allclose(e.fn, [[1.567, 41], [2.549, 60],
-                                           [2.563, 65], [2.577, 56]]))
+        self.assertTrue(np.allclose(e.fn, [[1.567, 41], [2.549, 60], [2.563, 65], [2.577, 56]]))
         self.assertEqual(e.num_tp, 4)
         self.assertEqual(e.num_fp, 3)
         self.assertEqual(e.num_tn, 0)
         self.assertEqual(e.num_fn, 4)
-        self.assertEqual(e.precision, 4. / 7.)
-        self.assertEqual(e.recall, 4. / 8.)
-        f = 2 * (4. / 7.) * (4. / 8.) / ((4. / 7.) + (4. / 8.))
+        self.assertEqual(e.precision, 4.0 / 7.0)
+        self.assertEqual(e.recall, 4.0 / 8.0)
+        f = 2 * (4.0 / 7.0) * (4.0 / 8.0) / ((4.0 / 7.0) + (4.0 / 8.0))
         self.assertEqual(e.fmeasure, f)
-        self.assertEqual(e.accuracy, (4. + 0) / (4 + 3 + 0 + 4))
+        self.assertEqual(e.accuracy, (4.0 + 0) / (4 + 3 + 0 + 4))
         # errors
         # tp =  [[0.147, 72], [2.540, 77], [3.368, 75], [3.449, 43]]
         # ann = [[0.147, 72], [2.526, 77], [3.369, 75], [3.449, 43]]
         # err = [[0.   , 72], [0.014, 77], [-0.001, 75], [0.   , 43]]
-        errors = np.asarray([[0., 72], [0.014, 77], [-0.001, 75], [0., 43]])
+        errors = np.asarray([[0.0, 72], [0.014, 77], [-0.001, 75], [0.0, 43]])
         self.assertTrue(np.allclose(e.errors, errors))
-        self.assertTrue(np.allclose(e.mean_error,
-                                    np.mean([0, 0.014, -0.001, 0])))
-        self.assertTrue(np.allclose(e.std_error,
-                                    np.std([0, 0.014, -0.001, 0])))
+        self.assertTrue(np.allclose(e.mean_error, np.mean([0, 0.014, -0.001, 0])))
+        self.assertTrue(np.allclose(e.std_error, np.std([0, 0.014, -0.001, 0])))
 
     def test_tostring(self):
         print(NoteEvaluation([], []))
@@ -323,24 +317,15 @@ class TestNoteMeanEvaluationClass(unittest.TestCase):
         # mean evaluation of empty and real note evaluation
         e2 = NoteEvaluation(DETECTIONS, ANNOTATIONS)
         e = NoteMeanEvaluation([e1, e2])
-        self.assertTrue(np.allclose(
-            e.num_tp, np.mean([e_.num_tp for e_ in [e1, e2]])))
-        self.assertTrue(np.allclose(
-            e.num_fp, np.mean([e_.num_fp for e_ in [e1, e2]])))
-        self.assertTrue(np.allclose(
-            e.num_tn, np.mean([e_.num_tn for e_ in [e1, e2]])))
-        self.assertTrue(np.allclose(
-            e.num_fn, np.mean([e_.num_fn for e_ in [e1, e2]])))
-        self.assertTrue(np.allclose(
-            e.precision, np.mean([e_.precision for e_ in [e1, e2]])))
-        self.assertTrue(np.allclose(
-            e.recall, np.mean([e_.recall for e_ in [e1, e2]])))
-        self.assertTrue(np.allclose(
-            e.fmeasure, np.mean([e_.fmeasure for e_ in [e1, e2]])))
-        self.assertTrue(np.allclose(
-            e.accuracy, np.mean([e_.accuracy for e_ in [e1, e2]])))
-        self.assertTrue(np.allclose(
-            e.errors, np.concatenate([e_.errors for e_ in [e1, e2]])))
+        self.assertTrue(np.allclose(e.num_tp, np.mean([e_.num_tp for e_ in [e1, e2]])))
+        self.assertTrue(np.allclose(e.num_fp, np.mean([e_.num_fp for e_ in [e1, e2]])))
+        self.assertTrue(np.allclose(e.num_tn, np.mean([e_.num_tn for e_ in [e1, e2]])))
+        self.assertTrue(np.allclose(e.num_fn, np.mean([e_.num_fn for e_ in [e1, e2]])))
+        self.assertTrue(np.allclose(e.precision, np.mean([e_.precision for e_ in [e1, e2]])))
+        self.assertTrue(np.allclose(e.recall, np.mean([e_.recall for e_ in [e1, e2]])))
+        self.assertTrue(np.allclose(e.fmeasure, np.mean([e_.fmeasure for e_ in [e1, e2]])))
+        self.assertTrue(np.allclose(e.accuracy, np.mean([e_.accuracy for e_ in [e1, e2]])))
+        self.assertTrue(np.allclose(e.errors, np.concatenate([e_.errors for e_ in [e1, e2]])))
         # mean and std errors are those of e2, since those of e1 are NaN
         self.assertEqual(e.mean_error, e2.mean_error)
         self.assertEqual(e.std_error, e2.std_error)
@@ -353,23 +338,24 @@ class TestAddParserFunction(unittest.TestCase):
 
     def setUp(self):
         import argparse
+
         self.parser = argparse.ArgumentParser()
         sub_parser = self.parser.add_subparsers()
         self.sub_parser, self.group = add_parser(sub_parser)
 
     def test_args(self):
-        args = self.parser.parse_args(['notes', ANNOTATIONS_PATH,
-                                       DETECTIONS_PATH])
+        args = self.parser.parse_args(["notes", ANNOTATIONS_PATH, DETECTIONS_PATH])
         self.assertTrue(args.ann_dir is None)
-        self.assertTrue(args.ann_suffix == '.notes')
+        self.assertTrue(args.ann_suffix == ".notes")
         self.assertTrue(args.det_dir is None)
-        self.assertTrue(args.det_suffix == '.notes.txt')
+        self.assertTrue(args.det_suffix == ".notes.txt")
         self.assertTrue(args.eval == NoteEvaluation)
         self.assertTrue(args.files == [ANNOTATIONS_PATH, DETECTIONS_PATH])
         self.assertTrue(args.ignore_non_existing is False)
         self.assertTrue(args.mean_eval == NoteMeanEvaluation)
         # self.assertTrue(args.outfile == StringIO.StringIO)
         from madmom.evaluation import tostring
+
         self.assertTrue(args.output_formatter == tostring)
         self.assertTrue(args.quiet is False)
         self.assertTrue(args.sum_eval == NoteSumEvaluation)

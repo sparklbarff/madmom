@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -7,7 +6,6 @@ This module contains Short-Time Fourier Transform (STFT) related functionality.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import warnings
 
@@ -17,11 +15,13 @@ import scipy.fftpack as fftpack
 try:
     from pyfftw.builders import rfft as rfft_builder
 except ImportError:
+
     def rfft_builder(*args, **kwargs):
         return None
 
+
 from ..processors import Processor
-from .signal import Signal, FramedSignal
+from .signal import FramedSignal
 
 STFT_DTYPE = np.complex64
 
@@ -43,11 +43,10 @@ def fft_frequencies(num_fft_bins, sample_rate):
         Frequencies of the FFT bins [Hz].
 
     """
-    return np.fft.fftfreq(num_fft_bins * 2, 1. / sample_rate)[:num_fft_bins]
+    return np.fft.fftfreq(num_fft_bins * 2, 1.0 / sample_rate)[:num_fft_bins]
 
 
-def stft(frames, window, fft_size=None, circular_shift=False,
-         include_nyquist=False, fftw=None):
+def stft(frames, window, fft_size=None, circular_shift=False, include_nyquist=False, fftw=None):
     """
     Calculates the complex Short-Time Fourier Transform (STFT) of the given
     framed signal.
@@ -80,8 +79,10 @@ def stft(frames, window, fft_size=None, circular_shift=False,
     # check for correct shape of input
     if frames.ndim != 2:
         # NOTE: add multi-channel support
-        raise ValueError('frames must be a 2D array or iterable, got %s with '
-                         'shape %s.' % (type(frames), frames.shape))
+        raise ValueError(
+            "frames must be a 2D array or iterable, got %s with "
+            "shape %s." % (type(frames), frames.shape)
+        )
 
     # shape of the frames
     num_frames, frame_size = frames.shape
@@ -168,7 +169,7 @@ def local_group_delay(phase):
     """
     # check for correct shape of input
     if phase.ndim != 2:
-        raise ValueError('phase must be a 2D array')
+        raise ValueError("phase must be a 2D array")
     # unwrap phase
     unwrapped_phase = np.unwrap(phase)
     # local group delay is the derivative over frequency
@@ -184,7 +185,7 @@ lgd = local_group_delay
 
 
 # mixin providing `num_frames` & `num_bins` properties
-class _PropertyMixin(object):
+class _PropertyMixin:
     # pylint: disable=missing-docstring
 
     @property
@@ -304,19 +305,36 @@ frame_size=2048, fps=100, sample_rate=22050)
     22050
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
 
-    def __init__(self, frames, window=np.hanning, fft_size=None,
-                 circular_shift=False, include_nyquist=False, fft_window=None,
-                 fftw=None, **kwargs):
+    def __init__(
+        self,
+        frames,
+        window=np.hanning,
+        fft_size=None,
+        circular_shift=False,
+        include_nyquist=False,
+        fft_window=None,
+        fftw=None,
+        **kwargs,
+    ):
         # this method is for documentation purposes only
         pass
 
-    def __new__(cls, frames, window=np.hanning, fft_size=None,
-                circular_shift=False, include_nyquist=False, fft_window=None,
-                fftw=None, **kwargs):
+    def __new__(
+        cls,
+        frames,
+        window=np.hanning,
+        fft_size=None,
+        circular_shift=False,
+        include_nyquist=False,
+        fft_window=None,
+        fftw=None,
+        **kwargs,
+    ):
         # pylint: disable=unused-argument
         if isinstance(frames, ShortTimeFourierTransform):
             # already a STFT, use the frames thereof
@@ -331,7 +349,7 @@ frame_size=2048, fps=100, sample_rate=22050)
         if fft_window is None:
             # if a callable window function is given, use the frame size to
             # create a window of this size
-            if hasattr(window, '__call__'):
+            if hasattr(window, "__call__"):
                 window = window(frame_size)
             # window used for FFT
             try:
@@ -356,9 +374,14 @@ frame_size=2048, fps=100, sample_rate=22050)
         except AttributeError:
             pass
         # calculate the STFT
-        data = stft(frames, fft_window, fft_size=fft_size,
-                    circular_shift=circular_shift,
-                    include_nyquist=include_nyquist, fftw=fftw)
+        data = stft(
+            frames,
+            fft_window,
+            fft_size=fft_size,
+            circular_shift=circular_shift,
+            include_nyquist=include_nyquist,
+            fftw=fftw,
+        )
 
         # cast as ShortTimeFourierTransform
         obj = np.asarray(data).view(cls)
@@ -376,12 +399,12 @@ frame_size=2048, fps=100, sample_rate=22050)
         if obj is None:
             return
         # set default values here, also needed for views
-        self.frames = getattr(obj, 'frames', None)
-        self.window = getattr(obj, 'window', np.hanning)
-        self.fft_window = getattr(obj, 'fft_window', None)
-        self.fftw = getattr(obj, 'fftw', None)
-        self.fft_size = getattr(obj, 'fft_size', None)
-        self.circular_shift = getattr(obj, 'circular_shift', False)
+        self.frames = getattr(obj, "frames", None)
+        self.window = getattr(obj, "window", np.hanning)
+        self.fft_window = getattr(obj, "fft_window", None)
+        self.fftw = getattr(obj, "fftw", None)
+        self.fft_size = getattr(obj, "fft_size", None)
+        self.circular_shift = getattr(obj, "circular_shift", False)
 
     @property
     def bin_frequencies(self):
@@ -406,6 +429,7 @@ frame_size=2048, fps=100, sample_rate=22050)
         """
         # import Spectrogram here, otherwise we have circular imports
         from .spectrogram import Spectrogram
+
         return Spectrogram(self, **kwargs)
 
     def phase(self, **kwargs):
@@ -469,8 +493,14 @@ class ShortTimeFourierTransformProcessor(Processor):
 
     """
 
-    def __init__(self, window=np.hanning, fft_size=None, circular_shift=False,
-                 include_nyquist=False, **kwargs):
+    def __init__(
+        self,
+        window=np.hanning,
+        fft_size=None,
+        circular_shift=False,
+        include_nyquist=False,
+        **kwargs,
+    ):
         # pylint: disable=unused-argument
         self.window = window
         self.fft_size = fft_size
@@ -498,12 +528,16 @@ class ShortTimeFourierTransformProcessor(Processor):
 
         """
         # instantiate a STFT
-        data = ShortTimeFourierTransform(data, window=self.window,
-                                         fft_size=self.fft_size,
-                                         circular_shift=self.circular_shift,
-                                         include_nyquist=self.include_nyquist,
-                                         fft_window=self.fft_window,
-                                         fftw=self.fftw, **kwargs)
+        data = ShortTimeFourierTransform(
+            data,
+            window=self.window,
+            fft_size=self.fft_size,
+            circular_shift=self.circular_shift,
+            include_nyquist=self.include_nyquist,
+            fft_window=self.fft_window,
+            fftw=self.fftw,
+            **kwargs,
+        )
         # cache the window used for FFT
         # Note: depending on the signal this may be scaled already
         self.fft_window = data.fft_window
@@ -535,16 +569,23 @@ class ShortTimeFourierTransformProcessor(Processor):
 
         """
         # add filterbank related options to the existing parser
-        g = parser.add_argument_group('short-time Fourier transform arguments')
+        g = parser.add_argument_group("short-time Fourier transform arguments")
         if window is not None:
-            g.add_argument('--window', dest='window',
-                           action='store', default=window,
-                           help='window function to use for FFT')
+            g.add_argument(
+                "--window",
+                dest="window",
+                action="store",
+                default=window,
+                help="window function to use for FFT",
+            )
         if fft_size is not None:
-            g.add_argument('--fft_size', action='store', type=int,
-                           default=fft_size,
-                           help='use this size for FFT (should be a power of '
-                                '2) [default=%(default)i]')
+            g.add_argument(
+                "--fft_size",
+                action="store",
+                type=int,
+                default=fft_size,
+                help="use this size for FFT (should be a power of " "2) [default=%(default)i]",
+            )
         # return the group
         return g
 
@@ -580,6 +621,7 @@ class Phase(_PropertyMixin, np.ndarray):
            [ 3.14159,  0.42799, ..., -0.0142 ,  3.13592]], dtype=float32)
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
@@ -596,14 +638,14 @@ class Phase(_PropertyMixin, np.ndarray):
         # instantiate a ShortTimeFourierTransform object if needed
         if not isinstance(stft, ShortTimeFourierTransform):
             # set circular_shift if it was not disables explicitly
-            circular_shift = kwargs.pop('circular_shift', True)
-            stft = ShortTimeFourierTransform(stft,
-                                             circular_shift=circular_shift,
-                                             **kwargs)
+            circular_shift = kwargs.pop("circular_shift", True)
+            stft = ShortTimeFourierTransform(stft, circular_shift=circular_shift, **kwargs)
         # NOTE: just recalculate with circular_shift set?
         if not stft.circular_shift:
-            warnings.warn("`circular_shift` of the STFT must be set to 'True' "
-                          "for correct phase", RuntimeWarning)
+            warnings.warn(
+                "`circular_shift` of the STFT must be set to 'True' " "for correct phase",
+                RuntimeWarning,
+            )
         # process the STFT and cast the result as Phase
         obj = np.asarray(phase(stft)).view(cls)
         # save additional attributes
@@ -615,7 +657,7 @@ class Phase(_PropertyMixin, np.ndarray):
         if obj is None:
             return
         # set default values here, also needed for views
-        self.stft = getattr(obj, 'stft', None)
+        self.stft = getattr(obj, "stft", None)
 
     @property
     def bin_frequencies(self):
@@ -671,6 +713,7 @@ class LocalGroupDelay(_PropertyMixin, np.ndarray):
 
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
@@ -685,8 +728,10 @@ class LocalGroupDelay(_PropertyMixin, np.ndarray):
         if not isinstance(stft, Phase):
             phase = Phase(phase, circular_shift=True, **kwargs)
         if not phase.stft.circular_shift:
-            warnings.warn("`circular_shift` of the STFT must be set to 'True' "
-                          "for correct local group delay")
+            warnings.warn(
+                "`circular_shift` of the STFT must be set to 'True' "
+                "for correct local group delay"
+            )
         # process the phase and cast the result as LocalGroupDelay
         obj = np.asarray(local_group_delay(phase)).view(cls)
         # save additional attributes
@@ -699,8 +744,8 @@ class LocalGroupDelay(_PropertyMixin, np.ndarray):
         if obj is None:
             return
         # set default values here, also needed for views
-        self.phase = getattr(obj, 'phase', None)
-        self.stft = getattr(obj, 'stft', None)
+        self.phase = getattr(obj, "phase", None)
+        self.stft = getattr(obj, "stft", None)
 
     @property
     def bin_frequencies(self):

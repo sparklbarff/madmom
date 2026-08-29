@@ -1,17 +1,14 @@
 #!/usr/bin/env python
-# encoding: utf-8
 """
 OnsetDetectorLL online onset detection algorithm.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import argparse
 
 from madmom.audio import SignalProcessor
-from madmom.features import (ActivationsProcessor, OnsetPeakPickingProcessor,
-                             RNNOnsetProcessor)
+from madmom.features import ActivationsProcessor, OnsetPeakPickingProcessor, RNNOnsetProcessor
 from madmom.io import write_onsets
 from madmom.processors import IOProcessor, io_arguments
 
@@ -21,7 +18,8 @@ def main():
 
     # define parser
     p = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter, description='''
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""
     The OnsetDetectorLL Program detects all onsets in an audio file according
     to the algorithm described in:
 
@@ -68,12 +66,12 @@ def main():
 
       $ OnsetDetectorLL pickle
 
-    ''')
+    """,
+    )
     # version
-    p.add_argument('--version', action='version',
-                   version='OnsetDetectorLL.2016')
+    p.add_argument("--version", action="version", version="OnsetDetectorLL.2016")
     # input/output options
-    io_arguments(p, output_suffix='.onsets.txt', online=True)
+    io_arguments(p, output_suffix=".onsets.txt", online=True)
     ActivationsProcessor.add_arguments(p)
     # signal processing arguments
     SignalProcessor.add_arguments(p, gain=0)
@@ -85,7 +83,7 @@ def main():
 
     # set immutable defaults
     args.fps = 100
-    args.pre_max = 1. / args.fps
+    args.pre_max = 1.0 / args.fps
     args.post_max = 0
     args.post_avg = 0
     args.online = True
@@ -97,7 +95,7 @@ def main():
     # input processor
     if args.load:
         # load the activations from file
-        in_processor = ActivationsProcessor(mode='r', **vars(args))
+        in_processor = ActivationsProcessor(mode="r", **vars(args))
     else:
         # use a RNN to predict the onsets
         in_processor = RNNOnsetProcessor(**vars(args))
@@ -105,7 +103,7 @@ def main():
     # output processor
     if args.save:
         # save the RNN onset activations to file
-        out_processor = ActivationsProcessor(mode='w', **vars(args))
+        out_processor = ActivationsProcessor(mode="w", **vars(args))
     else:
         # detect the onsets and output them
         peak_picking = OnsetPeakPickingProcessor(**vars(args))
@@ -118,5 +116,5 @@ def main():
     args.func(processor, **vars(args))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

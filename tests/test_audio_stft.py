@@ -1,11 +1,9 @@
-# encoding: utf-8
 # pylint: skip-file
 """
 This file contains tests for the madmom.audio.stft module.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import sys
 import unittest
@@ -13,12 +11,17 @@ from os.path import join as pj
 
 from madmom.audio.spectrogram import Spectrogram
 from madmom.audio.stft import *
+
 from . import AUDIO_PATH
 
-sample_file = pj(AUDIO_PATH, 'sample.wav')
-sig_2d = np.array([[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-                   [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
-                   [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]])
+sample_file = pj(AUDIO_PATH, "sample.wav")
+sig_2d = np.array(
+    [
+        [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+        [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
+        [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+    ]
+)
 
 
 class TestBinFrequenciesFunction(unittest.TestCase):
@@ -59,14 +62,14 @@ class TestStftFunction(unittest.TestCase):
         # signal length and FFT size = 12
         # fft_freqs: 0, 1/12, 2/12, 3/12, 4/12, 5/12
         # [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0] every 4th bin => 3/12
-        res = [3. + 0.j, 0. + 0.j, 0. - 0.j, 3 + 0.j, 0. + 0.j, 0. + 0.j]
+        res = [3.0 + 0.0j, 0.0 + 0.0j, 0.0 - 0.0j, 3 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j]
         self.assertTrue(np.allclose(result[0], res))
         # [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0] every erd bin => 4/12
-        res = [4. + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.j, 4. + 0.j, 0. + 0.j]
+        res = [4.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 4.0 + 0.0j, 0.0 + 0.0j]
         self.assertTrue(np.allclose(result[1], res))
         # [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0] every 2nd bin => 6/12
         # can't resolve any more
-        res = [6. + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.j]
+        res = [6.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j]
         self.assertTrue(np.allclose(result[2], res))
 
     def test_circular_shift(self):
@@ -74,21 +77,21 @@ class TestStftFunction(unittest.TestCase):
         # signal length and FFT size = 12
         # fft_freqs: 0, 1/12, 2/12, 3/12, 4/12, 5/12
         # [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0] every 4th bin => 3/12
-        res = [3. + 0.j, 0. + 0.j, 0. + 0j, -3. + 0.j, 0. + 0.j, 0. + 0.j]
+        res = [3.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0j, -3.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j]
         self.assertTrue(np.allclose(result[0], res))
         # [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0] every erd bin => 4/12
-        res = [4. + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.j, 4. + 0.j, 0. + 0.j]
+        res = [4.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 4.0 + 0.0j, 0.0 + 0.0j]
         self.assertTrue(np.allclose(result[1], res))
         # [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0] every 2nd bin => 6/12
         # can't resolve any more
-        res = [6. + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.j]
+        res = [6.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j]
         self.assertTrue(np.allclose(result[2], res))
 
     def test_nyquist(self):
         result = stft(sig_2d, window=None, include_nyquist=True)
         self.assertTrue(result.shape == (3, 7))
         # test only the last req bin
-        res = [3. + 0.j, 0. + 0.j, 6. + 0.j]
+        res = [3.0 + 0.0j, 0.0 + 0.0j, 6.0 + 0.0j]
         self.assertTrue(np.allclose(result[:, -1], res))
 
     def test_fft_size(self):
@@ -97,7 +100,7 @@ class TestStftFunction(unittest.TestCase):
         result = stft(sig_2d, window=None, fft_size=25, include_nyquist=True)
         self.assertTrue(result.shape == (3, 13))
         # test only the first req bin
-        res = [3. + 0.j, 4. + 0.j, 6. + 0.j]
+        res = [3.0 + 0.0j, 4.0 + 0.0j, 6.0 + 0.0j]
         self.assertTrue(np.allclose(result[:, 0], res))
 
 
@@ -106,7 +109,7 @@ class TestPhaseFunction(unittest.TestCase):
     def test_types(self):
         result = phase(np.random.rand(10))
         self.assertTrue(result.dtype == float)
-        self.assertTrue(result.shape == (10, ))
+        self.assertTrue(result.shape == (10,))
         result = phase(np.random.rand(10, 2))
         self.assertTrue(result.dtype == float)
         self.assertTrue(result.shape == (10, 2))
@@ -114,7 +117,7 @@ class TestPhaseFunction(unittest.TestCase):
         data = np.random.rand(10) + 1j * np.random.rand(10)
         result = phase(data)
         self.assertTrue(result.dtype == float)
-        self.assertTrue(result.shape == (10, ))
+        self.assertTrue(result.shape == (10,))
         data = np.random.rand(10, 2) + 1j * np.random.rand(10, 2)
         result = phase(data)
         self.assertTrue(result.dtype == float)
@@ -172,10 +175,8 @@ class ShortTimeFourierTransformClass(unittest.TestCase):
         self.assertTrue(result.circular_shift is False)
         self.assertTrue(result.include_nyquist is False)
         self.assertTrue(np.allclose(result.window, np.hanning(2048)))
-        self.assertTrue(np.allclose(result.fft_window,
-                                    np.hanning(2048) / 32767))
-        self.assertTrue(np.allclose(result.bin_frequencies,
-                                    fft_frequencies(1024, 44100)))
+        self.assertTrue(np.allclose(result.fft_window, np.hanning(2048) / 32767))
+        self.assertTrue(np.allclose(result.bin_frequencies, fft_frequencies(1024, 44100)))
         # properties
         self.assertTrue(result.num_frames == 281)
         self.assertTrue(result.num_bins == 1024)
@@ -190,6 +191,7 @@ class ShortTimeFourierTransformClass(unittest.TestCase):
     def test_fft_window(self):
         # use a signal
         from madmom.audio.signal import Signal
+
         signal = Signal(sample_file)
         # scale the signal to float and range -1..1
         scaling = float(np.iinfo(signal.dtype).max)
@@ -201,8 +203,7 @@ class ShortTimeFourierTransformClass(unittest.TestCase):
         self.assertTrue(np.allclose(result, scaled_result))
         # if now window is given, a uniformly distributed one should be used
         result = ShortTimeFourierTransform(signal, window=None)
-        self.assertTrue(np.allclose(result.fft_window,
-                                    np.ones(2048, dtype=float) / scaling))
+        self.assertTrue(np.allclose(result.fft_window, np.ones(2048, dtype=float) / scaling))
         scaled_result = ShortTimeFourierTransform(scaled_signal, window=None)
         self.assertTrue(scaled_result.fft_window is None)
 
@@ -213,8 +214,7 @@ class ShortTimeFourierTransformClass(unittest.TestCase):
         self.assertTrue(result.circular_shift is False)
         self.assertTrue(result.include_nyquist is True)
         self.assertTrue(np.allclose(result.window, np.hanning(2048)))
-        self.assertTrue(np.allclose(result.bin_frequencies,
-                                    fft_frequencies(1025, 44100)))
+        self.assertTrue(np.allclose(result.bin_frequencies, fft_frequencies(1025, 44100)))
 
 
 class ShortTimeFourierTransformProcessorClass(unittest.TestCase):
@@ -223,8 +223,7 @@ class ShortTimeFourierTransformProcessorClass(unittest.TestCase):
         self.processor = ShortTimeFourierTransformProcessor()
 
     def test_types(self):
-        self.assertIsInstance(self.processor,
-                              ShortTimeFourierTransformProcessor)
+        self.assertIsInstance(self.processor, ShortTimeFourierTransformProcessor)
 
     def test_values(self):
         self.assertTrue(self.processor.window == np.hanning)
@@ -235,12 +234,10 @@ class ShortTimeFourierTransformProcessorClass(unittest.TestCase):
         result = self.processor.process(sample_file)
         # attributes
         self.assertTrue(result.shape == (281, 1024))
-        self.assertTrue(np.allclose(result.bin_frequencies,
-                                    fft_frequencies(1024, 44100)))
+        self.assertTrue(np.allclose(result.bin_frequencies, fft_frequencies(1024, 44100)))
         self.assertIsInstance(result, ShortTimeFourierTransform)
         self.assertTrue(result.fft_size == 2048)
-        self.assertTrue(np.allclose(result.fft_window,
-                                    np.hanning(2048) / 32767))
+        self.assertTrue(np.allclose(result.fft_window, np.hanning(2048) / 32767))
 
         # properties
         self.assertTrue(result.num_bins == 1024)
@@ -264,8 +261,7 @@ class PhaseClass(unittest.TestCase):
         result = Phase(sample_file)
         # attributes
         self.assertTrue(result.shape == (281, 1024))
-        self.assertTrue(np.allclose(result.bin_frequencies,
-                                    fft_frequencies(1024, 44100)))
+        self.assertTrue(np.allclose(result.bin_frequencies, fft_frequencies(1024, 44100)))
         # properties
         self.assertTrue(result.num_bins == 1024)
         self.assertTrue(result.num_frames == 281)
@@ -275,7 +271,7 @@ class PhaseClass(unittest.TestCase):
         self.assertIsInstance(result.local_group_delay(), LocalGroupDelay)
         self.assertIsInstance(result.lgd(), LocalGroupDelay)
 
-    @unittest.skipIf(sys.version_info < (3, 2), 'assertWarns needs Python 3.2')
+    @unittest.skipIf(sys.version_info < (3, 2), "assertWarns needs Python 3.2")
     def test_warnings(self):
         with self.assertWarns(RuntimeWarning):
             Phase(STFT(sample_file))
@@ -299,8 +295,7 @@ class LocalGroupDelayClass(unittest.TestCase):
         result = LocalGroupDelay(sample_file)
         # attributes
         self.assertTrue(result.shape == (281, 1024))
-        self.assertTrue(np.allclose(result.bin_frequencies,
-                                    fft_frequencies(1024, 44100)))
+        self.assertTrue(np.allclose(result.bin_frequencies, fft_frequencies(1024, 44100)))
         # properties
         self.assertTrue(result.num_bins == 1024)
         self.assertTrue(result.num_frames == 281)

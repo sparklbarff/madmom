@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -8,7 +7,6 @@ Evaluation package.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import numpy as np
 
@@ -40,7 +38,7 @@ def find_closest_matches(detections, annotations):
     annotations = np.asarray(annotations, dtype=float)
     # NOTE: right now, it only works with 1D arrays
     if detections.ndim > 1 or annotations.ndim > 1:
-        raise NotImplementedError('please implement multi-dim support')
+        raise NotImplementedError("please implement multi-dim support")
     # if no detections or annotations are given
     if len(detections) == 0 or len(annotations) == 0:
         # return a empty array
@@ -90,7 +88,7 @@ def calc_errors(detections, annotations, matches=None):
         matches = np.asarray(matches, dtype=int)
     # NOTE: right now, it only works with 1D arrays
     if detections.ndim > 1 or annotations.ndim > 1:
-        raise NotImplementedError('please implement multi-dim support')
+        raise NotImplementedError("please implement multi-dim support")
     # if no detections or annotations are given
     if len(detections) == 0 or len(annotations) == 0:
         # return a empty array
@@ -135,7 +133,7 @@ def calc_absolute_errors(detections, annotations, matches=None):
         matches = np.asarray(matches, dtype=int)
     # NOTE: right now, it only works with 1D arrays
     if detections.ndim > 1 or annotations.ndim > 1:
-        raise NotImplementedError('please implement multi-dim support')
+        raise NotImplementedError("please implement multi-dim support")
     # return the errors
     return np.abs(calc_errors(detections, annotations, matches))
 
@@ -171,7 +169,7 @@ def calc_relative_errors(detections, annotations, matches=None):
         matches = np.asarray(matches, dtype=int)
     # NOTE: right now, it only works with 1D arrays
     if detections.ndim > 1 or annotations.ndim > 1:
-        raise NotImplementedError('please implement multi-dim support')
+        raise NotImplementedError("please implement multi-dim support")
     # if no detections or annotations are given
     if len(detections) == 0 or len(annotations) == 0:
         # return a empty array
@@ -186,7 +184,7 @@ def calc_relative_errors(detections, annotations, matches=None):
 
 
 # abstract evaluation base class
-class EvaluationMixin(object):
+class EvaluationMixin:
     """
     Evaluation mixin class.
 
@@ -212,12 +210,13 @@ class EvaluationMixin(object):
     # ]
     name = None
     METRIC_NAMES = []
-    FLOAT_FORMAT = '{:.3f}'
+    FLOAT_FORMAT = "{:.3f}"
 
     @property
     def metrics(self):
         """Metrics as a dictionary."""
         from collections import OrderedDict
+
         metrics = OrderedDict()
         # metrics = {}
         for metric in [m[0] for m in self.METRIC_NAMES]:
@@ -226,7 +225,7 @@ class EvaluationMixin(object):
 
     def __len__(self):
         """Length of the evaluation object."""
-        raise NotImplementedError('must be implemented by subclass.')
+        raise NotImplementedError("must be implemented by subclass.")
 
     def tostring(self, **kwargs):
         """
@@ -246,6 +245,7 @@ class EvaluationMixin(object):
         """
         # pylint: disable=unused-argument
         import pprint
+
         return pprint.pformat(dict(self.metrics), indent=4)
 
 
@@ -275,19 +275,18 @@ class SimpleEvaluation(EvaluationMixin):
     """
 
     METRIC_NAMES = [
-        ('num_tp', 'No. of true positives'),
-        ('num_fp', 'No. of false positives'),
-        ('num_tn', 'No. of true negatives'),
-        ('num_fn', 'No. of false negatives'),
-        ('num_annotations', 'No. Annotations'),
-        ('precision', 'Precision'),
-        ('recall', 'Recall'),
-        ('fmeasure', 'F-measure'),
-        ('accuracy', 'Accuracy'),
+        ("num_tp", "No. of true positives"),
+        ("num_fp", "No. of false positives"),
+        ("num_tn", "No. of true negatives"),
+        ("num_fn", "No. of false negatives"),
+        ("num_annotations", "No. Annotations"),
+        ("precision", "Precision"),
+        ("recall", "Recall"),
+        ("fmeasure", "F-measure"),
+        ("accuracy", "Accuracy"),
     ]
 
-    def __init__(self, num_tp=0, num_fp=0, num_tn=0, num_fn=0, name=None,
-                 **kwargs):
+    def __init__(self, num_tp=0, num_fp=0, num_tn=0, num_fn=0, name=None, **kwargs):
         # pylint: disable=unused-argument
         # hidden variables, to be able to overwrite them in subclasses
         self._num_tp = int(num_tp)
@@ -333,7 +332,7 @@ class SimpleEvaluation(EvaluationMixin):
         retrieved = float(self.num_tp + self.num_fp)
         # if there are no positive predictions, none of them are wrong
         if retrieved == 0:
-            return 1.
+            return 1.0
         return self.num_tp / retrieved
 
     @property
@@ -343,16 +342,16 @@ class SimpleEvaluation(EvaluationMixin):
         relevant = float(self.num_tp + self.num_fn)
         # if there are no positive annotations, we recalled all of them
         if relevant == 0:
-            return 1.
+            return 1.0
         return self.num_tp / relevant
 
     @property
     def fmeasure(self):
         """F-measure."""
         # 2pr / (p+r)
-        numerator = 2. * self.precision * self.recall
+        numerator = 2.0 * self.precision * self.recall
         if numerator == 0:
-            return 0.
+            return 0.0
         return numerator / (self.precision + self.recall)
 
     @property
@@ -361,10 +360,10 @@ class SimpleEvaluation(EvaluationMixin):
         # acc: (TP + TN) / (TP + FP + TN + FN)
         denominator = self.num_fp + self.num_fn + self.num_tp + self.num_tn
         if denominator == 0:
-            return 1.
+            return 1.0
         numerator = float(self.num_tp + self.num_tn)
         if numerator == 0:
-            return 0.
+            return 0.0
         return numerator / denominator
 
     def tostring(self, **kwargs):
@@ -378,13 +377,23 @@ class SimpleEvaluation(EvaluationMixin):
 
 
         """
-        ret = ''
+        ret = ""
         if self.name is not None:
-            ret += '%s\n  ' % self.name
-        ret += 'Annotations: %5d TP: %5d FP: %5d FN: %5d ' \
-               'Precision: %.3f Recall: %.3f F-measure: %.3f Acc: %.3f' % \
-               (self.num_annotations, self.num_tp, self.num_fp, self.num_fn,
-                self.precision, self.recall, self.fmeasure, self.accuracy)
+            ret += "%s\n  " % self.name
+        ret += (
+            "Annotations: %5d TP: %5d FP: %5d FN: %5d "
+            "Precision: %.3f Recall: %.3f F-measure: %.3f Acc: %.3f"
+            % (
+                self.num_annotations,
+                self.num_tp,
+                self.num_fp,
+                self.num_fn,
+                self.precision,
+                self.recall,
+                self.fmeasure,
+                self.accuracy,
+            )
+        )
         return ret
 
     def __str__(self):
@@ -476,6 +485,7 @@ class MultiClassEvaluation(Evaluation):
     the class the detection belongs to.
 
     """
+
     def __init__(self, tp=None, fp=None, tn=None, fn=None, **kwargs):
         # set default values
         if tp is None:
@@ -507,7 +517,7 @@ class MultiClassEvaluation(Evaluation):
             Evaluation metrics formatted as a human readable string.
 
         """
-        ret = ''
+        ret = ""
 
         if verbose:
             # extract all classes
@@ -527,14 +537,24 @@ class MultiClassEvaluation(Evaluation):
                 tn = self.tn[self.tn[:, 1] == cls]
                 fn = self.fn[self.fn[:, 1] == cls]
                 # evaluate them
-                e = Evaluation(tp, fp, tn, fn, name='Class %s' % cls)
+                e = Evaluation(tp, fp, tn, fn, name="Class %s" % cls)
                 # append to the output string
-                ret += '  %s\n' % e.tostring(verbose=False)
+                ret += "  %s\n" % e.tostring(verbose=False)
         # normal formatting
-        ret += 'Annotations: %5d TP: %5d FP: %4d FN: %4d ' \
-               'Precision: %.3f Recall: %.3f F-measure: %.3f Acc: %.3f' % \
-               (self.num_annotations, self.num_tp, self.num_fp, self.num_fn,
-                self.precision, self.recall, self.fmeasure, self.accuracy)
+        ret += (
+            "Annotations: %5d TP: %5d FP: %4d FN: %4d "
+            "Precision: %.3f Recall: %.3f F-measure: %.3f Acc: %.3f"
+            % (
+                self.num_annotations,
+                self.num_tp,
+                self.num_fp,
+                self.num_fn,
+                self.precision,
+                self.recall,
+                self.fmeasure,
+                self.accuracy,
+            )
+        )
         # return
         return ret
 
@@ -561,7 +581,7 @@ class SumEvaluation(SimpleEvaluation):
             # wrap the given eval_object in a list
             eval_objects = [eval_objects]
         self.eval_objects = eval_objects
-        self.name = name or 'sum for %d files' % len(self)
+        self.name = name or "sum for %d files" % len(self)
 
     def __len__(self):
         # just use the length of the evaluation objects
@@ -612,7 +632,7 @@ class MeanEvaluation(SumEvaluation):
     def __init__(self, eval_objects, name=None, **kwargs):
         super(MeanEvaluation, self).__init__(eval_objects, **kwargs)
         # handle the 'name' here to be able to set a different default value
-        self.name = name or 'mean for %d files' % len(self)
+        self.name = name or "mean for %d files" % len(self)
 
     # overwrite the properties to calculate the mean instead of the sum
 
@@ -620,35 +640,35 @@ class MeanEvaluation(SumEvaluation):
     def num_tp(self):
         """Number of true positive detections."""
         if not self.eval_objects:
-            return 0.
+            return 0.0
         return np.nanmean([e.num_tp for e in self.eval_objects])
 
     @property
     def num_fp(self):
         """Number of false positive detections."""
         if not self.eval_objects:
-            return 0.
+            return 0.0
         return np.nanmean([e.num_fp for e in self.eval_objects])
 
     @property
     def num_tn(self):
         """Number of true negative detections."""
         if not self.eval_objects:
-            return 0.
+            return 0.0
         return np.nanmean([e.num_tn for e in self.eval_objects])
 
     @property
     def num_fn(self):
         """Number of false negative detections."""
         if not self.eval_objects:
-            return 0.
+            return 0.0
         return np.nanmean([e.num_fn for e in self.eval_objects])
 
     @property
     def num_annotations(self):
         """Number of annotations."""
         if not self.eval_objects:
-            return 0.
+            return 0.0
         return np.nanmean([e.num_annotations for e in self.eval_objects])
 
     @property
@@ -681,16 +701,26 @@ class MeanEvaluation(SumEvaluation):
             Evaluation metrics formatted as a human readable string.
 
         """
-        ret = ''
+        ret = ""
         if self.name is not None:
-            ret += '%s\n  ' % self.name
+            ret += "%s\n  " % self.name
         # NOTE: unify this with SimpleEvaluation but
         #       add option to provide field formatters (e.g. 3d or 5.2f)
         # format with floats instead of integers
-        ret += 'Annotations: %5.2f TP: %5.2f FP: %5.2f FN: %5.2f ' \
-               'Precision: %.3f Recall: %.3f F-measure: %.3f Acc: %.3f' % \
-               (self.num_annotations, self.num_tp, self.num_fp, self.num_fn,
-                self.precision, self.recall, self.fmeasure, self.accuracy)
+        ret += (
+            "Annotations: %5.2f TP: %5.2f FP: %5.2f FN: %5.2f "
+            "Precision: %.3f Recall: %.3f F-measure: %.3f Acc: %.3f"
+            % (
+                self.num_annotations,
+                self.num_tp,
+                self.num_fp,
+                self.num_fn,
+                self.precision,
+                self.recall,
+                self.fmeasure,
+                self.accuracy,
+            )
+        )
         return ret
 
 
@@ -710,10 +740,10 @@ def tostring(eval_objects, **kwargs):
 
     """
     # pylint: disable=unused-argument
-    return '\n'.join([e.tostring() for e in eval_objects])
+    return "\n".join([e.tostring() for e in eval_objects])
 
 
-def tocsv(eval_objects, metric_names=None, float_format='{:.3f}', **kwargs):
+def tocsv(eval_objects, metric_names=None, float_format="{:.3f}", **kwargs):
     """
     Format the given evaluation objects as a CSV table.
 
@@ -745,17 +775,17 @@ def tocsv(eval_objects, metric_names=None, float_format='{:.3f}', **kwargs):
         metric_names = eval_objects[0].METRIC_NAMES
     metric_names, metric_labels = list(zip(*metric_names))
     # add header
-    lines = ['Name,' + ','.join(metric_labels)]
+    lines = ["Name," + ",".join(metric_labels)]
     # NOTE: use e.metrics dict?
     # add the evaluation objects
     for e in eval_objects:
         values = [float_format.format(getattr(e, mn)) for mn in metric_names]
-        lines.append(e.name + ',' + ','.join(values))
+        lines.append(e.name + "," + ",".join(values))
     # return everything
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
-def totex(eval_objects, metric_names=None, float_format='{:.3f}', **kwargs):
+def totex(eval_objects, metric_names=None, float_format="{:.3f}", **kwargs):
     """
     Format the given evaluation objects as a LaTeX table.
 
@@ -787,16 +817,16 @@ def totex(eval_objects, metric_names=None, float_format='{:.3f}', **kwargs):
         metric_names = eval_objects[0].METRIC_NAMES
     metric_names, metric_labels = list(zip(*metric_names))
     # add header
-    lines = ['Name & ' + ' & '.join(metric_labels) + '\\\\']
+    lines = ["Name & " + " & ".join(metric_labels) + "\\\\"]
     # NOTE: use e.metrics dict
     # NOTE: add a generic totable() function which accepts columns separator,
     #       newline stuff (e.g. tex \\\\) and others
     # add the evaluation objects
     for e in eval_objects:
         values = [float_format.format(getattr(e, mn)) for mn in metric_names]
-        lines.append(e.name + ' & ' + ' & '.join(values) + '\\\\')
+        lines.append(e.name + " & " + " & ".join(values) + "\\\\")
     # return everything
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
 def evaluation_io(parser, ann_suffix, det_suffix, ann_dir=None, det_dir=None):
@@ -825,53 +855,86 @@ def evaluation_io(parser, ann_suffix, det_suffix, ann_dir=None, det_dir=None):
         Evaluation formatter argument group.
 
     """
-    import sys
     import argparse
+    import sys
+
     # general input output file handling
-    parser.add_argument('files', nargs='*',
-                        help='files (or folders) to be evaluated')
-    parser.add_argument('-o', dest='outfile', type=argparse.FileType('w'),
-                        default=sys.stdout,
-                        help='output file [default: STDOUT]')
+    parser.add_argument("files", nargs="*", help="files (or folders) to be evaluated")
+    parser.add_argument(
+        "-o",
+        dest="outfile",
+        type=argparse.FileType("w"),
+        default=sys.stdout,
+        help="output file [default: STDOUT]",
+    )
     # file suffixes used for evaluation
-    g = parser.add_argument_group('file/folder/suffix arguments')
-    g.add_argument('-a', dest='ann_suffix', action='store', default=ann_suffix,
-                   help='suffix of the annotation files '
-                        '[default: %(default)s]')
-    g.add_argument('--ann_dir', action='store', default=ann_dir,
-                   help='search only this directory (recursively) for '
-                        'annotation files [default: %(default)s]')
-    g.add_argument('-d', dest='det_suffix', action='store', default=det_suffix,
-                   help='suffix of the detection files [default: %(default)s]')
-    g.add_argument('--det_dir', action='store', default=det_dir,
-                   help='search only this directory (recursively) for '
-                        'detection files [default: %(default)s]')
+    g = parser.add_argument_group("file/folder/suffix arguments")
+    g.add_argument(
+        "-a",
+        dest="ann_suffix",
+        action="store",
+        default=ann_suffix,
+        help="suffix of the annotation files " "[default: %(default)s]",
+    )
+    g.add_argument(
+        "--ann_dir",
+        action="store",
+        default=ann_dir,
+        help="search only this directory (recursively) for "
+        "annotation files [default: %(default)s]",
+    )
+    g.add_argument(
+        "-d",
+        dest="det_suffix",
+        action="store",
+        default=det_suffix,
+        help="suffix of the detection files [default: %(default)s]",
+    )
+    g.add_argument(
+        "--det_dir",
+        action="store",
+        default=det_dir,
+        help="search only this directory (recursively) for "
+        "detection files [default: %(default)s]",
+    )
     # option to ignore non-existing detections
-    g.add_argument('-i', '--ignore_non_existing', action='store_true',
-                   help='ignore non-existing detections [default: raise a '
-                        'warning and assume empty detections]')
+    g.add_argument(
+        "-i",
+        "--ignore_non_existing",
+        action="store_true",
+        help="ignore non-existing detections [default: raise a "
+        "warning and assume empty detections]",
+    )
     # verbose
-    parser.add_argument('-v', '--verbose', action='count', default=0,
-                        help='increase verbosity level')
+    parser.add_argument(
+        "-v", "--verbose", action="count", default=0, help="increase verbosity level"
+    )
     # option to suppress warnings
-    parser.add_argument('-q', '--quiet', action='store_true',
-                        help='suppress any warnings')
+    parser.add_argument("-q", "--quiet", action="store_true", help="suppress any warnings")
     # output format options
     parser.set_defaults(output_formatter=tostring)
-    f = parser.add_argument_group('formatting arguments')
+    f = parser.add_argument_group("formatting arguments")
     formats = f.add_mutually_exclusive_group()
-    formats.add_argument('--tex', dest='output_formatter',
-                         action='store_const', const=totex,
-                         help='format output to be used in .tex files')
-    formats.add_argument('--csv', dest='output_formatter',
-                         action='store_const', const=tocsv,
-                         help='format output to be used in .csv files')
+    formats.add_argument(
+        "--tex",
+        dest="output_formatter",
+        action="store_const",
+        const=totex,
+        help="format output to be used in .tex files",
+    )
+    formats.add_argument(
+        "--csv",
+        dest="output_formatter",
+        action="store_const",
+        const=tocsv,
+        help="format output to be used in .csv files",
+    )
     # return the output formatting group so the caller can add more options
     return g, f
 
 
 # finally import the submodules
-from . import chords, beats, notes, onsets, tempo
+from . import beats, chords, notes, onsets, tempo
 
 # import often used classes
 from .beats import BeatEvaluation, BeatMeanEvaluation

@@ -1,16 +1,15 @@
-# encoding: utf-8
 # pylint: skip-file
 """
 This file contains tests for the madmom.evaluation.tempo module.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import math
 import unittest
 
 from madmom.evaluation.tempo import *
+
 from . import ANNOTATIONS_PATH, DETECTIONS_PATH
 
 ANNOTATIONS = np.asarray([[87.5, 0.7], [175, 0.3]])
@@ -31,8 +30,7 @@ class TestSortTempoFunction(unittest.TestCase):
         self.assertTrue(np.allclose(result, [[100, 0.8], [50, 0.2]]))
         # tempo order of 50 and 100 bpm must be kept
         result = sort_tempo([[100, 0.2], [50, 0.2], [75, 0.6]])
-        self.assertTrue(np.allclose(result,
-                                    [[75, 0.6], [100, 0.2], [50, 0.2]]))
+        self.assertTrue(np.allclose(result, [[75, 0.6], [100, 0.2], [50, 0.2]]))
 
     def test_error(self):
         with self.assertRaises(ValueError):
@@ -184,8 +182,7 @@ class TestTempoEvaluationClass(unittest.TestCase):
         self.assertEqual(e.acc1, True)
         self.assertEqual(e.acc2, True)
         # same, but do not sort them
-        e = TempoEvaluation([60, 120], [[180, 0.3], [60, 0.7]], max_len=1,
-                            sort=False)
+        e = TempoEvaluation([60, 120], [[180, 0.3], [60, 0.7]], max_len=1, sort=False)
         self.assertEqual(e.pscore, 0)
         self.assertEqual(e.any, False)
         self.assertEqual(e.all, False)
@@ -277,11 +274,11 @@ class TestMeanTempoEvaluationClass(unittest.TestCase):
         # mean evaluation of empty and real evaluation
         e2 = TempoEvaluation([120, 60], [[60, 0.7], [30, 0.3]])
         e = TempoMeanEvaluation([e1, e2])
-        self.assertEqual(e.pscore, (1 + .7) / 2.)
-        self.assertEqual(e.any, (1 + 1) / 2.)
-        self.assertEqual(e.all, (1 + 0) / 2.)
-        self.assertEqual(e.acc1, (1 + 0) / 2.)
-        self.assertEqual(e.acc2, (1 + 1.) / 2.)
+        self.assertEqual(e.pscore, (1 + 0.7) / 2.0)
+        self.assertEqual(e.any, (1 + 1) / 2.0)
+        self.assertEqual(e.all, (1 + 0) / 2.0)
+        self.assertEqual(e.acc1, (1 + 0) / 2.0)
+        self.assertEqual(e.acc2, (1 + 1.0) / 2.0)
         self.assertEqual(len(e), 2)
 
     def test_tostring(self):
@@ -292,17 +289,17 @@ class TestAddParserFunction(unittest.TestCase):
 
     def setUp(self):
         import argparse
+
         self.parser = argparse.ArgumentParser()
         sub_parser = self.parser.add_subparsers()
         self.sub_parser, self.group = add_parser(sub_parser)
 
     def test_args(self):
-        args = self.parser.parse_args(['tempo', ANNOTATIONS_PATH,
-                                       DETECTIONS_PATH])
+        args = self.parser.parse_args(["tempo", ANNOTATIONS_PATH, DETECTIONS_PATH])
         self.assertTrue(args.ann_dir is None)
-        self.assertTrue(args.ann_suffix == '.bpm')
+        self.assertTrue(args.ann_suffix == ".bpm")
         self.assertTrue(args.det_dir is None)
-        self.assertTrue(args.det_suffix == '.bpm.txt')
+        self.assertTrue(args.det_suffix == ".bpm.txt")
         self.assertTrue(args.double is True)
         self.assertTrue(args.eval == TempoEvaluation)
         self.assertTrue(args.files == [ANNOTATIONS_PATH, DETECTIONS_PATH])
@@ -310,6 +307,7 @@ class TestAddParserFunction(unittest.TestCase):
         self.assertTrue(args.mean_eval == TempoMeanEvaluation)
         # self.assertTrue(args.outfile == StringIO.StringIO)
         from madmom.evaluation import tostring
+
         self.assertTrue(args.output_formatter == tostring)
         self.assertTrue(args.quiet is False)
         self.assertTrue(args.sum_eval is None)

@@ -1,9 +1,7 @@
-# encoding: utf-8
 """
 This files contains pytest fixtures and other test related stuff.
 
 """
-from __future__ import absolute_import, division, print_function
 
 import numpy as np
 import pytest

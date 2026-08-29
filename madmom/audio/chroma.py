@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -7,18 +6,16 @@ This module contains chroma related functionality.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import warnings
 
 import numpy as np
 
-from madmom.audio.filters import (A4, Filterbank,
-                                  PitchClassProfileFilterbank as PCP,
-                                  HarmonicPitchClassProfileFilterbank as HPCP)
-from madmom.audio.spectrogram import (Spectrogram, FilteredSpectrogram,
-                                      SemitoneBandpassSpectrogram)
-from madmom.processors import SequentialProcessor, Processor
+from madmom.audio.filters import A4, Filterbank
+from madmom.audio.filters import HarmonicPitchClassProfileFilterbank as HPCP
+from madmom.audio.filters import PitchClassProfileFilterbank as PCP
+from madmom.audio.spectrogram import FilteredSpectrogram, SemitoneBandpassSpectrogram, Spectrogram
+from madmom.processors import Processor, SequentialProcessor
 
 
 # inherit from FilteredSpectrogram, since this class is closest related
@@ -59,36 +56,55 @@ class PitchClassProfile(FilteredSpectrogram):
            1999.
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
 
-    def __init__(self, spectrogram, filterbank=PCP, num_classes=PCP.CLASSES,
-                 fmin=PCP.FMIN, fmax=PCP.FMAX, fref=A4, **kwargs):
+    def __init__(
+        self,
+        spectrogram,
+        filterbank=PCP,
+        num_classes=PCP.CLASSES,
+        fmin=PCP.FMIN,
+        fmax=PCP.FMAX,
+        fref=A4,
+        **kwargs,
+    ):
         # this method is for documentation purposes only
         pass
 
-    def __new__(cls, spectrogram, filterbank=PCP, num_classes=PCP.CLASSES,
-                fmin=PCP.FMIN, fmax=PCP.FMAX, fref=A4, **kwargs):
+    def __new__(
+        cls,
+        spectrogram,
+        filterbank=PCP,
+        num_classes=PCP.CLASSES,
+        fmin=PCP.FMIN,
+        fmax=PCP.FMAX,
+        fref=A4,
+        **kwargs,
+    ):
         # check spectrogram type
         if not isinstance(spectrogram, Spectrogram):
             spectrogram = Spectrogram(spectrogram, **kwargs)
         # spectrogram should not be filtered
-        if hasattr(spectrogram, 'filterbank'):
-            warnings.warn('Spectrogram should not be filtered.',
-                          RuntimeWarning)
+        if hasattr(spectrogram, "filterbank"):
+            warnings.warn("Spectrogram should not be filtered.", RuntimeWarning)
         # reference frequency for the filterbank
         if fref is None:
             fref = spectrogram.tuning_frequency()
 
         # set filterbank
         if issubclass(filterbank, Filterbank):
-            filterbank = filterbank(spectrogram.bin_frequencies,
-                                    num_classes=num_classes, fmin=fmin,
-                                    fmax=fmax, fref=fref)
+            filterbank = filterbank(
+                spectrogram.bin_frequencies,
+                num_classes=num_classes,
+                fmin=fmin,
+                fmax=fmax,
+                fref=fref,
+            )
         if not isinstance(filterbank, Filterbank):
-            raise ValueError('not a Filterbank type or instance: %s' %
-                             filterbank)
+            raise ValueError("not a Filterbank type or instance: %s" % filterbank)
         # filter the spectrogram
         data = np.dot(spectrogram, filterbank)
         # cast as PitchClassProfile
@@ -103,8 +119,8 @@ class PitchClassProfile(FilteredSpectrogram):
         if obj is None:
             return
         # set default values here, also needed for views
-        self.filterbank = getattr(obj, 'filterbank', None)
-        self.spectrogram = getattr(obj, 'spectrogram', None)
+        self.filterbank = getattr(obj, "filterbank", None)
+        self.spectrogram = getattr(obj, "spectrogram", None)
 
 
 class HarmonicPitchClassProfile(PitchClassProfile):
@@ -144,38 +160,58 @@ class HarmonicPitchClassProfile(PitchClassProfile):
            PhD thesis, Universitat Pompeu Fabra, Barcelona, Spain, 2006.
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
 
-    def __init__(self, spectrogram, filterbank=HPCP, num_classes=HPCP.CLASSES,
-                 fmin=HPCP.FMIN, fmax=HPCP.FMAX, fref=A4, window=HPCP.WINDOW,
-                 **kwargs):
+    def __init__(
+        self,
+        spectrogram,
+        filterbank=HPCP,
+        num_classes=HPCP.CLASSES,
+        fmin=HPCP.FMIN,
+        fmax=HPCP.FMAX,
+        fref=A4,
+        window=HPCP.WINDOW,
+        **kwargs,
+    ):
         # this method is for documentation purposes only
         pass
 
-    def __new__(cls, spectrogram, filterbank=HPCP, num_classes=HPCP.CLASSES,
-                fmin=HPCP.FMIN, fmax=HPCP.FMAX, fref=A4, window=HPCP.WINDOW,
-                **kwargs):
+    def __new__(
+        cls,
+        spectrogram,
+        filterbank=HPCP,
+        num_classes=HPCP.CLASSES,
+        fmin=HPCP.FMIN,
+        fmax=HPCP.FMAX,
+        fref=A4,
+        window=HPCP.WINDOW,
+        **kwargs,
+    ):
         # check spectrogram type
         if not isinstance(spectrogram, Spectrogram):
             spectrogram = Spectrogram(spectrogram, **kwargs)
         # spectrogram should not be filtered
-        if hasattr(spectrogram, 'filterbank'):
-            warnings.warn('Spectrogram should not be filtered.',
-                          RuntimeWarning)
+        if hasattr(spectrogram, "filterbank"):
+            warnings.warn("Spectrogram should not be filtered.", RuntimeWarning)
         # reference frequency for the filterbank
         if fref is None:
             fref = spectrogram.tuning_frequency()
 
         # set filterbank
         if issubclass(filterbank, Filterbank):
-            filterbank = filterbank(spectrogram.bin_frequencies,
-                                    num_classes=num_classes, fmin=fmin,
-                                    fmax=fmax, fref=fref, window=window)
+            filterbank = filterbank(
+                spectrogram.bin_frequencies,
+                num_classes=num_classes,
+                fmin=fmin,
+                fmax=fmax,
+                fref=fref,
+                window=window,
+            )
         if not isinstance(filterbank, Filterbank):
-            raise ValueError('not a Filterbank type or instance: %s' %
-                             filterbank)
+            raise ValueError("not a Filterbank type or instance: %s" % filterbank)
         # filter the spectrogram
         data = np.dot(spectrogram, filterbank)
         # cast as PitchClassProfile
@@ -189,7 +225,7 @@ class HarmonicPitchClassProfile(PitchClassProfile):
 
 def _dcp_flatten(fs):
     """Flatten spectrograms for DeepChromaProcessor. Needs to be outside
-       of the class in order to be picklable for multiprocessing.
+    of the class in order to be picklable for multiprocessing.
     """
     return np.concatenate(fs).reshape(len(fs), -1)
 
@@ -247,34 +283,36 @@ class DeepChromaProcessor(SequentialProcessor):
 
     """
 
-    def __init__(self, fmin=65, fmax=2100, unique_filters=True, models=None,
-                 **kwargs):
-        from ..models import CHROMA_DNN
-        from ..audio.signal import SignalProcessor, FramedSignalProcessor
-        from ..audio.stft import ShortTimeFourierTransformProcessor
-        from ..audio.spectrogram import LogarithmicFilteredSpectrogramProcessor
+    def __init__(self, fmin=65, fmax=2100, unique_filters=True, models=None, **kwargs):
         from madmom.ml.nn import NeuralNetworkEnsemble
+
+        from ..audio.signal import FramedSignalProcessor, SignalProcessor
+        from ..audio.spectrogram import LogarithmicFilteredSpectrogramProcessor
+        from ..audio.stft import ShortTimeFourierTransformProcessor
+        from ..models import CHROMA_DNN
+
         # signal pre-processing
         sig = SignalProcessor(num_channels=1, sample_rate=44100)
         frames = FramedSignalProcessor(frame_size=8192, fps=10)
         stft = ShortTimeFourierTransformProcessor()  # caching FFT window
         spec = LogarithmicFilteredSpectrogramProcessor(
-            num_bands=24, fmin=fmin, fmax=fmax, unique_filters=unique_filters)
+            num_bands=24, fmin=fmin, fmax=fmax, unique_filters=unique_filters
+        )
         # split the spectrogram into overlapping frames
         spec_signal = SignalProcessor(sample_rate=10)
         spec_frames = FramedSignalProcessor(frame_size=15, hop_size=1, fps=10)
         # predict chroma bins with a DNN
         nn = NeuralNetworkEnsemble.load(models or CHROMA_DNN, **kwargs)
         # instantiate a SequentialProcessor
-        super(DeepChromaProcessor, self).__init__([
-            sig, frames, stft, spec, spec_signal, spec_frames, _dcp_flatten, nn
-        ])
+        super(DeepChromaProcessor, self).__init__(
+            [sig, frames, stft, spec, spec_signal, spec_frames, _dcp_flatten, nn]
+        )
 
 
 # Compressed Log Pitch (CLP) chroma stuff
 CLP_FPS = 50
 CLP_FMIN = 27.5
-CLP_FMAX = 4200.
+CLP_FMAX = 4200.0
 CLP_COMPRESSION_FACTOR = 100
 CLP_NORM = True
 CLP_THRESHOLD = 0.001
@@ -321,21 +359,37 @@ class CLPChroma(np.ndarray):
 
     """
 
-    def __init__(self, data, fps=CLP_FPS, fmin=CLP_FMIN, fmax=CLP_FMAX,
-                 compression_factor=CLP_COMPRESSION_FACTOR, norm=CLP_NORM,
-                 threshold=CLP_THRESHOLD, **kwargs):
+    def __init__(
+        self,
+        data,
+        fps=CLP_FPS,
+        fmin=CLP_FMIN,
+        fmax=CLP_FMAX,
+        compression_factor=CLP_COMPRESSION_FACTOR,
+        norm=CLP_NORM,
+        threshold=CLP_THRESHOLD,
+        **kwargs,
+    ):
         # this method is for documentation purposes only
         pass
 
-    def __new__(cls, data, fps=CLP_FPS, fmin=CLP_FMIN, fmax=CLP_FMAX,
-                compression_factor=CLP_COMPRESSION_FACTOR, norm=CLP_NORM,
-                threshold=CLP_THRESHOLD, **kwargs):
+    def __new__(
+        cls,
+        data,
+        fps=CLP_FPS,
+        fmin=CLP_FMIN,
+        fmax=CLP_FMAX,
+        compression_factor=CLP_COMPRESSION_FACTOR,
+        norm=CLP_NORM,
+        threshold=CLP_THRESHOLD,
+        **kwargs,
+    ):
         from madmom.audio.filters import hz2midi
+
         # check input type
         if not isinstance(data, SemitoneBandpassSpectrogram):
             # compute SemitoneBandpassSpectrogram
-            data = SemitoneBandpassSpectrogram(data, fps=fps, fmin=fmin,
-                                               fmax=fmax)
+            data = SemitoneBandpassSpectrogram(data, fps=fps, fmin=fmin, fmax=fmax)
         # apply log compression
         log_pitch_energy = np.log10(data * compression_factor + 1)
         # compute chroma by adding up bins that correspond to the same
@@ -347,12 +401,11 @@ class CLPChroma(np.ndarray):
             # corresponds to a C and therefore chroma_idx=0)
             chroma_idx = np.mod(midi_min + p, 12)
             obj[:, chroma_idx] += log_pitch_energy[:, p]
-        obj.bin_labels = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G',
-                          'G#', 'A', 'A#', 'B']
+        obj.bin_labels = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
         obj.fps = fps
         if norm:
             # normalise the vectors according to the l2 norm
-            mean_energy = np.sqrt((obj ** 2).sum(axis=1))
+            mean_energy = np.sqrt((obj**2).sum(axis=1))
             idx_below_threshold = np.where(mean_energy < threshold)
             obj /= mean_energy[:, np.newaxis]
             obj[idx_below_threshold, :] = np.ones((1, 12)) / np.sqrt(12)
@@ -362,8 +415,8 @@ class CLPChroma(np.ndarray):
         if obj is None:
             return
         # set default values here
-        self.fps = getattr(obj, 'fps', None)
-        self.bin_labels = getattr(obj, 'bin_labels', None)
+        self.fps = getattr(obj, "fps", None)
+        self.bin_labels = getattr(obj, "bin_labels", None)
 
 
 class CLPChromaProcessor(Processor):
@@ -388,9 +441,16 @@ class CLPChromaProcessor(Processor):
 
     """
 
-    def __init__(self, fps=CLP_FPS, fmin=CLP_FMIN, fmax=CLP_FMAX,
-                 compression_factor=CLP_COMPRESSION_FACTOR, norm=CLP_NORM,
-                 threshold=CLP_THRESHOLD, **kwargs):
+    def __init__(
+        self,
+        fps=CLP_FPS,
+        fmin=CLP_FMIN,
+        fmax=CLP_FMAX,
+        compression_factor=CLP_COMPRESSION_FACTOR,
+        norm=CLP_NORM,
+        threshold=CLP_THRESHOLD,
+        **kwargs,
+    ):
         # pylint: disable=unused-argument
         self.fps = fps
         self.fmin = fmin
@@ -415,9 +475,14 @@ class CLPChromaProcessor(Processor):
 
         """
         # update arguments passed to CLPChroma
-        args = dict(fps=self.fps, fmin=self.fmin, fmax=self.fmax,
-                    compression_factor=self.compression_factor,
-                    norm=self.norm, threshold=self.threshold)
+        args = dict(
+            fps=self.fps,
+            fmin=self.fmin,
+            fmax=self.fmax,
+            compression_factor=self.compression_factor,
+            norm=self.norm,
+            threshold=self.threshold,
+        )
         args.update(kwargs)
         # instantiate a CLPChroma
         return CLPChroma(data, **args)

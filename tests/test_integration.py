@@ -19,10 +19,11 @@ from madmom.features import (
     DBNDownBeatTrackingProcessor,
     OnsetPeakPickingProcessor,
     RNNBeatProcessor,
-    RNNOnsetProcessor,
     RNNDownBeatProcessor,
+    RNNOnsetProcessor,
     TempoEstimationProcessor,
 )
+
 from . import AUDIO_PATH
 
 sample_file = Path(AUDIO_PATH) / "sample.wav"
@@ -154,6 +155,7 @@ class TestCompleteWorkflow(unittest.TestCase):
         self.assertIsInstance(key_result, np.ndarray)
         # Key processor returns probabilities, extract most likely key
         from madmom.features.key import KEY_LABELS
+
         if len(key_result.shape) == 2:
             key_idx = np.argmax(key_result[0])
         else:
@@ -185,10 +187,11 @@ class TestCompleteWorkflow(unittest.TestCase):
         except (ValueError, TypeError):
             # Skip chord detection if processor requires features
             chords = np.array([])
-        
+
         key_result = CNNKeyRecognitionProcessor()(audio)
         # Extract key name from result
         from madmom.features.key import KEY_LABELS
+
         if len(key_result.shape) == 2:
             key_idx = np.argmax(key_result[0])
         else:
@@ -198,7 +201,9 @@ class TestCompleteWorkflow(unittest.TestCase):
         # 4. Detect downbeats for measure alignment
         downbeat_processor = RNNDownBeatProcessor()
         downbeat_activations = downbeat_processor(audio)
-        beats_downbeats = DBNDownBeatTrackingProcessor(fps=100, beats_per_bar=[4])(downbeat_activations)
+        beats_downbeats = DBNDownBeatTrackingProcessor(fps=100, beats_per_bar=[4])(
+            downbeat_activations
+        )
         downbeats = beats_downbeats[beats_downbeats[:, 1] == 1][:, 0]
 
         # Verify all analyses completed
@@ -212,6 +217,7 @@ class TestCompleteWorkflow(unittest.TestCase):
         # Beats should be within audio duration
         # Get sample rate from audio signal (default is 44100 Hz)
         from madmom.audio.signal import Signal
+
         if isinstance(audio, Signal):
             sample_rate = audio.sample_rate
         else:
@@ -224,4 +230,3 @@ class TestCompleteWorkflow(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
