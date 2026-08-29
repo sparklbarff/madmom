@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -13,14 +12,14 @@ integer values because of performance reasons.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import numpy as np
+
 from madmom.ml.hmm import ObservationModel, TransitionModel
 
 
 # state spaces
-class BeatStateSpace(object):
+class BeatStateSpace:
     """
     State space for beat tracking with a HMM.
 
@@ -62,8 +61,7 @@ class BeatStateSpace(object):
 
     def __init__(self, min_interval, max_interval, num_intervals=None):
         # per default, use a linear spacing of the tempi
-        intervals = np.arange(np.round(min_interval),
-                              np.round(max_interval) + 1)
+        intervals = np.arange(np.round(min_interval), np.round(max_interval) + 1)
         # if num_intervals is given (and smaller than the length of the linear
         # spacing of the intervals) use a log spacing and limit the number of
         # intervals to the given value
@@ -72,9 +70,9 @@ class BeatStateSpace(object):
             num_log_intervals = num_intervals
             intervals = []
             while len(intervals) < num_intervals:
-                intervals = np.logspace(np.log2(min_interval),
-                                        np.log2(max_interval),
-                                        num_log_intervals, base=2)
+                intervals = np.logspace(
+                    np.log2(min_interval), np.log2(max_interval), num_log_intervals, base=2
+                )
                 # quantize to integer intervals
                 intervals = np.unique(np.round(intervals))
                 num_log_intervals += 1
@@ -93,13 +91,12 @@ class BeatStateSpace(object):
         # Note: having an index counter is faster than ndenumerate
         idx = 0
         for i in self.intervals:
-            self.state_positions[idx: idx + i] = np.linspace(0, 1, i,
-                                                             endpoint=False)
-            self.state_intervals[idx: idx + i] = i
+            self.state_positions[idx : idx + i] = np.linspace(0, 1, i, endpoint=False)
+            self.state_intervals[idx : idx + i] = i
             idx += i
 
 
-class BarStateSpace(object):
+class BarStateSpace:
     """
     State space for bar tracking with a HMM.
 
@@ -144,8 +141,7 @@ class BarStateSpace(object):
 
     """
 
-    def __init__(self, num_beats, min_interval, max_interval,
-                 num_intervals=None):
+    def __init__(self, num_beats, min_interval, max_interval, num_intervals=None):
         # model N beats as a bar
         self.num_beats = int(num_beats)
         self.state_positions = np.empty(0)
@@ -158,10 +154,8 @@ class BarStateSpace(object):
         bss = BeatStateSpace(min_interval, max_interval, num_intervals)
         for b in range(self.num_beats):
             # define position (add beat counter) and interval states
-            self.state_positions = np.hstack((self.state_positions,
-                                              bss.state_positions + b))
-            self.state_intervals = np.hstack((self.state_intervals,
-                                              bss.state_intervals))
+            self.state_positions = np.hstack((self.state_positions, bss.state_positions + b))
+            self.state_intervals = np.hstack((self.state_intervals, bss.state_intervals))
             # add the current number of states as offset
             self.first_states.append(bss.first_states + self.num_states)
             self.last_states.append(bss.last_states + self.num_states)
@@ -169,7 +163,7 @@ class BarStateSpace(object):
             self.num_states += bss.num_states
 
 
-class MultiPatternStateSpace(object):
+class MultiPatternStateSpace:
     """
     State space for rhythmic pattern tracking with a HMM.
 
@@ -204,12 +198,9 @@ class MultiPatternStateSpace(object):
         # stack the individual state spaces
         for p, pss in enumerate(state_spaces):
             # define position, interval and pattern states
-            self.state_positions = np.hstack((self.state_positions,
-                                              pss.state_positions))
-            self.state_intervals = np.hstack((self.state_intervals,
-                                              pss.state_intervals))
-            self.state_patterns = np.hstack((self.state_patterns,
-                                             np.repeat(p, pss.num_states)))
+            self.state_positions = np.hstack((self.state_positions, pss.state_positions))
+            self.state_intervals = np.hstack((self.state_intervals, pss.state_intervals))
+            self.state_patterns = np.hstack((self.state_patterns, np.repeat(p, pss.num_states)))
             # append the first and last states of each pattern
             self.first_states.append(pss.first_states[0] + self.num_states)
             self.last_states.append(pss.last_states[-1] + self.num_states)
@@ -218,8 +209,9 @@ class MultiPatternStateSpace(object):
 
 
 # transition distributions
-def exponential_transition(from_intervals, to_intervals, transition_lambda,
-                           threshold=np.spacing(1), norm=True):
+def exponential_transition(
+    from_intervals, to_intervals, transition_lambda, threshold=np.spacing(1), norm=True
+):
     """
     Exponential tempo transition.
 
@@ -254,12 +246,10 @@ def exponential_transition(from_intervals, to_intervals, transition_lambda,
     # no transition lambda
     if transition_lambda is None:
         # return a diagonal matrix
-        return np.diag(np.diag(np.ones((len(from_intervals),
-                                        len(to_intervals)))))
+        return np.diag(np.diag(np.ones((len(from_intervals), len(to_intervals)))))
     # compute the transition probabilities
-    ratio = (to_intervals.astype(float) /
-             from_intervals.astype(float)[:, np.newaxis])
-    prob = np.exp(-transition_lambda * abs(ratio - 1.))
+    ratio = to_intervals.astype(float) / from_intervals.astype(float)[:, np.newaxis]
+    prob = np.exp(-transition_lambda * abs(ratio - 1.0))
     # set values below threshold to 0
     prob[prob <= threshold] = 0
     # normalize the emission probabilities
@@ -364,8 +354,9 @@ class BarTransitionModel(TransitionModel):
         if not isinstance(transition_lambda, list):
             transition_lambda = [transition_lambda] * state_space.num_beats
         if state_space.num_beats != len(transition_lambda):
-            raise ValueError('length of `transition_lambda` must be equal to '
-                             '`num_beats` of `state_space`.')
+            raise ValueError(
+                "length of `transition_lambda` must be equal to " "`num_beats` of `state_space`."
+            )
         # save attributes
         self.state_space = state_space
         self.transition_lambda = transition_lambda
@@ -389,8 +380,7 @@ class BarTransitionModel(TransitionModel):
             # transition follow an exponential tempo distribution
             from_int = state_space.state_intervals[from_states]
             to_int = state_space.state_intervals[to_states]
-            prob = exponential_transition(from_int, to_int,
-                                          transition_lambda[beat])
+            prob = exponential_transition(from_int, to_int, transition_lambda[beat])
             # use only the states with transitions to/from != 0
             from_prob, to_prob = np.nonzero(prob)
             states = np.hstack((states, to_states[to_prob]))
@@ -449,8 +439,7 @@ class MultiPatternTransitionModel(TransitionModel):
                 states = np.hstack((states, tm.states + len(pointers) - 1))
                 # pointers: offset = current maximum of the pointers
                 #           start = tm.pointers[1:]
-                pointers = np.hstack((pointers, tm.pointers[1:] +
-                                      max(pointers)))
+                pointers = np.hstack((pointers, tm.pointers[1:] + max(pointers)))
                 # probabilities: just stack them
                 probabilities = np.hstack((probabilities, tm.probabilities))
             # save the first/last states
@@ -458,8 +447,7 @@ class MultiPatternTransitionModel(TransitionModel):
             last_states.append(tm.state_space.last_states[-1] + offset)
         # retrieve a dense representation in order to add transitions
         # NOTE: operate directly on the sparse representation?
-        states, prev_states, probabilities = self.make_dense(states, pointers,
-                                                             probabilities)
+        states, prev_states, probabilities = self.make_dense(states, pointers, probabilities)
         # translate float transition_prob value to transition_prob matrix
         if isinstance(transition_prob, float) and transition_prob:
             # create a pattern transition probability matrix
@@ -470,7 +458,7 @@ class MultiPatternTransitionModel(TransitionModel):
                 self.transition_prob *= transition_prob / (num_patterns - 1)
                 # transition to same pattern
                 diag = np.diag_indices_from(self.transition_prob)
-                self.transition_prob[diag] = 1. - transition_prob
+                self.transition_prob[diag] = 1.0 - transition_prob
         else:
             self.transition_prob = transition_prob
         # update/add transitions between patterns
@@ -480,8 +468,9 @@ class MultiPatternTransitionModel(TransitionModel):
             new_probabilities = []
             for p in range(num_patterns):
                 # indices of states/prev_states/probabilities
-                idx = np.logical_and(np.isin(prev_states, last_states[p]),
-                                     np.isin(states, first_states[p]))
+                idx = np.logical_and(
+                    np.isin(prev_states, last_states[p]), np.isin(states, first_states[p])
+                )
                 # transition probability
                 prob = probabilities[idx]
                 # update transitions to same pattern with new probability
@@ -489,18 +478,19 @@ class MultiPatternTransitionModel(TransitionModel):
                 # distribute that part among all other patterns
                 for p_ in np.setdiff1d(range(num_patterns), p):
                     idx_ = np.logical_and(
-                        np.isin(prev_states, last_states[p_]),
-                        np.isin(states, first_states[p_]))
+                        np.isin(prev_states, last_states[p_]), np.isin(states, first_states[p_])
+                    )
                     # make sure idx and idx_ have same length
                     if len(np.nonzero(idx)[0]) != len(np.nonzero(idx_)[0]):
-                        raise ValueError('Cannot add transition between '
-                                         'patterns with different number of '
-                                         'entering/exiting states.')
+                        raise ValueError(
+                            "Cannot add transition between "
+                            "patterns with different number of "
+                            "entering/exiting states."
+                        )
                     # use idx for the states and idx_ for prev_states
                     new_states.extend(states[idx])
                     new_prev_states.extend(prev_states[idx_])
-                    new_probabilities.extend(prob *
-                                             self.transition_prob[p, p_])
+                    new_probabilities.extend(prob * self.transition_prob[p, p_])
             # extend the arrays by these new transitions
             states = np.append(states, new_states)
             prev_states = np.append(prev_states, new_prev_states)
@@ -540,7 +530,7 @@ class RNNBeatTrackingObservationModel(ObservationModel):
         # always point to the non-beat densities
         pointers = np.zeros(state_space.num_states, dtype=np.uint32)
         # unless they are in the beat range of the state space
-        border = 1. / observation_lambda
+        border = 1.0 / observation_lambda
         pointers[state_space.state_positions < border] = 1
         # instantiate a ObservationModel with the pointers
         super(RNNBeatTrackingObservationModel, self).__init__(pointers)
@@ -568,8 +558,7 @@ class RNNBeatTrackingObservationModel(ObservationModel):
         log_densities = np.empty((len(observations), 2), dtype=float)
         # Note: it's faster to call np.log 2 times instead of once on the
         #       whole 2d array
-        log_densities[:, 0] = np.log((1. - observations) /
-                                     (self.observation_lambda - 1))
+        log_densities[:, 0] = np.log((1.0 - observations) / (self.observation_lambda - 1))
         log_densities[:, 1] = np.log(observations)
         # return the densities
         return log_densities
@@ -603,7 +592,7 @@ class RNNDownBeatTrackingObservationModel(ObservationModel):
         # always point to the non-beat densities
         pointers = np.zeros(state_space.num_states, dtype=np.uint32)
         # unless they are in the beat range of the state space
-        border = 1. / observation_lambda
+        border = 1.0 / observation_lambda
         pointers[state_space.state_positions % 1 < border] = 1
         # the downbeat (i.e. the first beat range) points to density column 2
         pointers[state_space.state_positions < border] = 2
@@ -632,8 +621,9 @@ class RNNDownBeatTrackingObservationModel(ObservationModel):
         log_densities = np.empty((len(observations), 3), dtype=float)
         # Note: it's faster to call np.log multiple times instead of once on
         #       the whole 2d array
-        log_densities[:, 0] = np.log((1. - np.sum(observations, axis=1)) /
-                                     (self.observation_lambda - 1))
+        log_densities[:, 0] = np.log(
+            (1.0 - np.sum(observations, axis=1)) / (self.observation_lambda - 1)
+        )
         log_densities[:, 1] = np.log(observations[:, 0])
         log_densities[:, 2] = np.log(observations[:, 1])
         # return the densities
@@ -685,8 +675,9 @@ class GMMPatternTrackingObservationModel(ObservationModel):
             # since the densities are just stacked, add the offset
             # Note: we have to divide by the number of beats, since the
             #       positions range is [0, num_beats]
-            pointers[patterns == p] = (positions[patterns == p] * num_gmms /
-                                       num_beats + densities_idx_offset)
+            pointers[patterns == p] = (
+                positions[patterns == p] * num_gmms / num_beats + densities_idx_offset
+            )
             # increase the offset by the number of GMMs
             densities_idx_offset += num_gmms
         # instantiate a ObservationModel with the pointers

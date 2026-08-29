@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -18,7 +17,6 @@ objects can be chained/combined to achieve the wanted functionality.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import numpy as np
 
@@ -55,6 +53,7 @@ class Activations(np.ndarray):
     or I/O with other programs.
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
@@ -83,7 +82,7 @@ class Activations(np.ndarray):
         if obj is None:
             return
         # set default values here
-        self.fps = getattr(obj, 'fps', None)
+        self.fps = getattr(obj, "fps", None)
 
     @classmethod
     def load(cls, infile, fps=None, sep=None):
@@ -114,18 +113,18 @@ class Activations(np.ndarray):
 
         """
         # load the activations
-        if sep in [None, '']:
+        if sep in [None, ""]:
             # numpy binary format
             data = np.load(infile)
             if isinstance(data, np.lib.npyio.NpzFile):
                 # .npz file, extract the frame rate if given
-                if 'fps' in data.files:
+                if "fps" in data.files:
                     try:
-                        fps = float(data['fps'])
+                        fps = float(data["fps"])
                     except ValueError:
                         fps = None
                 # and overwrite the data
-                data = data['activations']
+                data = data["activations"]
         else:
             # simple text format
             data = np.loadtxt(infile, delimiter=sep)
@@ -135,7 +134,7 @@ class Activations(np.ndarray):
         # instantiate a new object
         return cls(data, fps)
 
-    def save(self, outfile, sep=None, fmt='%.5f'):
+    def save(self, outfile, sep=None, fmt="%.5f"):
         """
         Save the activations to a file.
 
@@ -169,19 +168,18 @@ class Activations(np.ndarray):
         """
 
         # save the activations
-        if sep in [None, '']:
+        if sep in [None, ""]:
             # numpy binary format
-            npz = {'activations': self,
-                   'fps': self.fps}
+            npz = {"activations": self, "fps": self.fps}
             np.savez(outfile, **npz)
         else:
             if self.ndim > 2:
-                raise ValueError('Only 1D and 2D activations can be saved in '
-                                 'human readable text format.')
+                raise ValueError(
+                    "Only 1D and 2D activations can be saved in " "human readable text format."
+                )
             # simple text format
             header = "FPS:%f" % self.fps
-            np.savetxt(outfile, np.atleast_2d(self), fmt=fmt, delimiter=sep,
-                       header=header)
+            np.savetxt(outfile, np.atleast_2d(self), fmt=fmt, delimiter=sep, header=header)
         # NOTE: check if closing the file is really the best option to avoid
         #       fails in tests/test_bin.py
         try:
@@ -241,14 +239,13 @@ class ActivationsProcessor(Processor):
         """
         # pylint: disable=arguments-differ
 
-        if self.mode in ('r', 'in', 'load'):
+        if self.mode in ("r", "in", "load"):
             return Activations.load(data, fps=self.fps, sep=self.sep)
-        if self.mode in ('w', 'out', 'save'):
+        if self.mode in ("w", "out", "save"):
             # NOTE: should we return the data or the Activations instance?
             Activations(data, fps=self.fps).save(output, sep=self.sep)
         else:
-            raise ValueError("wrong mode %s; choose {'r', 'w', 'in', 'out', "
-                             "'load', 'save'}")
+            raise ValueError("wrong mode %s; choose {'r', 'w', 'in', 'out', " "'load', 'save'}")
         return data
 
     @staticmethod
@@ -268,15 +265,21 @@ class ActivationsProcessor(Processor):
 
         """
         # add onset detection related options to the existing parser
-        g = parser.add_argument_group('save/load the activations')
+        g = parser.add_argument_group("save/load the activations")
         # add options for saving and loading the activations
-        g.add_argument('--save', action='store_true', default=False,
-                       help='save the activations to file')
-        g.add_argument('--load', action='store_true', default=False,
-                       help='load the activations from file')
-        g.add_argument('--sep', action='store', default=None,
-                       help='separator for saving/loading the activations '
-                            '[default: None, i.e. numpy binary format]')
+        g.add_argument(
+            "--save", action="store_true", default=False, help="save the activations to file"
+        )
+        g.add_argument(
+            "--load", action="store_true", default=False, help="load the activations from file"
+        )
+        g.add_argument(
+            "--sep",
+            action="store",
+            default=None,
+            help="separator for saving/loading the activations "
+            "[default: None, i.e. numpy binary format]",
+        )
         # return the argument group so it can be modified if needed
         return g
 
@@ -285,18 +288,38 @@ class ActivationsProcessor(Processor):
 from . import beats, chords, downbeats, key, notes, onsets, tempo
 
 # import often used classes
-from .beats import (BeatDetectionProcessor, BeatTrackingProcessor,
-                    CRFBeatDetectionProcessor, DBNBeatTrackingProcessor,
-                    MultiModelSelectionProcessor, RNNBeatProcessor)
-from .chords import (CNNChordFeatureProcessor, CRFChordRecognitionProcessor,
-                     DeepChromaChordRecognitionProcessor)
-from .downbeats import (RNNDownBeatProcessor, DBNDownBeatTrackingProcessor,
-                        PatternTrackingProcessor, RNNBarProcessor,
-                        DBNBarTrackingProcessor)
+from .beats import (
+    BeatDetectionProcessor,
+    BeatTrackingProcessor,
+    CRFBeatDetectionProcessor,
+    DBNBeatTrackingProcessor,
+    MultiModelSelectionProcessor,
+    RNNBeatProcessor,
+)
+from .chords import (
+    CNNChordFeatureProcessor,
+    CRFChordRecognitionProcessor,
+    DeepChromaChordRecognitionProcessor,
+)
+from .downbeats import (
+    DBNBarTrackingProcessor,
+    DBNDownBeatTrackingProcessor,
+    PatternTrackingProcessor,
+    RNNBarProcessor,
+    RNNDownBeatProcessor,
+)
 from .key import CNNKeyRecognitionProcessor
-from .notes import (CNNPianoNoteProcessor, ADSRNoteTrackingProcessor,
-                    NoteOnsetPeakPickingProcessor, NotePeakPickingProcessor,
-                    RNNPianoNoteProcessor)
-from .onsets import (CNNOnsetProcessor, OnsetPeakPickingProcessor,
-                     RNNOnsetProcessor, SpectralOnsetProcessor)
+from .notes import (
+    ADSRNoteTrackingProcessor,
+    CNNPianoNoteProcessor,
+    NoteOnsetPeakPickingProcessor,
+    NotePeakPickingProcessor,
+    RNNPianoNoteProcessor,
+)
+from .onsets import (
+    CNNOnsetProcessor,
+    OnsetPeakPickingProcessor,
+    RNNOnsetProcessor,
+    SpectralOnsetProcessor,
+)
 from .tempo import TempoEstimationProcessor

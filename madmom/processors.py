@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -13,7 +12,6 @@ objects can be chained/combined to achieve the wanted functionality.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import argparse
 import itertools as it
@@ -27,7 +25,7 @@ import numpy as np
 from .utils import integer_types
 
 
-class Processor(object):
+class Processor:
     """
     Abstract base class for processing data.
 
@@ -54,11 +52,13 @@ class Processor(object):
 
         """
         import pickle
+
         from .io import open_file
+
         # instantiate a new Processor and return it
-        with open_file(infile, 'rb') as f:
+        with open_file(infile, "rb") as f:
             # Use latin1 encoding for compatibility with pickles created in Python 2
-            obj = pickle.load(f, encoding='latin1')
+            obj = pickle.load(f, encoding="latin1")
         return obj
 
     def dump(self, outfile):
@@ -76,10 +76,12 @@ class Processor(object):
 
         """
         import pickle
+
         from .io import open_file
+
         # dump the Processor to the given file
         # Note: for Python 2 / 3 compatibility reason use protocol 2
-        with open_file(outfile, 'wb') as f:
+        with open_file(outfile, "wb") as f:
             pickle.dump(self, f, protocol=2)
 
     def process(self, data, **kwargs):
@@ -102,7 +104,7 @@ class Processor(object):
             Processed data.
 
         """
-        raise NotImplementedError('Must be implemented by subclass.')
+        raise NotImplementedError("Must be implemented by subclass.")
 
     def __call__(self, *args, **kwargs):
         # this magic method makes a Processor callable
@@ -171,7 +173,7 @@ class OnlineProcessor(Processor):
             Processed data.
 
         """
-        raise NotImplementedError('Must be implemented by subclass.')
+        raise NotImplementedError("Must be implemented by subclass.")
 
     def process_offline(self, data, **kwargs):
         """
@@ -193,7 +195,7 @@ class OnlineProcessor(Processor):
             Processed data.
 
         """
-        raise NotImplementedError('Must be implemented by subclass.')
+        raise NotImplementedError("Must be implemented by subclass.")
 
     def reset(self):
         """
@@ -203,7 +205,7 @@ class OnlineProcessor(Processor):
         the processor to its initial state.
 
         """
-        raise NotImplementedError('Must be implemented by subclass.')
+        raise NotImplementedError("Must be implemented by subclass.")
 
 
 class OutputProcessor(Processor):
@@ -235,7 +237,7 @@ class OutputProcessor(Processor):
 
         """
         # pylint: disable=arguments-differ
-        raise NotImplementedError('Must be implemented by subclass.')
+        raise NotImplementedError("Must be implemented by subclass.")
 
 
 # functions for processing file(s) with a Processor
@@ -432,6 +434,7 @@ class ParallelProcessor(SequentialProcessor):
     :class:`SequentialProcessor`.
 
     """
+
     # pylint: disable=too-many-ancestors
 
     def __init__(self, processors, num_threads=None):
@@ -470,8 +473,7 @@ class ParallelProcessor(SequentialProcessor):
         if len(self.processors) == 1:
             return [_process((self.processors[0], data, kwargs))]
         # process data in parallel and return a list with processed data
-        return list(self.map(_process, zip(self.processors, it.repeat(data),
-                                           it.repeat(kwargs))))
+        return list(self.map(_process, zip(self.processors, it.repeat(data), it.repeat(kwargs))))
 
 
 class IOProcessor(OutputProcessor):
@@ -513,8 +515,7 @@ class IOProcessor(OutputProcessor):
         if isinstance(out_processor, (list, tuple)):
             if len(out_processor) >= 2:
                 # use the last processor as output and all others as input
-                self.out_processor = IOProcessor(out_processor[:-1],
-                                                 out_processor[-1])
+                self.out_processor = IOProcessor(out_processor[:-1], out_processor[-1])
             if len(out_processor) == 1:
                 self.out_processor = out_processor[0]
         else:
@@ -541,8 +542,9 @@ class IOProcessor(OutputProcessor):
         elif index == 1:
             return self.out_processor
         else:
-            raise IndexError('Only `in_processor` at index 0 and '
-                             '`out_processor` at index 1 are defined.')
+            raise IndexError(
+                "Only `in_processor` at index 0 and " "`out_processor` at index 1 are defined."
+            )
 
     def process(self, data, output=None, **kwargs):
         """
@@ -587,9 +589,9 @@ def process_single(processor, infile, outfile, **kwargs):
     """
     # pylint: disable=unused-argument
     # adjust origin in online mode
-    if kwargs.get('online'):
-        kwargs['origin'] = 'online'
-        kwargs['reset'] = False
+    if kwargs.get("online"):
+        kwargs["origin"] = "online"
+        kwargs["reset"] = False
     # process the input file
     _process((processor, infile, outfile, kwargs))
 
@@ -608,6 +610,7 @@ class _ParallelProcess(mp.Process):
     Usually, multiple instances are created via :func:`process_batch`.
 
     """
+
     def __init__(self, task_queue):
         super(_ParallelProcess, self).__init__()
         self.task_queue = task_queue
@@ -615,6 +618,7 @@ class _ParallelProcess(mp.Process):
     def run(self):
         """Process all tasks from the task queue."""
         from .io.audio import LoadAudioFileError
+
         while True:
             # get the task tuple
             processor, infile, outfile, kwargs = self.task_queue.get()
@@ -629,9 +633,16 @@ class _ParallelProcess(mp.Process):
 
 
 # function to batch process multiple files with a processor
-def process_batch(processor, files, output_dir=None, output_suffix=None,
-                  strip_ext=True, num_workers=mp.cpu_count(), shuffle=False,
-                  **kwargs):
+def process_batch(
+    processor,
+    files,
+    output_dir=None,
+    output_suffix=None,
+    strip_ext=True,
+    num_workers=mp.cpu_count(),
+    shuffle=False,
+    **kwargs,
+):
     """
     Process a list of files with the given Processor in batch mode.
 
@@ -666,7 +677,7 @@ def process_batch(processor, files, output_dir=None, output_suffix=None,
     # pylint: disable=unused-argument
     # either output_dir or output_suffix must be given
     if output_dir is None and output_suffix is None:
-        raise ValueError('either output directory or suffix must be given')
+        raise ValueError("either output directory or suffix must be given")
     # make sure the directory exists
     if output_dir is not None:
         try:
@@ -687,6 +698,7 @@ def process_batch(processor, files, output_dir=None, output_suffix=None,
     # shuffle files?
     if shuffle:
         from random import shuffle
+
         shuffle(files)
 
     # process all the files
@@ -740,7 +752,7 @@ class BufferProcessor(Processor):
             buffer_size = init.shape
         # if buffer_size is int, make a tuple
         elif isinstance(buffer_size, integer_types):
-            buffer_size = (buffer_size, )
+            buffer_size = (buffer_size,)
         # NOTE: use np.pad for fancy initialisation (can be done in process())
         # init buffer if needed
         if buffer_size is not None and init is None:
@@ -797,7 +809,7 @@ class BufferProcessor(Processor):
         data_length = len(data)
         # if length of data exceeds buffer length simply replace buffer data
         if data_length >= self.buffer_length:
-            self.data = data[-self.buffer_length:]
+            self.data = data[-self.buffer_length :]
         else:
             # roll buffer by `data_length`, i.e. move data to the 'left'
             self.data = np.roll(self.data, -data_length, axis=0)
@@ -853,17 +865,19 @@ def process_online(processor, infile, outfile, **kwargs):
     results expected.
 
     """
-    from madmom.audio.signal import Stream, FramedSignal
+    from madmom.audio.signal import FramedSignal, Stream
+
     # set default values
-    kwargs['sample_rate'] = kwargs.get('sample_rate', 44100)
-    kwargs['num_channels'] = kwargs.get('num_channels', 1)
+    kwargs["sample_rate"] = kwargs.get("sample_rate", 44100)
+    kwargs["num_channels"] = kwargs.get("num_channels", 1)
     # list all available PyAudio devices and exit afterwards
-    if kwargs['list_stream_input_device']:
+    if kwargs["list_stream_input_device"]:
         import pyaudio
+
         pa = pyaudio.PyAudio()
         for i in range(pa.get_device_count()):
             info = pa.get_device_info_by_index(i)
-            print('%d: %s' % (info['index'], info['name']))
+            print("%d: %s" % (info["index"], info["name"]))
         exit(0)
 
     # if no input file is given, create a Stream with the given arguments
@@ -875,26 +889,35 @@ def process_online(processor, infile, outfile, **kwargs):
     # use the input file
     else:
         # set parameters for opening the file
-        from .audio.signal import FRAME_SIZE, HOP_SIZE, FPS, NUM_CHANNELS
-        frame_size = kwargs.get('frame_size', FRAME_SIZE)
-        hop_size = kwargs.get('hop_size', HOP_SIZE)
-        fps = kwargs.get('fps', FPS)
-        num_channels = kwargs.get('num_channels', NUM_CHANNELS)
+        from .audio.signal import FPS, FRAME_SIZE, HOP_SIZE, NUM_CHANNELS
+
+        frame_size = kwargs.get("frame_size", FRAME_SIZE)
+        hop_size = kwargs.get("hop_size", HOP_SIZE)
+        fps = kwargs.get("fps", FPS)
+        num_channels = kwargs.get("num_channels", NUM_CHANNELS)
         # NOTE: overwrite the frame size with the maximum value of all used
         #        processors. This is needed if multiple frame sizes are used
         import warnings
-        warnings.warn('make sure that the `frame_size` (%d) is equal to the '
-                      'maximum value used by any `FramedSignalProcessor`.' %
-                      frame_size)
+
+        warnings.warn(
+            "make sure that the `frame_size` (%d) is equal to the "
+            "maximum value used by any `FramedSignalProcessor`." % frame_size
+        )
         # Note: origin must be 'online' and num_frames 'None' to behave exactly
         #       the same as with live input
-        stream = FramedSignal(infile, frame_size=frame_size, hop_size=hop_size,
-                              fps=fps, origin='online', num_frames=None,
-                              num_channels=num_channels)
+        stream = FramedSignal(
+            infile,
+            frame_size=frame_size,
+            hop_size=hop_size,
+            fps=fps,
+            origin="online",
+            num_frames=None,
+            num_channels=num_channels,
+        )
     # set arguments for online processing
     # Note: pass only certain arguments, because these will be passed to the
     #       processors at every time step (kwargs contains file handles etc.)
-    process_args = {'reset': False}  # do not reset stateful processors
+    process_args = {"reset": False}  # do not reset stateful processors
     # process everything frame-by-frame
     for frame in stream:
         _process((processor, frame, outfile, process_args))
@@ -918,7 +941,7 @@ def pickle_processor(processor, outfile, **kwargs):
 
 
 # generic input/output arguments for scripts
-def io_arguments(parser, output_suffix='.txt', pickle=True, online=False):
+def io_arguments(parser, output_suffix=".txt", pickle=True, online=False):
     """
     Add input / output related arguments to an existing parser.
 
@@ -940,78 +963,134 @@ def io_arguments(parser, output_suffix='.txt', pickle=True, online=False):
     except AttributeError:
         output = sys.stdout
     # add general options
-    parser.add_argument('-v', dest='verbose', action='count',
-                        help='increase verbosity level')
+    parser.add_argument("-v", dest="verbose", action="count", help="increase verbosity level")
     # add subparsers
-    sub_parsers = parser.add_subparsers(title='processing options')
+    sub_parsers = parser.add_subparsers(title="processing options")
 
     # pickle processor options
     if pickle:
-        sp = sub_parsers.add_parser('pickle', help='pickle processor')
+        sp = sub_parsers.add_parser("pickle", help="pickle processor")
         sp.set_defaults(func=pickle_processor)
         # Note: requiring '-o' is a simple safety measure to not overwrite
         #       existing audio files after using the processor in 'batch' mode
-        sp.add_argument('-o', dest='outfile', type=argparse.FileType('wb'),
-                        default=output, help='output file [default: STDOUT]')
+        sp.add_argument(
+            "-o",
+            dest="outfile",
+            type=argparse.FileType("wb"),
+            default=output,
+            help="output file [default: STDOUT]",
+        )
 
     # single file processing options
-    sp = sub_parsers.add_parser('single', help='single file processing')
+    sp = sub_parsers.add_parser("single", help="single file processing")
     sp.set_defaults(func=process_single)
-    sp.add_argument('infile', type=argparse.FileType('rb'),
-                    help='input audio file')
+    sp.add_argument("infile", type=argparse.FileType("rb"), help="input audio file")
     # Note: requiring '-o' is a simple safety measure to not overwrite existing
     #       audio files after using the processor in 'batch' mode
-    sp.add_argument('-o', dest='outfile', type=argparse.FileType('wb'),
-                    default=output, help='output file [default: STDOUT]')
-    sp.add_argument('-j', dest='num_threads', type=int, default=mp.cpu_count(),
-                    help='number of threads [default=%(default)s]')
+    sp.add_argument(
+        "-o",
+        dest="outfile",
+        type=argparse.FileType("wb"),
+        default=output,
+        help="output file [default: STDOUT]",
+    )
+    sp.add_argument(
+        "-j",
+        dest="num_threads",
+        type=int,
+        default=mp.cpu_count(),
+        help="number of threads [default=%(default)s]",
+    )
     # add arguments needed for loading processors
     if online:
-        sp.add_argument('--online', action='store_true', default=None,
-                        help='use online settings [default: offline]')
+        sp.add_argument(
+            "--online",
+            action="store_true",
+            default=None,
+            help="use online settings [default: offline]",
+        )
 
     # batch file processing options
-    sp = sub_parsers.add_parser('batch', help='batch file processing')
+    sp = sub_parsers.add_parser("batch", help="batch file processing")
     sp.set_defaults(func=process_batch)
-    sp.add_argument('files', nargs='+', help='files to be processed')
-    sp.add_argument('-o', dest='output_dir', default=None,
-                    help='output directory [default=%(default)s]')
-    sp.add_argument('-s', dest='output_suffix', default=output_suffix,
-                    help='suffix appended to the files (dot must be included '
-                         'if wanted) [default=%(default)s]')
-    sp.add_argument('--ext', dest='strip_ext', action='store_false',
-                    help='keep the extension of the input file [default='
-                         'strip it off before appending the output suffix]')
-    sp.add_argument('-j', dest='num_workers', type=int, default=mp.cpu_count(),
-                    help='number of workers [default=%(default)s]')
-    sp.add_argument('--shuffle', action='store_true',
-                    help='shuffle files before distributing them to the '
-                         'working threads [default=process them in sorted '
-                         'order]')
+    sp.add_argument("files", nargs="+", help="files to be processed")
+    sp.add_argument(
+        "-o", dest="output_dir", default=None, help="output directory [default=%(default)s]"
+    )
+    sp.add_argument(
+        "-s",
+        dest="output_suffix",
+        default=output_suffix,
+        help="suffix appended to the files (dot must be included "
+        "if wanted) [default=%(default)s]",
+    )
+    sp.add_argument(
+        "--ext",
+        dest="strip_ext",
+        action="store_false",
+        help="keep the extension of the input file [default="
+        "strip it off before appending the output suffix]",
+    )
+    sp.add_argument(
+        "-j",
+        dest="num_workers",
+        type=int,
+        default=mp.cpu_count(),
+        help="number of workers [default=%(default)s]",
+    )
+    sp.add_argument(
+        "--shuffle",
+        action="store_true",
+        help="shuffle files before distributing them to the "
+        "working threads [default=process them in sorted "
+        "order]",
+    )
     sp.set_defaults(num_threads=1)
 
     # online processing options
     if online:
-        sp = sub_parsers.add_parser('online', help='online processing')
+        sp = sub_parsers.add_parser("online", help="online processing")
         sp.set_defaults(func=process_online)
-        sp.add_argument('infile', nargs='?', type=argparse.FileType('rb'),
-                        default=None, help='input audio file (if no file is '
-                                           'given, a stream operating on the '
-                                           'system audio input is used)')
-        sp.add_argument('-o', dest='outfile', type=argparse.FileType('wb'),
-                        default=output, help='output file [default: STDOUT]')
-        sp.add_argument('-j', dest='num_threads', type=int, default=1,
-                        help='number of threads [default=%(default)s]')
-        sp.add_argument('--device', dest='stream_input_device', type=int,
-                        default=None, help='PyAudio device index of the '
-                                           'desired input device '
-                                           '[default=%(default)s]')
-        sp.add_argument('--list', dest='list_stream_input_device',
-                        action='store_true', default=False,
-                        help='show a list of available PyAudio devices; index '
-                             'can be used as STREAM_INPUT_DEVICE for the '
-                             '--device argument')
+        sp.add_argument(
+            "infile",
+            nargs="?",
+            type=argparse.FileType("rb"),
+            default=None,
+            help="input audio file (if no file is "
+            "given, a stream operating on the "
+            "system audio input is used)",
+        )
+        sp.add_argument(
+            "-o",
+            dest="outfile",
+            type=argparse.FileType("wb"),
+            default=output,
+            help="output file [default: STDOUT]",
+        )
+        sp.add_argument(
+            "-j",
+            dest="num_threads",
+            type=int,
+            default=1,
+            help="number of threads [default=%(default)s]",
+        )
+        sp.add_argument(
+            "--device",
+            dest="stream_input_device",
+            type=int,
+            default=None,
+            help="PyAudio device index of the " "desired input device " "[default=%(default)s]",
+        )
+        sp.add_argument(
+            "--list",
+            dest="list_stream_input_device",
+            action="store_true",
+            default=False,
+            help="show a list of available PyAudio devices; index "
+            "can be used as STREAM_INPUT_DEVICE for the "
+            "--device argument",
+        )
         # set arguments for loading processors
-        sp.set_defaults(online=True)      # use online settings/parameters
-        sp.set_defaults(num_frames=1)     # process everything frame-by-frame
-        sp.set_defaults(origin='stream')  # set origin to get whole frame
+        sp.set_defaults(online=True)  # use online settings/parameters
+        sp.set_defaults(num_frames=1)  # process everything frame-by-frame
+        sp.set_defaults(origin="stream")  # set origin to get whole frame

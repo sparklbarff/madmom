@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -49,11 +48,9 @@ SOFTWARE.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import math
 import struct
-import sys
 import warnings
 
 import numpy as np
@@ -62,7 +59,7 @@ import numpy as np
 OCTAVE_MAX_VALUE = 12
 OCTAVE_VALUES = list(range(OCTAVE_MAX_VALUE))
 
-NOTE_NAMES = ['C', 'Cs', 'D', 'Ds', 'E', 'F', 'Fs', 'G', 'Gs', 'A', 'As', 'B']
+NOTE_NAMES = ["C", "Cs", "D", "Ds", "E", "F", "Fs", "G", "Gs", "A", "As", "B"]
 WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11]
 BLACK_KEYS = [1, 3, 6, 8, 10]
 NOTE_PER_OCTAVE = len(NOTE_NAMES)
@@ -78,23 +75,22 @@ for index in range(128):
     note_name = NOTE_NAMES[note_idx]
     if len(note_name) == 2:
         # sharp note
-        flat = NOTE_NAMES[note_idx + 1] + 'b'
-        NOTE_NAME_MAP_FLAT['%s_%d' % (flat, oct_idx)] = index
-        NOTE_NAME_MAP_SHARP['%s_%d' % (note_name, oct_idx)] = index
-        NOTE_VALUE_MAP_FLAT.append('%s_%d' % (flat, oct_idx))
-        NOTE_VALUE_MAP_SHARP.append('%s_%d' % (note_name, oct_idx))
-        globals()['%s_%d' % (note_name[0] + 's', oct_idx)] = index
-        globals()['%s_%d' % (flat, oct_idx)] = index
+        flat = NOTE_NAMES[note_idx + 1] + "b"
+        NOTE_NAME_MAP_FLAT["%s_%d" % (flat, oct_idx)] = index
+        NOTE_NAME_MAP_SHARP["%s_%d" % (note_name, oct_idx)] = index
+        NOTE_VALUE_MAP_FLAT.append("%s_%d" % (flat, oct_idx))
+        NOTE_VALUE_MAP_SHARP.append("%s_%d" % (note_name, oct_idx))
+        globals()["%s_%d" % (note_name[0] + "s", oct_idx)] = index
+        globals()["%s_%d" % (flat, oct_idx)] = index
     else:
-        NOTE_NAME_MAP_FLAT['%s_%d' % (note_name, oct_idx)] = index
-        NOTE_NAME_MAP_SHARP['%s_%d' % (note_name, oct_idx)] = index
-        NOTE_VALUE_MAP_FLAT.append('%s_%d' % (note_name, oct_idx))
-        NOTE_VALUE_MAP_SHARP.append('%s_%d' % (note_name, oct_idx))
-        globals()['%s_%d' % (note_name, oct_idx)] = index
+        NOTE_NAME_MAP_FLAT["%s_%d" % (note_name, oct_idx)] = index
+        NOTE_NAME_MAP_SHARP["%s_%d" % (note_name, oct_idx)] = index
+        NOTE_VALUE_MAP_FLAT.append("%s_%d" % (note_name, oct_idx))
+        NOTE_VALUE_MAP_SHARP.append("%s_%d" % (note_name, oct_idx))
+        globals()["%s_%d" % (note_name, oct_idx)] = index
 
-BEAT_NAMES = ['whole', 'half', 'quarter', 'eighth', 'sixteenth',
-              'thirty-second', 'sixty-fourth']
-BEAT_VALUES = [4, 2, 1, .5, .25, .125, .0625]
+BEAT_NAMES = ["whole", "half", "quarter", "eighth", "sixteenth", "thirty-second", "sixty-fourth"]
+BEAT_VALUES = [4, 2, 1, 0.5, 0.25, 0.125, 0.0625]
 WHOLE = 0
 HALF = 1
 QUARTER = 2
@@ -110,11 +106,13 @@ TEMPO = 120
 TIME_SIGNATURE_NUMERATOR = 4
 TIME_SIGNATURE_DENOMINATOR = 4
 TIME_SIGNATURE = (TIME_SIGNATURE_NUMERATOR, TIME_SIGNATURE_DENOMINATOR)
-SECONDS_PER_QUARTER_NOTE = 60. / TEMPO
+SECONDS_PER_QUARTER_NOTE = 60.0 / TEMPO
 SECONDS_PER_TICK = SECONDS_PER_QUARTER_NOTE / RESOLUTION
 
-warnings.warn('Deprecated as of version 0.16. Please use madmom.io.midi '
-              'instead. This module will be removed in version 0.18.')
+warnings.warn(
+    "Deprecated as of version 0.16. Please use madmom.io.midi "
+    "instead. This module will be removed in version 0.18."
+)
 
 # Convert bytes to/from integers for MIDI file handling
 int2byte = struct.Struct(">B").pack
@@ -150,7 +148,7 @@ def read_variable_length(data):
             # no next BYTE
             next_byte = 0
             # mask out the 8th bit
-        next_value &= 0x7f
+        next_value &= 0x7F
         # shift last value up 7 bits
         value <<= 7
         # add new value
@@ -188,7 +186,7 @@ def write_variable_length(value):
 
 
 # class for dynamically registering event classes
-class EventRegistry(object):
+class EventRegistry:
     """
     Class for registering Events.
 
@@ -200,6 +198,7 @@ class EventRegistry(object):
     dictionary and use their `meta_command` as key.
 
     """
+
     events = {}
     meta_events = {}
 
@@ -218,35 +217,33 @@ class EventRegistry(object):
         if any(b in (Event, ChannelEvent, NoteEvent) for b in event.__bases__):
             # raise an error if the event class is registered already
             if event.status_msg in cls.events:
-                raise AssertionError("Event %s already registered" %
-                                     event.name)
+                raise AssertionError("Event %s already registered" % event.name)
             # register the Event
             cls.events[event.status_msg] = event
         # meta events
         elif any(b in (MetaEvent, MetaEventWithText) for b in event.__bases__):
             # raise an error if the meta event class is registered already
             if event.meta_command in EventRegistry.meta_events:
-                raise AssertionError("Event %s already registered" %
-                                     event.name)
+                raise AssertionError("Event %s already registered" % event.name)
             # register the MetaEvent
             cls.meta_events[event.meta_command] = event
         # unknown events
         else:
             # raise an error
-            raise AssertionError("Unknown base class in event type: %s" %
-                                 event.__bases__)
+            raise AssertionError("Unknown base class in event type: %s" % event.__bases__)
 
 
-class Event(object):
+class Event:
     """
     Generic MIDI Event.
 
     """
+
     name = "Generic MIDI Event"
     length = 0
     status_msg = 0x0
     # sort is a float value used for sorting events occurring at the same tick
-    sort = 0.
+    sort = 0.0
 
     def __init__(self, **kwargs):
         if isinstance(self.length, int):
@@ -260,8 +257,10 @@ class Event(object):
 
     def __eq__(self, other):
         return (
-            self.tick == other.tick and self.data == other.data and
-            self.status_msg == other.status_msg)
+            self.tick == other.tick
+            and self.data == other.data
+            and self.status_msg == other.status_msg
+        )
 
     def __ne__(self, other):
         return not self == other
@@ -287,8 +286,7 @@ class Event(object):
         return NotImplementedError
 
     def __str__(self):
-        return "%s: tick: %s data: %s" % (
-            self.__class__.__name__, self.tick, self.data)
+        return "%s: tick: %s data: %s" % (self.__class__.__name__, self.tick, self.data)
 
 
 class ChannelEvent(Event):
@@ -296,20 +294,28 @@ class ChannelEvent(Event):
     Event with a channel number.
 
     """
-    name = 'ChannelEvent'
+
+    name = "ChannelEvent"
 
     def __init__(self, **kwargs):
         super(ChannelEvent, self).__init__(**kwargs)
-        self.channel = kwargs.get('channel', 0)
+        self.channel = kwargs.get("channel", 0)
 
     def __eq__(self, other):
         return (
-            self.tick == other.tick and self.channel == other.channel and
-            self.data == other.data and self.status_msg == other.status_msg)
+            self.tick == other.tick
+            and self.channel == other.channel
+            and self.data == other.data
+            and self.status_msg == other.status_msg
+        )
 
     def __str__(self):
         return "%s: tick: %s channel: %s data: %s" % (
-            self.__class__.__name__, self.tick, self.channel, self.data)
+            self.__class__.__name__,
+            self.tick,
+            self.channel,
+            self.data,
+        )
 
 
 class NoteEvent(ChannelEvent):
@@ -318,12 +324,17 @@ class NoteEvent(ChannelEvent):
     concrete class. It defines the generalities of NoteOn and NoteOff events.
 
     """
+
     length = 2
 
     def __str__(self):
         return "%s: tick: %s channel: %s pitch: %s velocity: %s" % (
-            self.__class__.__name__, self.tick, self.channel, self.pitch,
-            self.velocity)
+            self.__class__.__name__,
+            self.tick,
+            self.channel,
+            self.pitch,
+            self.velocity,
+        )
 
     @property
     def pitch(self):
@@ -373,9 +384,10 @@ class NoteOnEvent(NoteEvent):
     Note On Event.
 
     """
+
     status_msg = 0x90
-    name = 'Note On'
-    sort = .1  # make sure it is sorted before NoteOffEvent
+    name = "Note On"
+    sort = 0.1  # make sure it is sorted before NoteOffEvent
 
 
 EventRegistry.register_event(NoteOnEvent)
@@ -386,9 +398,10 @@ class NoteOffEvent(NoteEvent):
     Note Off Event.
 
     """
+
     status_msg = 0x80
-    name = 'Note Off'
-    sort = .2  # make sure it is sorted after NoteOnEvent
+    name = "Note Off"
+    sort = 0.2  # make sure it is sorted after NoteOnEvent
 
 
 EventRegistry.register_event(NoteOffEvent)
@@ -399,14 +412,19 @@ class AfterTouchEvent(ChannelEvent):
     After Touch Event.
 
     """
+
     status_msg = 0xA0
     length = 2
-    name = 'After Touch'
+    name = "After Touch"
 
     def __str__(self):
         return "%s: tick: %s channel: %s pitch: %s value: %s" % (
-            self.__class__.__name__, self.tick, self.channel, self.pitch,
-            self.value)
+            self.__class__.__name__,
+            self.tick,
+            self.channel,
+            self.pitch,
+            self.value,
+        )
 
     @property
     def pitch(self):
@@ -459,14 +477,19 @@ class ControlChangeEvent(ChannelEvent):
     Control Change Event.
 
     """
+
     status_msg = 0xB0
     length = 2
-    name = 'Control Change'
+    name = "Control Change"
 
     def __str__(self):
         return "%s: tick: %s channel: %s control: %s value: %s" % (
-            self.__class__.__name__, self.tick, self.channel, self.control,
-            self.value)
+            self.__class__.__name__,
+            self.tick,
+            self.channel,
+            self.control,
+            self.value,
+        )
 
     @property
     def control(self):
@@ -519,13 +542,18 @@ class ProgramChangeEvent(ChannelEvent):
     Program Change Event.
 
     """
+
     status_msg = 0xC0
     length = 1
-    name = 'Program Change'
+    name = "Program Change"
 
     def __str__(self):
         return "%s: tick: %s channel: %s value: %s" % (
-            self.__class__.__name__, self.tick, self.channel, self.value)
+            self.__class__.__name__,
+            self.tick,
+            self.channel,
+            self.value,
+        )
 
     @property
     def value(self):
@@ -557,13 +585,18 @@ class ChannelAfterTouchEvent(ChannelEvent):
     Channel After Touch Event.
 
     """
+
     status_msg = 0xD0
     length = 1
-    name = 'Channel After Touch'
+    name = "Channel After Touch"
 
     def __str__(self):
         return "%s: tick: %s channel: %s value: %s" % (
-            self.__class__.__name__, self.tick, self.channel, self.value)
+            self.__class__.__name__,
+            self.tick,
+            self.channel,
+            self.value,
+        )
 
     @property
     def value(self):
@@ -595,9 +628,10 @@ class PitchWheelEvent(ChannelEvent):
     Pitch Wheel Event.
 
     """
+
     status_msg = 0xE0
     length = 2
-    name = 'Pitch Wheel'
+    name = "Pitch Wheel"
 
     @property
     def pitch(self):
@@ -631,9 +665,10 @@ class SysExEvent(Event):
     System Exclusive Event.
 
     """
+
     status_msg = 0xF0
-    length = 'variable'
-    name = 'SysEx'
+    length = "variable"
+    name = "SysEx"
 
 
 EventRegistry.register_event(SysExEvent)
@@ -645,15 +680,18 @@ class MetaEvent(Event):
     concrete class. It defines a subset of Events known as the Meta events.
 
     """
+
     status_msg = 0xFF
     meta_command = 0x0
-    name = 'Meta Event'
+    name = "Meta Event"
 
     def __eq__(self, other):
         return (
-            self.tick == other.tick and self.data == other.data and
-            self.status_msg == other.status_msg and
-            self.meta_command == other.meta_command)
+            self.tick == other.tick
+            and self.data == other.data
+            and self.status_msg == other.status_msg
+            and self.meta_command == other.meta_command
+        )
 
 
 class MetaEventWithText(MetaEvent):
@@ -661,10 +699,11 @@ class MetaEventWithText(MetaEvent):
     Meta Event With Text.
 
     """
+
     def __init__(self, **kwargs):
         super(MetaEventWithText, self).__init__(**kwargs)
-        if 'text' not in kwargs:
-            self.text = ''.join(chr(datum) for datum in self.data)
+        if "text" not in kwargs:
+            self.text = "".join(chr(datum) for datum in self.data)
 
     def __str__(self):
         return "%s: %s" % (self.__class__.__name__, self.text)
@@ -675,9 +714,10 @@ class SequenceNumberMetaEvent(MetaEvent):
     Sequence Number Meta Event.
 
     """
+
     meta_command = 0x00
     length = 2
-    name = 'Sequence Number'
+    name = "Sequence Number"
 
 
 EventRegistry.register_event(SequenceNumberMetaEvent)
@@ -688,9 +728,10 @@ class TextMetaEvent(MetaEventWithText):
     Text Meta Event.
 
     """
+
     meta_command = 0x01
-    length = 'variable'
-    name = 'Text'
+    length = "variable"
+    name = "Text"
 
 
 EventRegistry.register_event(TextMetaEvent)
@@ -701,9 +742,10 @@ class CopyrightMetaEvent(MetaEventWithText):
     Copyright Meta Event.
 
     """
+
     meta_command = 0x02
-    length = 'variable'
-    name = 'Copyright Notice'
+    length = "variable"
+    name = "Copyright Notice"
 
 
 EventRegistry.register_event(CopyrightMetaEvent)
@@ -714,9 +756,10 @@ class TrackNameEvent(MetaEventWithText):
     Track Name Event.
 
     """
+
     meta_command = 0x03
-    length = 'variable'
-    name = 'Track Name'
+    length = "variable"
+    name = "Track Name"
 
 
 EventRegistry.register_event(TrackNameEvent)
@@ -727,9 +770,10 @@ class InstrumentNameEvent(MetaEventWithText):
     Instrument Name Event.
 
     """
+
     meta_command = 0x04
-    length = 'variable'
-    name = 'Instrument Name'
+    length = "variable"
+    name = "Instrument Name"
 
 
 EventRegistry.register_event(InstrumentNameEvent)
@@ -740,9 +784,10 @@ class LyricsEvent(MetaEventWithText):
     Lyrics Event.
 
     """
+
     meta_command = 0x05
-    length = 'variable'
-    name = 'Lyrics'
+    length = "variable"
+    name = "Lyrics"
 
 
 EventRegistry.register_event(LyricsEvent)
@@ -753,9 +798,10 @@ class MarkerEvent(MetaEventWithText):
     Marker Event.
 
     """
+
     meta_command = 0x06
-    length = 'variable'
-    name = 'Marker'
+    length = "variable"
+    name = "Marker"
 
 
 EventRegistry.register_event(MarkerEvent)
@@ -766,9 +812,10 @@ class CuePointEvent(MetaEventWithText):
     Cue Point Event.
 
     """
+
     meta_command = 0x07
-    length = 'variable'
-    name = 'Cue Point'
+    length = "variable"
+    name = "Cue Point"
 
 
 EventRegistry.register_event(CuePointEvent)
@@ -779,9 +826,10 @@ class ProgramNameEvent(MetaEventWithText):
     Program Name Event.
 
     """
+
     meta_command = 0x08
-    length = 'variable'
-    name = 'Program Name'
+    length = "variable"
+    name = "Program Name"
 
 
 EventRegistry.register_event(ProgramNameEvent)
@@ -797,13 +845,14 @@ class UnknownMetaEvent(MetaEvent):
         Value of the meta command.
 
     """
+
     meta_command = None
-    name = 'Unknown'
+    name = "Unknown"
 
     def __init__(self, **kwargs):
         super(UnknownMetaEvent, self).__init__(**kwargs)
         # NOTE: is this needed, should be handled by Event already
-        self.meta_command = kwargs['meta_command']
+        self.meta_command = kwargs["meta_command"]
 
 
 EventRegistry.register_event(UnknownMetaEvent)
@@ -814,9 +863,10 @@ class ChannelPrefixEvent(MetaEvent):
     Channel Prefix Event.
 
     """
+
     meta_command = 0x20
     length = 1
-    name = 'Channel Prefix'
+    name = "Channel Prefix"
 
 
 EventRegistry.register_event(ChannelPrefixEvent)
@@ -827,8 +877,9 @@ class PortEvent(MetaEvent):
     Port Event.
 
     """
+
     meta_command = 0x21
-    name = 'MIDI Port/Cable'
+    name = "MIDI Port/Cable"
 
 
 EventRegistry.register_event(PortEvent)
@@ -839,8 +890,9 @@ class TrackLoopEvent(MetaEvent):
     Track Loop Event.
 
     """
+
     meta_command = 0x2E
-    name = 'Track Loop'
+    name = "Track Loop"
 
 
 EventRegistry.register_event(TrackLoopEvent)
@@ -851,9 +903,10 @@ class EndOfTrackEvent(MetaEvent):
     End Of Track Event.
 
     """
+
     meta_command = 0x2F
-    name = 'End of Track'
-    sort = .99  # should always come last
+    name = "End of Track"
+    sort = 0.99  # should always come last
 
 
 EventRegistry.register_event(EndOfTrackEvent)
@@ -864,14 +917,17 @@ class SetTempoEvent(MetaEvent):
     Set Tempo Event.
 
     """
+
     meta_command = 0x51
     length = 3
-    name = 'Set Tempo'
+    name = "Set Tempo"
 
     def __str__(self):
         return "%s: tick: %s microseconds per quarter note: %s" % (
-            self.__class__.__name__, self.tick,
-            self.microseconds_per_quarter_note)
+            self.__class__.__name__,
+            self.tick,
+            self.microseconds_per_quarter_note,
+        )
 
     @property
     def microseconds_per_quarter_note(self):
@@ -905,8 +961,9 @@ class SmpteOffsetEvent(MetaEvent):
     SMPTE Offset Event.
 
     """
+
     meta_command = 0x54
-    name = 'SMPTE Offset'
+    name = "SMPTE Offset"
 
 
 EventRegistry.register_event(SmpteOffsetEvent)
@@ -917,9 +974,10 @@ class TimeSignatureEvent(MetaEvent):
     Time Signature Event.
 
     """
+
     meta_command = 0x58
     length = 4
-    name = 'Time Signature'
+    name = "Time Signature"
 
     @property
     def numerator(self):
@@ -1013,9 +1071,10 @@ class KeySignatureEvent(MetaEvent):
     Key Signature Event.
 
     """
+
     meta_command = 0x59
     length = 2
-    name = 'Key Signature'
+    name = "Key Signature"
 
     @property
     def alternatives(self):
@@ -1068,8 +1127,9 @@ class SequencerSpecificEvent(MetaEvent):
     Sequencer Specific Event.
 
     """
+
     meta_command = 0x7F
-    name = 'Sequencer Specific'
+    name = "Sequencer Specific"
 
 
 EventRegistry.register_event(SequencerSpecificEvent)
@@ -1099,18 +1159,18 @@ def _add_channel(notes, channel=0):
 
     """
     if not notes.ndim == 2:
-        raise ValueError('unknown format for `notes`')
+        raise ValueError("unknown format for `notes`")
     rows, columns = notes.shape
     if columns == 5:
         return notes
     elif columns == 4:
         channels = np.ones((rows, 1)) * channel
         return np.hstack((notes, channels))
-    raise ValueError('unable to handle `notes` with %d columns' % columns)
+    raise ValueError("unable to handle `notes` with %d columns" % columns)
 
 
 # MIDI Track
-class MIDITrack(object):
+class MIDITrack:
     """
     MIDI Track.
 
@@ -1211,8 +1271,11 @@ class MIDITrack(object):
                 track_data.append(0xF7)
             # not a meta or SysEx event, must be a general message
             elif isinstance(event, Event):
-                if not status or status.status_msg != event.status_msg or \
-                        status.channel != event.channel:
+                if (
+                    not status
+                    or status.status_msg != event.status_msg
+                    or status.channel != event.channel
+                ):
                     status = event
                     track_data.append(event.status_msg | event.channel)
                 track_data.extend(event.data)
@@ -1224,7 +1287,7 @@ class MIDITrack(object):
         # prepare the data
         data = bytearray()
         # generate a MIDI header
-        data.extend(b'MTrk')
+        data.extend(b"MTrk")
         data.extend(struct.pack(">L", len(track_data)))
         # append the track data
         data.extend(track_data)
@@ -1252,7 +1315,7 @@ class MIDITrack(object):
         status = None
         # first four bytes are Track header
         chunk = midi_stream.read(4)
-        if chunk != b'MTrk':
+        if chunk != b"MTrk":
             raise TypeError("Bad track header in MIDI file: %s" % chunk)
         # next four bytes are track size
         track_size = struct.unpack(">L", midi_stream.read(4))[0]
@@ -1269,16 +1332,15 @@ class MIDITrack(object):
                     meta_cmd = byte2int(next(track_data))
                     if meta_cmd not in EventRegistry.meta_events:
                         import warnings
+
                         warnings.warn("Unknown Meta MIDI Event: %s" % meta_cmd)
                         event_cls = UnknownMetaEvent
                     else:
                         event_cls = EventRegistry.meta_events[meta_cmd]
                     data_len = read_variable_length(track_data)
-                    data = [byte2int(next(track_data)) for _ in
-                            range(data_len)]
+                    data = [byte2int(next(track_data)) for _ in range(data_len)]
                     # create an event and append it to the list
-                    events.append(event_cls(tick=tick, data=data,
-                                            meta_command=meta_cmd))
+                    events.append(event_cls(tick=tick, data=data, meta_command=meta_cmd))
                 # is this event a SysEx Event?
                 elif SysExEvent.status_msg == status_msg:
                     data = []
@@ -1299,20 +1361,16 @@ class MIDITrack(object):
                         event_cls = EventRegistry.events[key]
                         channel = status & 0x0F
                         data.append(status_msg)
-                        data += [byte2int(next(track_data)) for _ in
-                                 range(event_cls.length - 1)]
+                        data += [byte2int(next(track_data)) for _ in range(event_cls.length - 1)]
                         # create an event and append it to the list
-                        events.append(event_cls(tick=tick, channel=channel,
-                                                data=data))
+                        events.append(event_cls(tick=tick, channel=channel, data=data))
                     else:
                         status = status_msg
                         event_cls = EventRegistry.events[key]
                         channel = status & 0x0F
-                        data = [byte2int(next(track_data)) for _ in
-                                range(event_cls.length)]
+                        data = [byte2int(next(track_data)) for _ in range(event_cls.length)]
                         # create an event and append it to the list
-                        events.append(event_cls(tick=tick, channel=channel,
-                                                data=data))
+                        events.append(event_cls(tick=tick, channel=channel, data=data))
             # no more events to be processed
             except StopIteration:
                 break
@@ -1324,8 +1382,7 @@ class MIDITrack(object):
         return track
 
     @classmethod
-    def from_notes(cls, notes, tempo=TEMPO, time_signature=TIME_SIGNATURE,
-                   resolution=RESOLUTION):
+    def from_notes(cls, notes, tempo=TEMPO, time_signature=TIME_SIGNATURE, resolution=RESOLUTION):
         """
         Create a MIDI track from the given notes.
 
@@ -1360,7 +1417,7 @@ class MIDITrack(object):
         sig.numerator, sig.denominator = time_signature
 
         # length of a quarter note (seconds)
-        quarter_note_length = 60. / tempo * sig.denominator / 4
+        quarter_note_length = 60.0 / tempo * sig.denominator / 4
         # quarter notes per second
         quarter_notes_per_second = 1 / quarter_note_length
         # ticks per second
@@ -1398,7 +1455,7 @@ class MIDITrack(object):
 
 
 # File I/O classes
-class MIDIFile(object):
+class MIDIFile:
     """
     MIDI File.
 
@@ -1477,14 +1534,14 @@ class MIDIFile(object):
             # NOTE: test if the items of the list are of type MIDITrack
             self.tracks = tracks
         else:
-            raise ValueError('file_format of `tracks` not supported.')
+            raise ValueError("file_format of `tracks` not supported.")
         self.resolution = resolution  # i.e. ticks per quarter note
         # format 0 stores all information in 1 track
         # format 1 has multiple tracks but plays them back simultaneously
         # NOTE: format 2 has multiple tracks but plays them back one after
         #       another. This type is not supported (yet).
         if file_format > 1:
-            raise ValueError('Only MIDI file formats 0 and 1 supported.')
+            raise ValueError("Only MIDI file formats 0 and 1 supported.")
         self.format = file_format
 
     @property
@@ -1507,23 +1564,28 @@ class MIDIFile(object):
         """
         if not suppress_warnings:
             import warnings
-            warnings.warn('this method will be removed soon, do not rely on '
-                          'its output, rather fix issue #192 ;)')
+
+            warnings.warn(
+                "this method will be removed soon, do not rely on "
+                "its output, rather fix issue #192 ;)"
+            )
         # create an empty tempo list
         tempo_events = []
         for i, track in enumerate(self.tracks):
             # get a list with tempo events
-            track_tempo_events = [e for e in track.events if
-                                  isinstance(e, SetTempoEvent)]
+            track_tempo_events = [e for e in track.events if isinstance(e, SetTempoEvent)]
             # tempo events should be only in the first track of a MIDI file
             if track_tempo_events and i > 0:
-                raise ValueError('SetTempoEvents should be only in the first '
-                                 'track of a MIDI file.')
+                raise ValueError(
+                    "SetTempoEvents should be only in the first " "track of a MIDI file."
+                )
             tempo_events.extend(track_tempo_events)
 
         # convert to desired format (tick, microseconds per tick)
-        tempi = [(e.tick, e.microseconds_per_quarter_note /
-                  (1e6 * self.resolution)) for e in tempo_events]
+        tempi = [
+            (e.tick, e.microseconds_per_quarter_note / (1e6 * self.resolution))
+            for e in tempo_events
+        ]
         # make sure a tempo is set and the first tempo occurs at tick 0
         if not tempi or tempi[0][0] > 0:
             tempi.insert(0, (0, SECONDS_PER_TICK))
@@ -1552,22 +1614,24 @@ class MIDIFile(object):
         """
         if not suppress_warnings:
             import warnings
-            warnings.warn('this method will be removed soon, do not rely on '
-                          'its output, rather fix issue #192 ;)')
+
+            warnings.warn(
+                "this method will be removed soon, do not rely on "
+                "its output, rather fix issue #192 ;)"
+            )
         signatures = None
         for track in self.tracks:
             # get a list with time signature events
-            time_signature_events = [e for e in track.events if
-                                     isinstance(e, TimeSignatureEvent)]
+            time_signature_events = [e for e in track.events if isinstance(e, TimeSignatureEvent)]
             if signatures is None and len(time_signature_events) > 0:
                 # convert to desired format
-                signatures = [(e.tick, e.numerator, e.denominator)
-                              for e in time_signature_events]
+                signatures = [(e.tick, e.numerator, e.denominator) for e in time_signature_events]
             elif signatures is not None and len(time_signature_events) > 0:
                 # time signature events should be contained only in the first
                 # track of a MIDI file, thus raise an error
-                raise ValueError('TimeSignatureEvent should be only in the '
-                                 'first track of a MIDI file.')
+                raise ValueError(
+                    "TimeSignatureEvent should be only in the " "first track of a MIDI file."
+                )
         # make sure a time signature is set and the first one occurs at tick 0
         if signatures is None:
             signatures = [(0, TIME_SIGNATURE)]
@@ -1576,7 +1640,7 @@ class MIDIFile(object):
         # return time signatures
         return np.asarray(signatures, dtype=float)
 
-    def notes(self, unit='s'):
+    def notes(self, unit="s"):
         """
         Notes of the MIDI file.
 
@@ -1609,7 +1673,7 @@ class MIDIFile(object):
             tick = 0
             for e in note_events:
                 if tick > e.tick:
-                    raise AssertionError('note events must be sorted!')
+                    raise AssertionError("note events must be sorted!")
                 n = note_hash(e.channel, e.pitch)
                 is_note_on = isinstance(e, NoteOnEvent)
                 is_note_off = isinstance(e, NoteOffEvent)
@@ -1621,20 +1685,27 @@ class MIDIFile(object):
                 elif is_note_off or (is_note_on and e.velocity == 0):
                     if n not in sounding_notes:
                         import warnings
+
                         warnings.warn("ignoring %s" % e)
                         continue
                     if sounding_notes[n][0] > e.tick:
-                        raise AssertionError('note duration must be positive')
+                        raise AssertionError("note duration must be positive")
                     if sounding_notes[n][1] <= 0:
-                        raise AssertionError('note velocity must be positive')
+                        raise AssertionError("note velocity must be positive")
                     # append the note to the list
-                    notes.append((sounding_notes[n][0], e.pitch,
-                                  e.tick - sounding_notes[n][0],
-                                  sounding_notes[n][1], e.channel))
+                    notes.append(
+                        (
+                            sounding_notes[n][0],
+                            e.pitch,
+                            e.tick - sounding_notes[n][0],
+                            sounding_notes[n][1],
+                            e.channel,
+                        )
+                    )
                     # remove hash from dict
                     del sounding_notes[n]
                 else:
-                    raise TypeError('unexpected NoteEvent', e)
+                    raise TypeError("unexpected NoteEvent", e)
                 tick = e.tick
 
         # sort the notes and convert to numpy array
@@ -1642,15 +1713,17 @@ class MIDIFile(object):
 
         # convert onset times and durations from ticks to the requested unit
         # and return the notes
-        if unit.lower() in ('t', 'ticks'):
+        if unit.lower() in ("t", "ticks"):
             return notes
-        elif unit.lower() in ('s', 'seconds'):
+        elif unit.lower() in ("s", "seconds"):
             return self._notes_in_seconds(notes)
-        elif unit.lower() in ('b', 'beats'):
+        elif unit.lower() in ("b", "beats"):
             return self._notes_in_beats(notes)
         else:
-            raise ValueError("`unit` must be either 'seconds', 's', 'beats', "
-                             "'b', 'ticks', or 't' not %s." % unit)
+            raise ValueError(
+                "`unit` must be either 'seconds', 's', 'beats', "
+                "'b', 'ticks', or 't' not %s." % unit
+            )
 
     def _notes_in_beats(self, notes):
         """
@@ -1690,10 +1763,10 @@ class MIDIFile(object):
             tsc = time_signatures[np.argmax(time_signatures[:, 0] > onset) - 1]
             # adjust onset
             onset_ticks_since_tsc = onset - tsc[0]
-            note[0] = tsc[1] + (onset_ticks_since_tsc / tpq) * (tsc[2] / 4.)
+            note[0] = tsc[1] + (onset_ticks_since_tsc / tpq) * (tsc[2] / 4.0)
             # adjust offsets
             offset_ticks_since_tsc = offset - tsc[0]
-            note[2] = tsc[1] + (offset_ticks_since_tsc / tpq) * (tsc[2] / 4.)
+            note[2] = tsc[1] + (offset_ticks_since_tsc / tpq) * (tsc[2] / 4.0)
         # return notes
         return notes
 
@@ -1736,9 +1809,8 @@ class MIDIFile(object):
         # prepare data
         data = bytearray()
         # generate a MIDI header
-        data.extend(b'MThd')
-        data.extend(struct.pack(">LHHH", 6, self.format, len(self.tracks),
-                                self.resolution))
+        data.extend(b"MThd")
+        data.extend(struct.pack(">LHHH", 6, self.format, len(self.tracks), self.resolution))
         # append the tracks
         for track in self.tracks:
             data.extend(track.data_stream)
@@ -1756,8 +1828,8 @@ class MIDIFile(object):
 
         """
         # if we get a filename, open the file
-        if not hasattr(midi_file, 'write'):
-            midi_file = open(midi_file, 'wb')
+        if not hasattr(midi_file, "write"):
+            midi_file = open(midi_file, "wb")
         # write the MIDI stream
         midi_file.write(self.data_stream)
         # close the file
@@ -1782,11 +1854,11 @@ class MIDIFile(object):
         tracks = []
         resolution = None
         midi_format = None
-        with open(midi_file, 'rb') as midi_file:
+        with open(midi_file, "rb") as midi_file:
             # read in file header
             # first four bytes are MIDI header
             chunk = midi_file.read(4)
-            if chunk != b'MThd':
+            if chunk != b"MThd":
                 raise TypeError("Bad header in MIDI file: %s", chunk)
             # next four bytes are header size
             # next two bytes specify the format version
@@ -1828,14 +1900,12 @@ class MIDIFile(object):
                 track = MIDITrack.from_stream(midi_file)
                 tracks.append(track)
         if resolution is None or midi_format is None:
-            raise IOError('unable to read MIDI file %s.' % midi_file)
+            raise OSError("unable to read MIDI file %s." % midi_file)
         # return a newly created object
-        return cls(tracks=tracks, resolution=resolution,
-                   file_format=midi_format)
+        return cls(tracks=tracks, resolution=resolution, file_format=midi_format)
 
     @classmethod
-    def from_notes(cls, notes, tempo=TEMPO, time_signature=TIME_SIGNATURE,
-                   resolution=RESOLUTION):
+    def from_notes(cls, notes, tempo=TEMPO, time_signature=TIME_SIGNATURE, resolution=RESOLUTION):
         """
         Create a MIDIFile from the given notes.
 
@@ -1863,8 +1933,7 @@ class MIDIFile(object):
 
         """
         # create a new track from the notes and then a MIDIFile instance
-        return cls(MIDITrack.from_notes(notes, tempo, time_signature,
-                                        resolution))
+        return cls(MIDITrack.from_notes(notes, tempo, time_signature, resolution))
 
     @staticmethod
     def add_arguments(parser, length=None, velocity=None, channel=None):
@@ -1889,20 +1958,32 @@ class MIDIFile(object):
 
         """
         # add MIDI related options to the existing parser
-        g = parser.add_argument_group('MIDI arguments')
-        g.add_argument('--midi', action='store_true', help='save as MIDI')
+        g = parser.add_argument_group("MIDI arguments")
+        g.add_argument("--midi", action="store_true", help="save as MIDI")
         if length is not None:
-            g.add_argument('--note_length', action='store', type=float,
-                           default=length,
-                           help='set the note length [default=%(default).2f]')
+            g.add_argument(
+                "--note_length",
+                action="store",
+                type=float,
+                default=length,
+                help="set the note length [default=%(default).2f]",
+            )
         if velocity is not None:
-            g.add_argument('--note_velocity', action='store', type=int,
-                           default=velocity,
-                           help='set the note velocity [default=%(default)i]')
+            g.add_argument(
+                "--note_velocity",
+                action="store",
+                type=int,
+                default=velocity,
+                help="set the note velocity [default=%(default)i]",
+            )
         if channel is not None:
-            g.add_argument('--note_channel', action='store', type=int,
-                           default=channel,
-                           help='set the note channel [default=%(default)i]')
+            g.add_argument(
+                "--note_channel",
+                action="store",
+                type=int,
+                default=channel,
+                help="set the note channel [default=%(default)i]",
+            )
         # return the argument group so it can be modified if needed
         return g
 

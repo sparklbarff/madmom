@@ -1,17 +1,19 @@
 #!/usr/bin/env python
-# encoding: utf-8
 """
 BeatDetector beat tracking algorithm.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import argparse
 
 from madmom.audio import SignalProcessor
-from madmom.features import (ActivationsProcessor, BeatDetectionProcessor,
-                             RNNBeatProcessor, TempoEstimationProcessor)
+from madmom.features import (
+    ActivationsProcessor,
+    BeatDetectionProcessor,
+    RNNBeatProcessor,
+    TempoEstimationProcessor,
+)
 from madmom.io import write_beats
 from madmom.processors import IOProcessor, io_arguments
 
@@ -21,7 +23,8 @@ def main():
 
     # define parser
     p = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter, description='''
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""
     The BeatDetector program detects all beats in an audio file according to
     the method described in (assuming a constant tempo throughout the whole
     piece):
@@ -56,18 +59,19 @@ def main():
     The 'pickle' mode can be used to store the used parameters to be able to
     exactly reproduce experiments.
 
-    ''')
+    """,
+    )
     # version
-    p.add_argument('--version', action='version', version='BeatDetector.2016')
+    p.add_argument("--version", action="version", version="BeatDetector.2016")
     # input/output arguments
-    io_arguments(p, output_suffix='.beats.txt')
+    io_arguments(p, output_suffix=".beats.txt")
     ActivationsProcessor.add_arguments(p)
     # signal processing arguments
     SignalProcessor.add_arguments(p, norm=False, gain=0)
     # beat tracking arguments
-    TempoEstimationProcessor.add_arguments(p, method='comb', min_bpm=40,
-                                           max_bpm=240, act_smooth=0.09,
-                                           hist_smooth=7, alpha=0.79)
+    TempoEstimationProcessor.add_arguments(
+        p, method="comb", min_bpm=40, max_bpm=240, act_smooth=0.09, hist_smooth=7, alpha=0.79
+    )
     BeatDetectionProcessor.add_arguments(p, look_ahead=None)
 
     # parse arguments
@@ -83,7 +87,7 @@ def main():
     # input processor
     if args.load:
         # load the activations from file
-        in_processor = ActivationsProcessor(mode='r', **vars(args))
+        in_processor = ActivationsProcessor(mode="r", **vars(args))
     else:
         # use a RNN to predict the beats
         in_processor = RNNBeatProcessor(**vars(args))
@@ -91,7 +95,7 @@ def main():
     # output processor
     if args.save:
         # save the RNN beat activations to file
-        out_processor = ActivationsProcessor(mode='w', **vars(args))
+        out_processor = ActivationsProcessor(mode="w", **vars(args))
     else:
         # detect the beats in the activation function and output them
         beat_processor = BeatDetectionProcessor(**vars(args))

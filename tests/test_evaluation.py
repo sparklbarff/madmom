@@ -1,11 +1,9 @@
-# encoding: utf-8
 # pylint: skip-file
 """
 This file contains tests for the madmom.evaluation module.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import math
 import unittest
@@ -103,19 +101,37 @@ class TestCalcRelativeErrorsFunction(unittest.TestCase):
         # np.abs(1 - (errors / annotations[matches]))
         # det: [0.99, 1.45, 2.01, 2.015,            3.1,  8.1])
         # tar: [1,    1.5,  2.0,  2.03,  2.05, 2.5, 3])
-        correct = np.abs(np.asarray([1 + 0.01 / 1, 1 + 0.05 / 1.5,
-                                     1 - 0.01 / 2, 1 + 0.015 / 2.03,
-                                     1 - 0.1 / 3, 1 - 5.1 / 3]))
+        correct = np.abs(
+            np.asarray(
+                [
+                    1 + 0.01 / 1,
+                    1 + 0.05 / 1.5,
+                    1 - 0.01 / 2,
+                    1 + 0.015 / 2.03,
+                    1 - 0.1 / 3,
+                    1 - 5.1 / 3,
+                ]
+            )
+        )
         self.assertTrue(np.allclose(errors, correct))
         # same but with matches given
         errors = calc_relative_errors(DETECTIONS, ANNOTATIONS, MATCHES)
         self.assertTrue(np.allclose(errors, correct))
         # annotations relative to detections
         errors = calc_relative_errors(ANNOTATIONS, DETECTIONS)
-        correct = np.abs(np.asarray([1 - 0.01 / 0.99, 1 - 0.05 / 1.45,
-                                     1 + 0.01 / 2.01, 1 - 0.015 / 2.015,
-                                     1 - 0.035 / 2.015, 1 - 0.485 / 2.015,
-                                     1 + 0.1 / 3.1]))
+        correct = np.abs(
+            np.asarray(
+                [
+                    1 - 0.01 / 0.99,
+                    1 - 0.05 / 1.45,
+                    1 + 0.01 / 2.01,
+                    1 - 0.015 / 2.015,
+                    1 - 0.035 / 2.015,
+                    1 - 0.485 / 2.015,
+                    1 + 0.1 / 3.1,
+                ]
+            )
+        )
         self.assertTrue(np.allclose(errors, correct))
 
 
@@ -166,14 +182,33 @@ class TestSimpleEvaluationClass(unittest.TestCase):
         # (TP + TN) / (TP + FP + TN + FN)
         self.assertEqual(e.accuracy, 1)
         # metric dictionary
-        self.assertEqual(list(e.metrics.keys()),
-                         ['num_tp', 'num_fp', 'num_tn', 'num_fn',
-                          'num_annotations', 'precision', 'recall',
-                          'fmeasure', 'accuracy'])
-        correct = OrderedDict([('num_tp', 0), ('num_fp', 0), ('num_tn', 0),
-                               ('num_fn', 0), ('num_annotations', 0),
-                               ('precision', 1.0), ('recall', 1.0),
-                               ('fmeasure', 1.0), ('accuracy', 1.0)])
+        self.assertEqual(
+            list(e.metrics.keys()),
+            [
+                "num_tp",
+                "num_fp",
+                "num_tn",
+                "num_fn",
+                "num_annotations",
+                "precision",
+                "recall",
+                "fmeasure",
+                "accuracy",
+            ],
+        )
+        correct = OrderedDict(
+            [
+                ("num_tp", 0),
+                ("num_fp", 0),
+                ("num_tn", 0),
+                ("num_fn", 0),
+                ("num_annotations", 0),
+                ("precision", 1.0),
+                ("recall", 1.0),
+                ("fmeasure", 1.0),
+                ("accuracy", 1.0),
+            ]
+        )
         self.assertEqual(e.metrics, correct)
 
         # test with other values
@@ -185,14 +220,14 @@ class TestSimpleEvaluationClass(unittest.TestCase):
         self.assertEqual(e.num_annotations, 6)
         self.assertEqual(len(e), 6)
         # correct / retrieved
-        self.assertEqual(e.precision, 5. / 8.)
+        self.assertEqual(e.precision, 5.0 / 8.0)
         # correct / relevant
-        self.assertEqual(e.recall, 5. / 6.)
+        self.assertEqual(e.recall, 5.0 / 6.0)
         # 2 * P * R / (P + R)
-        f = 2 * (5. / 8.) * (5. / 6.) / ((5. / 8.) + (5. / 6.))
+        f = 2 * (5.0 / 8.0) * (5.0 / 6.0) / ((5.0 / 8.0) + (5.0 / 6.0))
         self.assertEqual(e.fmeasure, f)
         # (TP + TN) / (TP + FP + TN + FN)
-        self.assertEqual(e.accuracy, (5. + 4) / (5 + 3 + 4 + 1))
+        self.assertEqual(e.accuracy, (5.0 + 4) / (5 + 3 + 4 + 1))
 
         # test with no true positives/negatives
         e = SimpleEvaluation(num_tp=0, num_fp=3, num_tn=0, num_fn=1)
@@ -234,7 +269,7 @@ class TestEvaluationClass(unittest.TestCase):
         #     Evaluation(tp={}, fp={}, tn={}, fn={})
         # conversion from int or float should fail
         with self.assertRaises(TypeError):
-            Evaluation(tp=int(0), fp=int(0), tn=int(0), fn=int(0))
+            Evaluation(tp=0, fp=0, tn=0, fn=0)
         with self.assertRaises(TypeError):
             Evaluation(tp=float(0), fp=float(0), tn=float(0), fn=float(0))
         e = Evaluation(tp={}, fp={}, tn={}, fn={})
@@ -263,10 +298,20 @@ class TestEvaluationClass(unittest.TestCase):
         # acc: (TP + TN) / (TP + FP + TN + FN)
         self.assertEqual(e.accuracy, 1)
         # test metric dictionary keys
-        self.assertEqual(list(e.metrics.keys()),
-                         ['num_tp', 'num_fp', 'num_tn', 'num_fn',
-                          'num_annotations', 'precision', 'recall',
-                          'fmeasure', 'accuracy'])
+        self.assertEqual(
+            list(e.metrics.keys()),
+            [
+                "num_tp",
+                "num_fp",
+                "num_tn",
+                "num_fn",
+                "num_annotations",
+                "precision",
+                "recall",
+                "fmeasure",
+                "accuracy",
+            ],
+        )
         # test with other values
         e = Evaluation(tp=[1, 2, 3.0], fp=[1.5], fn=[0, 3.1])
         tp = np.asarray([1, 2, 3], dtype=float)
@@ -282,14 +327,14 @@ class TestEvaluationClass(unittest.TestCase):
         self.assertEqual(e.num_tn, 0)
         self.assertEqual(e.num_fn, 2)
         # p: correct / retrieved
-        self.assertEqual(e.precision, 3. / 4.)
+        self.assertEqual(e.precision, 3.0 / 4.0)
         # r: correct / relevant
-        self.assertEqual(e.recall, 3. / 5.)
+        self.assertEqual(e.recall, 3.0 / 5.0)
         # f: 2 * P * R / (P + R)
-        f = 2 * (3. / 4.) * (3. / 5.) / ((3. / 4.) + (3. / 5.))
+        f = 2 * (3.0 / 4.0) * (3.0 / 5.0) / ((3.0 / 4.0) + (3.0 / 5.0))
         self.assertEqual(e.fmeasure, f)
         # acc: (TP + TN) / (TP + FP + TN + FN)
-        self.assertEqual(e.accuracy, 3. / (3 + 1 + 2))
+        self.assertEqual(e.accuracy, 3.0 / (3 + 1 + 2))
 
 
 class TestMultiClassEvaluationClass(unittest.TestCase):
@@ -376,11 +421,11 @@ class TestSumEvaluationClass(unittest.TestCase):
         self.assertEqual(e.num_fp, 3)
         self.assertEqual(e.num_tn, 4)
         self.assertEqual(e.num_fn, 1)
-        self.assertEqual(e.precision, 5. / 8.)
-        self.assertEqual(e.recall, 5. / 6.)
-        f = 2 * (5. / 8.) * (5. / 6.) / ((5. / 8.) + (5. / 6.))
+        self.assertEqual(e.precision, 5.0 / 8.0)
+        self.assertEqual(e.recall, 5.0 / 6.0)
+        f = 2 * (5.0 / 8.0) * (5.0 / 6.0) / ((5.0 / 8.0) + (5.0 / 6.0))
         self.assertEqual(e.fmeasure, f)
-        self.assertEqual(e.accuracy, (5. + 4) / (5 + 3 + 4 + 1))
+        self.assertEqual(e.accuracy, (5.0 + 4) / (5 + 3 + 4 + 1))
         self.assertEqual(len(e), 2)
 
 
@@ -443,14 +488,14 @@ class TestMeanEvaluationClass(unittest.TestCase):
         e1 = SimpleEvaluation()
         e2 = SimpleEvaluation(num_tp=5, num_fp=3, num_tn=4, num_fn=1)
         e = MeanEvaluation([e1, e2])
-        self.assertEqual(e.num_tp, 5 / 2.)
-        self.assertEqual(e.num_fp, 3 / 2.)
-        self.assertEqual(e.num_tn, 4 / 2.)
-        self.assertEqual(e.num_fn, 1 / 2.)
-        self.assertEqual(e.num_annotations, 6 / 2.)
-        self.assertEqual(e.precision, (1 + 5. / 8.) / 2.)
-        self.assertEqual(e.recall, (1 + 5. / 6.) / 2.)
-        f = (1 + 2 * (5. / 8.) * (5. / 6.) / ((5. / 8.) + (5. / 6.))) / 2.
+        self.assertEqual(e.num_tp, 5 / 2.0)
+        self.assertEqual(e.num_fp, 3 / 2.0)
+        self.assertEqual(e.num_tn, 4 / 2.0)
+        self.assertEqual(e.num_fn, 1 / 2.0)
+        self.assertEqual(e.num_annotations, 6 / 2.0)
+        self.assertEqual(e.precision, (1 + 5.0 / 8.0) / 2.0)
+        self.assertEqual(e.recall, (1 + 5.0 / 6.0) / 2.0)
+        f = (1 + 2 * (5.0 / 8.0) * (5.0 / 6.0) / ((5.0 / 8.0) + (5.0 / 6.0))) / 2.0
         self.assertEqual(e.fmeasure, f)
-        self.assertEqual(e.accuracy, (1 + (5. + 4) / (5 + 3 + 4 + 1)) / 2.)
+        self.assertEqual(e.accuracy, (1 + (5.0 + 4) / (5 + 3 + 4 + 1)) / 2.0)
         self.assertEqual(len(e), 2)

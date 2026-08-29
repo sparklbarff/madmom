@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -7,7 +6,6 @@ This module contains basic signal processing functionality.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import warnings
 
@@ -51,8 +49,7 @@ def smooth(signal, kernel):
             # use a Hamming window of given length
             kernel = np.hamming(kernel)
         else:
-            raise ValueError("can't create a smoothing kernel of size %d" %
-                             kernel)
+            raise ValueError("can't create a smoothing kernel of size %d" % kernel)
     # otherwise use the given smoothing kernel directly
     elif isinstance(kernel, np.ndarray):
         kernel = kernel
@@ -60,16 +57,17 @@ def smooth(signal, kernel):
         raise ValueError("can't smooth signal with %s" % kernel)
     # convolve with the kernel and return
     if signal.ndim == 1:
-        return np.convolve(signal, kernel, 'same')
+        return np.convolve(signal, kernel, "same")
     elif signal.ndim == 2:
         from scipy.signal import convolve2d
-        return convolve2d(signal, kernel[:, np.newaxis], 'same')
+
+        return convolve2d(signal, kernel[:, np.newaxis], "same")
     else:
-        raise ValueError('signal must be either 1D or 2D')
+        raise ValueError("signal must be either 1D or 2D")
 
 
 def adjust_gain(signal, gain):
-    """"
+    """ "
     Adjust the gain of the signal.
 
     Parameters
@@ -94,11 +92,10 @@ def adjust_gain(signal, gain):
 
     """
     # convert the gain in dB to a scaling factor
-    gain = np.power(np.sqrt(10.), 0.1 * gain)
+    gain = np.power(np.sqrt(10.0), 0.1 * gain)
     # prevent overflow and clipping
     if gain > 1 and np.issubdtype(signal.dtype, np.integer):
-        raise ValueError('positive gain adjustments are only supported for '
-                         'float dtypes.')
+        raise ValueError("positive gain adjustments are only supported for " "float dtypes.")
     # Note: np.asanyarray returns the signal's ndarray subclass
     return np.asanyarray(signal * gain, dtype=signal.dtype)
 
@@ -161,8 +158,9 @@ def normalize(signal):
         if signal.dtype in (np.int16, np.int32):
             scaling /= np.iinfo(signal.dtype).max
         else:
-            raise ValueError('only float and np.int16/32 dtypes supported, '
-                             'not %s.' % signal.dtype)
+            raise ValueError(
+                "only float and np.int16/32 dtypes supported, " "not %s." % signal.dtype
+            )
     # Note: np.asanyarray returns the signal's ndarray subclass
     return np.asanyarray(signal / scaling, dtype=signal.dtype)
 
@@ -218,9 +216,10 @@ def remix(signal, num_channels, channel=None):
         return np.tile(signal[:, np.newaxis], num_channels)
     else:
         # any other channel conversion is not supported
-        raise NotImplementedError("Requested %d channels, but got %d channels "
-                                  "and channel conversion is not implemented."
-                                  % (num_channels, signal.shape[1]))
+        raise NotImplementedError(
+            "Requested %d channels, but got %d channels "
+            "and channel conversion is not implemented." % (num_channels, signal.shape[1])
+        )
 
 
 def resample(signal, sample_rate, **kwargs):
@@ -247,18 +246,19 @@ def resample(signal, sample_rate, **kwargs):
 
     """
     from ..io.audio import load_ffmpeg_file
+
     # is the given signal a Signal?
     if not isinstance(signal, Signal):
-        raise ValueError('only Signals can resampled, not %s' % type(signal))
+        raise ValueError("only Signals can resampled, not %s" % type(signal))
     if signal.sample_rate == sample_rate:
         return signal
     # per default use the signal's dtype and num_channels
-    dtype = kwargs.get('dtype', signal.dtype)
-    num_channels = kwargs.get('num_channels', signal.num_channels)
+    dtype = kwargs.get("dtype", signal.dtype)
+    num_channels = kwargs.get("num_channels", signal.num_channels)
     # resample the signal
-    signal, sample_rate = load_ffmpeg_file(signal, sample_rate=sample_rate,
-                                           num_channels=num_channels,
-                                           dtype=dtype)
+    signal, sample_rate = load_ffmpeg_file(
+        signal, sample_rate=sample_rate, num_channels=num_channels, dtype=dtype
+    )
     # return it
     return Signal(signal, sample_rate=sample_rate)
 
@@ -282,17 +282,17 @@ def rescale(signal, dtype=np.float32):
     """
     # allow only float dtypes
     if not np.issubdtype(dtype, np.floating):
-        raise ValueError('only float dtypes are supported, not %s.' % dtype)
+        raise ValueError("only float dtypes are supported, not %s." % dtype)
     # float signals don't need rescaling
     if np.issubdtype(signal.dtype, np.floating):
         return signal.astype(dtype)
     elif np.issubdtype(signal.dtype, np.integer):
         return signal.astype(dtype) / np.iinfo(signal.dtype).max
     else:
-        raise ValueError('unsupported signal dtype: %s.' % signal.dtype)
+        raise ValueError("unsupported signal dtype: %s." % signal.dtype)
 
 
-def trim(signal, where='fb'):
+def trim(signal, where="fb"):
     """
     Trim leading and trailing zeros of the signal.
 
@@ -313,16 +313,16 @@ def trim(signal, where='fb'):
     # code borrowed from np.trim_zeros()
     first = 0
     where = where.upper()
-    if 'F' in where:
+    if "F" in where:
         for i in signal:
-            if np.sum(i) != 0.:
+            if np.sum(i) != 0.0:
                 break
             else:
                 first += 1
     last = len(signal)
-    if 'B' in where:
+    if "B" in where:
         for i in signal[::-1]:
-            if np.sum(i) != 0.:
+            if np.sum(i) != 0.0:
                 break
             else:
                 last -= 1
@@ -434,7 +434,7 @@ def sound_pressure_level(signal, p_ref=None):
             p_ref = 1.0
     # normal SPL computation. ignore warnings when taking the log of 0,
     # then replace the resulting -inf values with the smallest finite number
-    with np.errstate(divide='ignore'):
+    with np.errstate(divide="ignore"):
         return np.nan_to_num(20.0 * np.log10(rms / p_ref))
 
 
@@ -446,12 +446,13 @@ class LoadAudioFileError(Exception):
     0.18.
 
     """
+
     # pylint: disable=super-init-not-called
 
     def __init__(self, value=None):
         warnings.warn(LoadAudioFileError.__doc__)
         if value is None:
-            value = 'Could not load audio file.'
+            value = "Could not load audio file."
         self.value = value
 
 
@@ -461,9 +462,12 @@ def load_wave_file(*args, **kwargs):
     instead. Will be removed in version 0.18.
 
     """
-    warnings.warn('Deprecated as of version 0.16. Please use madmom.io.audio.'
-                  'load_wave_file instead. Will be removed in version 0.18.')
+    warnings.warn(
+        "Deprecated as of version 0.16. Please use madmom.io.audio."
+        "load_wave_file instead. Will be removed in version 0.18."
+    )
     from ..io.audio import load_wave_file
+
     return load_wave_file(*args, **kwargs)
 
 
@@ -473,9 +477,12 @@ def write_wave_file(*args, **kwargs):
     instead. Will be removed in version 0.18.
 
     """
-    warnings.warn('Deprecated as of version 0.16. Please use madmom.io.audio.'
-                  'write_wave_file instead. Will be removed in version 0.18.')
+    warnings.warn(
+        "Deprecated as of version 0.16. Please use madmom.io.audio."
+        "write_wave_file instead. Will be removed in version 0.18."
+    )
     from ..io.audio import write_wave_file
+
     return write_wave_file(*args, **kwargs)
 
 
@@ -486,9 +493,12 @@ def load_audio_file(*args, **kwargs):
     instead. Will be removed in version 0.18.
 
     """
-    warnings.warn('Deprecated as of version 0.16. Please use madmom.io.audio.'
-                  'load_audio_file instead. Will be removed in version 0.18.')
+    warnings.warn(
+        "Deprecated as of version 0.16. Please use madmom.io.audio."
+        "load_audio_file instead. Will be removed in version 0.18."
+    )
     from ..io.audio import load_audio_file
+
     return load_audio_file(*args, **kwargs)
 
 
@@ -499,7 +509,7 @@ CHANNEL = None
 START = None
 STOP = None
 NORM = False
-GAIN = 0.
+GAIN = 0.0
 DTYPE = None
 
 
@@ -587,26 +597,52 @@ class Signal(np.ndarray):
     dtype('float32')
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
 
-    def __init__(self, data, sample_rate=SAMPLE_RATE,
-                 num_channels=NUM_CHANNELS, channel=CHANNEL, start=START,
-                 stop=STOP, norm=NORM, gain=GAIN, dtype=DTYPE, **kwargs):
+    def __init__(
+        self,
+        data,
+        sample_rate=SAMPLE_RATE,
+        num_channels=NUM_CHANNELS,
+        channel=CHANNEL,
+        start=START,
+        stop=STOP,
+        norm=NORM,
+        gain=GAIN,
+        dtype=DTYPE,
+        **kwargs,
+    ):
         # this method is for documentation purposes only
         pass
 
-    def __new__(cls, data, sample_rate=SAMPLE_RATE, num_channels=NUM_CHANNELS,
-                channel=CHANNEL, start=START, stop=STOP, norm=NORM, gain=GAIN,
-                dtype=DTYPE, **kwargs):
+    def __new__(
+        cls,
+        data,
+        sample_rate=SAMPLE_RATE,
+        num_channels=NUM_CHANNELS,
+        channel=CHANNEL,
+        start=START,
+        stop=STOP,
+        norm=NORM,
+        gain=GAIN,
+        dtype=DTYPE,
+        **kwargs,
+    ):
         from ..io.audio import load_audio_file
+
         # try to load an audio file if the data is not a numpy array
         if not isinstance(data, np.ndarray):
-            data, sample_rate = load_audio_file(data, sample_rate=sample_rate,
-                                                num_channels=num_channels,
-                                                start=start, stop=stop,
-                                                dtype=dtype)
+            data, sample_rate = load_audio_file(
+                data,
+                sample_rate=sample_rate,
+                num_channels=num_channels,
+                start=start,
+                stop=stop,
+                dtype=dtype,
+            )
         # cast as Signal if needed
         if not isinstance(data, Signal):
             data = np.asarray(data).view(cls)
@@ -629,7 +665,9 @@ class Signal(np.ndarray):
             if start < 0:
                 raise ValueError("start position must be >= 0, got %f" % start)
             if stop is not None and stop <= start:
-                raise ValueError("stop position must be > start, got start=%f, stop=%f" % (start, stop))
+                raise ValueError(
+                    "stop position must be > start, got start=%f, stop=%f" % (start, stop)
+                )
             data.start = start
             data.stop = start + float(len(data)) / sample_rate
         # return the object
@@ -639,9 +677,9 @@ class Signal(np.ndarray):
         if obj is None:
             return
         # set default values here, also needed for views of the Signal
-        self.sample_rate = getattr(obj, 'sample_rate', None)
-        self.start = getattr(obj, 'start', None)
-        self.stop = getattr(obj, 'stop', None)
+        self.sample_rate = getattr(obj, "sample_rate", None)
+        self.start = getattr(obj, "start", None)
+        self.stop = getattr(obj, "stop", None)
 
     def __reduce__(self):
         # Get the parent's __reduce__ tuple
@@ -760,9 +798,17 @@ class SignalProcessor(Processor):
 
     """
 
-    def __init__(self, sample_rate=SAMPLE_RATE, num_channels=NUM_CHANNELS,
-                 start=START, stop=STOP, norm=NORM, gain=GAIN, dtype=DTYPE,
-                 **kwargs):
+    def __init__(
+        self,
+        sample_rate=SAMPLE_RATE,
+        num_channels=NUM_CHANNELS,
+        start=START,
+        stop=STOP,
+        norm=NORM,
+        gain=GAIN,
+        dtype=DTYPE,
+        **kwargs,
+    ):
         # pylint: disable=unused-argument
         self.sample_rate = sample_rate
         self.num_channels = num_channels
@@ -791,17 +837,23 @@ class SignalProcessor(Processor):
         """
         # pylint: disable=unused-argument
         # update arguments passed to FramedSignal
-        args = dict(sample_rate=self.sample_rate,
-                    num_channels=self.num_channels, start=self.start,
-                    stop=self.stop, norm=self.norm, gain=self.gain,
-                    dtype=self.dtype)
+        args = dict(
+            sample_rate=self.sample_rate,
+            num_channels=self.num_channels,
+            start=self.start,
+            stop=self.stop,
+            norm=self.norm,
+            gain=self.gain,
+            dtype=self.dtype,
+        )
         args.update(kwargs)
         # instantiate a Signal and return it
         return Signal(data, **args)
 
     @staticmethod
-    def add_arguments(parser, sample_rate=None, mono=None, start=None,
-                      stop=None, norm=None, gain=None):
+    def add_arguments(
+        parser, sample_rate=None, mono=None, start=None, stop=None, norm=None, gain=None
+    ):
         """
         Add signal processing related arguments to an existing parser.
 
@@ -835,27 +887,46 @@ class SignalProcessor(Processor):
 
         """
         # add signal processing options to the existing parser
-        g = parser.add_argument_group('signal processing arguments')
+        g = parser.add_argument_group("signal processing arguments")
         if sample_rate is not None:
-            g.add_argument('--sample_rate', action='store', type=int,
-                           default=sample_rate, help='re-sample the signal to '
-                                                     'this sample rate [Hz]')
+            g.add_argument(
+                "--sample_rate",
+                action="store",
+                type=int,
+                default=sample_rate,
+                help="re-sample the signal to " "this sample rate [Hz]",
+            )
         if mono is not None:
-            g.add_argument('--mono', dest='num_channels', action='store_const',
-                           const=1, help='down-mix the signal to mono')
+            g.add_argument(
+                "--mono",
+                dest="num_channels",
+                action="store_const",
+                const=1,
+                help="down-mix the signal to mono",
+            )
         if start is not None:
-            g.add_argument('--start', action='store', type=float,
-                           help='start position of the signal [seconds]')
+            g.add_argument(
+                "--start", action="store", type=float, help="start position of the signal [seconds]"
+            )
         if stop is not None:
-            g.add_argument('--stop', action='store', type=float,
-                           help='stop position of the signal [seconds]')
+            g.add_argument(
+                "--stop", action="store", type=float, help="stop position of the signal [seconds]"
+            )
         if norm is not None:
-            g.add_argument('--norm', action='store_true', default=norm,
-                           help='normalize the signal [default=%(default)s]')
+            g.add_argument(
+                "--norm",
+                action="store_true",
+                default=norm,
+                help="normalize the signal [default=%(default)s]",
+            )
         if gain is not None:
-            g.add_argument('--gain', action='store', type=float, default=gain,
-                           help='adjust the gain of the signal '
-                                '[dB, default=%(default).1f]')
+            g.add_argument(
+                "--gain",
+                action="store",
+                type=float,
+                default=gain,
+                help="adjust the gain of the signal " "[dB, default=%(default).1f]",
+            )
         # return the argument group so it can be modified if needed
         return g
 
@@ -948,34 +1019,33 @@ def signal_frame(signal, index, frame_size, hop_size, origin=0, pad=0):
         left = min(stop, 0) - start
         # repeat beginning of signal
         frame[:left] = np.repeat(signal[:1], left, axis=0)
-        if pad != 'repeat':
+        if pad != "repeat":
             frame[:left] = pad
         start = 0
     if stop > num_samples:
         right = stop - max(start, num_samples)
         # repeat end of signal
         frame[-right:] = np.repeat(signal[-1:], right, axis=0)
-        if pad != 'repeat':
+        if pad != "repeat":
             frame[-right:] = pad
         stop = num_samples
 
     # position signal inside frame
-    frame[left:frame_size - right] = signal[min(start, num_samples):
-                                            max(stop, 0)]
+    frame[left : frame_size - right] = signal[min(start, num_samples) : max(stop, 0)]
     # return the frame
     return frame
 
 
 FRAME_SIZE = 2048
-HOP_SIZE = 441.
+HOP_SIZE = 441.0
 FPS = None
 ORIGIN = 0
-END_OF_SIGNAL = 'normal'
+END_OF_SIGNAL = "normal"
 NUM_FRAMES = None
 
 
 # classes for splitting a signal into frames
-class FramedSignal(object):
+class FramedSignal:
     """
     The :class:`FramedSignal` splits a :class:`Signal` into frames and makes it
     iterable and indexable.
@@ -1104,9 +1174,17 @@ class FramedSignal(object):
 
     """
 
-    def __init__(self, signal, frame_size=FRAME_SIZE, hop_size=HOP_SIZE,
-                 fps=FPS, origin=ORIGIN, end=END_OF_SIGNAL,
-                 num_frames=NUM_FRAMES, **kwargs):
+    def __init__(
+        self,
+        signal,
+        frame_size=FRAME_SIZE,
+        hop_size=HOP_SIZE,
+        fps=FPS,
+        origin=ORIGIN,
+        end=END_OF_SIGNAL,
+        num_frames=NUM_FRAMES,
+        **kwargs,
+    ):
 
         # signal handling
         if not isinstance(signal, Signal):
@@ -1127,15 +1205,15 @@ class FramedSignal(object):
             self.hop_size = self.signal.sample_rate / float(fps)
 
         # translate literal window location values to numeric origin
-        if origin in ('center', 'offline'):
+        if origin in ("center", "offline"):
             # window centered around the origin
             origin = 0
-        elif origin in ('left', 'past', 'online'):
+        elif origin in ("left", "past", "online"):
             # origin is the right edge of the frame, i.e. window to the left
             # Note: used when simulating online mode, where only past
             #       information of the audio signal can be used
             origin = (frame_size - 1) / 2
-        elif origin in ('right', 'future', 'stream'):
+        elif origin in ("right", "future", "stream"):
             # origin is the left edge of the frame, i.e. window to the right
             # Note: used when operating on live audio streams where we want
             #       to retrieve a single frame. Instead of using 'online', we
@@ -1147,16 +1225,14 @@ class FramedSignal(object):
 
         # number of frames determination
         if num_frames is None:
-            if end == 'extend':
+            if end == "extend":
                 # return frames as long as a frame covers any signal
-                num_frames = np.floor(len(self.signal) /
-                                      float(self.hop_size) + 1)
-            elif end == 'normal':
+                num_frames = np.floor(len(self.signal) / float(self.hop_size) + 1)
+            elif end == "normal":
                 # return frames as long as the origin sample covers the signal
                 num_frames = np.ceil(len(self.signal) / float(self.hop_size))
             else:
-                raise ValueError("end of signal handling '%s' unknown" %
-                                 end)
+                raise ValueError("end of signal handling '%s' unknown" % end)
         self.num_frames = int(num_frames)
 
     # make the object indexable / iterable
@@ -1176,9 +1252,13 @@ class FramedSignal(object):
                 index += self.num_frames
             # return the frame at the given index
             if index < self.num_frames:
-                return signal_frame(self.signal, index,
-                                    frame_size=self.frame_size,
-                                    hop_size=self.hop_size, origin=self.origin)
+                return signal_frame(
+                    self.signal,
+                    index,
+                    frame_size=self.frame_size,
+                    hop_size=self.hop_size,
+                    origin=self.origin,
+                )
             # otherwise raise an error to indicate the end of signal
             raise IndexError("end of signal reached")
         # a slice is given
@@ -1187,15 +1267,19 @@ class FramedSignal(object):
             start, stop, step = index.indices(self.num_frames)
             # allow only normal steps
             if step != 1:
-                raise ValueError('only slices with a step size of 1 supported')
+                raise ValueError("only slices with a step size of 1 supported")
             # determine the number of frames
             num_frames = stop - start
             # determine the new origin, i.e. start position
             origin = self.origin - self.hop_size * start
             # return a new FramedSignal instance covering the requested frames
-            return FramedSignal(self.signal, frame_size=self.frame_size,
-                                hop_size=self.hop_size, origin=origin,
-                                num_frames=num_frames)
+            return FramedSignal(
+                self.signal,
+                frame_size=self.frame_size,
+                hop_size=self.hop_size,
+                origin=origin,
+                num_frames=num_frames,
+            )
         # other index types are invalid
         else:
             raise TypeError("frame indices must be slices or integers")
@@ -1230,7 +1314,7 @@ class FramedSignal(object):
         """
         shape = self.num_frames, self.frame_size
         if self.signal.num_channels != 1:
-            shape += (self.signal.num_channels, )
+            shape += (self.signal.num_channels,)
         return shape
 
     @property
@@ -1299,9 +1383,16 @@ class FramedSignalProcessor(Processor):
 
     """
 
-    def __init__(self, frame_size=FRAME_SIZE, hop_size=HOP_SIZE, fps=FPS,
-                 origin=ORIGIN, end=END_OF_SIGNAL, num_frames=NUM_FRAMES,
-                 **kwargs):
+    def __init__(
+        self,
+        frame_size=FRAME_SIZE,
+        hop_size=HOP_SIZE,
+        fps=FPS,
+        origin=ORIGIN,
+        end=END_OF_SIGNAL,
+        num_frames=NUM_FRAMES,
+        **kwargs,
+    ):
         # pylint: disable=unused-argument
         self.frame_size = frame_size
         self.hop_size = hop_size
@@ -1328,20 +1419,24 @@ class FramedSignalProcessor(Processor):
 
         """
         # update arguments passed to FramedSignal
-        args = dict(frame_size=self.frame_size, hop_size=self.hop_size,
-                    fps=self.fps, origin=self.origin, end=self.end,
-                    num_frames=self.num_frames)
+        args = dict(
+            frame_size=self.frame_size,
+            hop_size=self.hop_size,
+            fps=self.fps,
+            origin=self.origin,
+            end=self.end,
+            num_frames=self.num_frames,
+        )
         args.update(kwargs)
         # always use the last `frame_size` samples if we operate on a live
         # audio stream, otherwise we get the wrong portion of the signal
-        if self.origin == 'stream':
-            data = data[-self.frame_size:]
+        if self.origin == "stream":
+            data = data[-self.frame_size :]
         # instantiate a FramedSignal from the data and return it
         return FramedSignal(data, **args)
 
     @staticmethod
-    def add_arguments(parser, frame_size=FRAME_SIZE, fps=FPS,
-                      online=None):
+    def add_arguments(parser, frame_size=FRAME_SIZE, fps=FPS, online=None):
         """
         Add signal framing related arguments to an existing parser.
 
@@ -1368,37 +1463,62 @@ class FramedSignalProcessor(Processor):
 
         """
         # add signal framing options to the existing parser
-        g = parser.add_argument_group('signal framing arguments')
+        g = parser.add_argument_group("signal framing arguments")
         # depending on the type of frame_size, use different options
         if isinstance(frame_size, integer_types):
-            g.add_argument('--frame_size', action='store', type=int,
-                           default=frame_size,
-                           help='frame size [samples, default=%(default)i]')
+            g.add_argument(
+                "--frame_size",
+                action="store",
+                type=int,
+                default=frame_size,
+                help="frame size [samples, default=%(default)i]",
+            )
         elif isinstance(frame_size, list):
             # Note: this option can be used to stack multiple spectrograms
             #       with different frame sizes
             from ..utils import OverrideDefaultListAction
-            g.add_argument('--frame_size', type=int, default=frame_size,
-                           action=OverrideDefaultListAction, sep=',',
-                           help='(comma separated list of) frame size(s) to '
-                                'use [samples, default=%(default)s]')
+
+            g.add_argument(
+                "--frame_size",
+                type=int,
+                default=frame_size,
+                action=OverrideDefaultListAction,
+                sep=",",
+                help="(comma separated list of) frame size(s) to "
+                "use [samples, default=%(default)s]",
+            )
         if fps is not None:
-            g.add_argument('--fps', action='store', type=float, default=fps,
-                           help='frames per second [default=%(default).1f]')
+            g.add_argument(
+                "--fps",
+                action="store",
+                type=float,
+                default=fps,
+                help="frames per second [default=%(default).1f]",
+            )
         if online is False:
-            g.add_argument('--online', dest='origin', action='store_const',
-                           const='online', default='offline',
-                           help='operate in online mode [default=offline]')
+            g.add_argument(
+                "--online",
+                dest="origin",
+                action="store_const",
+                const="online",
+                default="offline",
+                help="operate in online mode [default=offline]",
+            )
         elif online is True:
-            g.add_argument('--offline', dest='origin', action='store_const',
-                           const='offline', default='online',
-                           help='operate in offline mode [default=online]')
+            g.add_argument(
+                "--offline",
+                dest="origin",
+                action="store_const",
+                const="offline",
+                default="online",
+                help="operate in offline mode [default=online]",
+            )
         # return the argument group so it can be modified if needed
         return g
 
 
 # class for online processing
-class Stream(object):
+class Stream:
     """
     A Stream handles live (i.e. online, real-time) audio input via PyAudio.
 
@@ -1430,11 +1550,20 @@ class Stream(object):
 
     """
 
-    def __init__(self, sample_rate=SAMPLE_RATE, num_channels=NUM_CHANNELS,
-                 dtype=np.float32, frame_size=FRAME_SIZE, hop_size=HOP_SIZE,
-                 fps=FPS, stream_input_device=None, **kwargs):
+    def __init__(
+        self,
+        sample_rate=SAMPLE_RATE,
+        num_channels=NUM_CHANNELS,
+        dtype=np.float32,
+        frame_size=FRAME_SIZE,
+        hop_size=HOP_SIZE,
+        fps=FPS,
+        stream_input_device=None,
+        **kwargs,
+    ):
         # import PyAudio here and not at the module level
         import pyaudio
+
         # set attributes
         self.sample_rate = sample_rate
         self.num_channels = 1 if num_channels is None else num_channels
@@ -1445,19 +1574,21 @@ class Stream(object):
             # use fps instead of hop_size
             hop_size = self.sample_rate / float(fps)
         if int(hop_size) != hop_size:
-            raise ValueError(
-                'only integer `hop_size` supported, not %s' % hop_size)
+            raise ValueError("only integer `hop_size` supported, not %s" % hop_size)
         self.hop_size = int(hop_size)
         self.stream_input_device = stream_input_device
         # init PyAudio
         self.pa = pyaudio.PyAudio()
         # init a stream to read audio samples from
-        self.stream = self.pa.open(rate=self.sample_rate,
-                                   channels=self.num_channels,
-                                   format=pyaudio.paFloat32, input=True,
-                                   frames_per_buffer=self.hop_size,
-                                   input_device_index=self.stream_input_device,
-                                   start=True)
+        self.stream = self.pa.open(
+            rate=self.sample_rate,
+            channels=self.num_channels,
+            format=pyaudio.paFloat32,
+            input=True,
+            frames_per_buffer=self.hop_size,
+            input_device_index=self.stream_input_device,
+            start=True,
+        )
         # create a buffer
         self.buffer = BufferProcessor(self.frame_size)
         # frame index counter
@@ -1473,17 +1604,21 @@ class Stream(object):
         # get the desired number of samples (block until all are present)
         data = self.stream.read(self.hop_size, exception_on_overflow=False)
         # convert it to a numpy array
-        data = np.fromstring(data, 'float32').astype(self.dtype, copy=False)
+        data = np.fromstring(data, "float32").astype(self.dtype, copy=False)
         # buffer the data (i.e. append hop_size samples and rotate)
         data = self.buffer(data)
         # wrap the last frame_size samples as a Signal
         # NOTE: check float / int hop size; theoretically a float hop size
         #       can be accomplished by making the buffer N samples bigger and
         #       take the correct portion of the buffer
-        start = (self.frame_idx * float(self.hop_size) / self.sample_rate)
-        signal = Signal(data[-self.frame_size:], sample_rate=self.sample_rate,
-                        dtype=self.dtype, num_channels=self.num_channels,
-                        start=start)
+        start = self.frame_idx * float(self.hop_size) / self.sample_rate
+        signal = Signal(
+            data[-self.frame_size :],
+            sample_rate=self.sample_rate,
+            dtype=self.dtype,
+            num_channels=self.num_channels,
+            start=start,
+        )
         # increment the frame index
         self.frame_idx += 1
         return signal

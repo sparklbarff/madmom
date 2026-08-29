@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -8,18 +7,18 @@ This module contains neural network layers for the ml.nn module.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import numpy as np
 from numpy.lib.stride_tricks import as_strided
-from scipy.ndimage import convolve as _scipy_convolve, maximum_filter
+from scipy.ndimage import convolve as _scipy_convolve
+from scipy.ndimage import maximum_filter
 
 from .activations import sigmoid, tanh
 
 NN_DTYPE = np.float32
 
 
-class Layer(object):
+class Layer:
     """
     Generic callable network layer.
 
@@ -44,7 +43,7 @@ class Layer(object):
             Activations for this data.
 
         """
-        raise NotImplementedError('must be implemented by subclass.')
+        raise NotImplementedError("must be implemented by subclass.")
 
     def reset(self):
         """
@@ -248,8 +247,7 @@ class RecurrentLayer(FeedForwardLayer):
 
     """
 
-    def __init__(self, weights, bias, recurrent_weights, activation_fn=tanh,
-                 init=None):
+    def __init__(self, weights, bias, recurrent_weights, activation_fn=tanh, init=None):
         super(RecurrentLayer, self).__init__(weights, bias, activation_fn)
         self.recurrent_weights = recurrent_weights
         if init is None:
@@ -262,7 +260,7 @@ class RecurrentLayer(FeedForwardLayer):
         # copy everything to a picklable object
         state = self.__dict__.copy()
         # do not pickle attributes needed for stateful processing
-        state.pop('_prev', None)
+        state.pop("_prev", None)
         return state
 
     def __setstate__(self, state):
@@ -271,7 +269,7 @@ class RecurrentLayer(FeedForwardLayer):
         # Backward compatibility: old models do not have the init attribute, thus create it
         # This allows loading models saved with older versions of madmom
         #       remove this initialisation code after updating the models
-        if not hasattr(self, 'init'):
+        if not hasattr(self, "init"):
             self.init = np.zeros(self.bias.size, dtype=NN_DTYPE)
         # add non-pickled attributes needed for stateful processing
         self._prev = self.init
@@ -392,10 +390,10 @@ class Gate(RecurrentLayer):
 
     """
 
-    def __init__(self, weights, bias, recurrent_weights, peephole_weights=None,
-                 activation_fn=sigmoid):
-        super(Gate, self).__init__(weights, bias, recurrent_weights,
-                                   activation_fn=activation_fn)
+    def __init__(
+        self, weights, bias, recurrent_weights, peephole_weights=None, activation_fn=sigmoid
+    ):
+        super(Gate, self).__init__(weights, bias, recurrent_weights, activation_fn=activation_fn)
         if peephole_weights is not None:
             peephole_weights = peephole_weights.flatten()
         self.peephole_weights = peephole_weights
@@ -455,8 +453,7 @@ class Cell(Gate):
     """
 
     def __init__(self, weights, bias, recurrent_weights, activation_fn=tanh):
-        super(Cell, self).__init__(weights, bias, recurrent_weights,
-                                   activation_fn=activation_fn)
+        super(Cell, self).__init__(weights, bias, recurrent_weights, activation_fn=activation_fn)
 
 
 class LSTMLayer(RecurrentLayer):
@@ -482,8 +479,16 @@ class LSTMLayer(RecurrentLayer):
 
     """
 
-    def __init__(self, input_gate, forget_gate, cell, output_gate,
-                 activation_fn=tanh, init=None, cell_init=None):
+    def __init__(
+        self,
+        input_gate,
+        forget_gate,
+        cell,
+        output_gate,
+        activation_fn=tanh,
+        init=None,
+        cell_init=None,
+    ):
         self.input_gate = input_gate
         self.forget_gate = forget_gate
         self.cell = cell
@@ -503,8 +508,8 @@ class LSTMLayer(RecurrentLayer):
         # copy everything to a picklable object
         state = self.__dict__.copy()
         # do not pickle attributes needed for stateful processing
-        state.pop('_prev', None)
-        state.pop('_state', None)
+        state.pop("_prev", None)
+        state.pop("_state", None)
         return state
 
     def __setstate__(self, state):
@@ -513,9 +518,9 @@ class LSTMLayer(RecurrentLayer):
         # Backward compatibility: old models do not have the init attributes, thus create them
         # This allows loading models saved with older versions of madmom
         #       remove this initialisation code after updating the models
-        if not hasattr(self, 'init'):
+        if not hasattr(self, "init"):
             self.init = np.zeros(self.cell.bias.size, dtype=NN_DTYPE)
-        if not hasattr(self, 'cell_init'):
+        if not hasattr(self, "cell_init"):
             self.cell_init = np.zeros(self.cell.bias.size, dtype=NN_DTYPE)
         # add non-pickled attributes needed for stateful processing
         self._prev = self.init
@@ -626,8 +631,7 @@ class GRUCell(Cell):
     """
 
     def __init__(self, weights, bias, recurrent_weights, activation_fn=tanh):
-        super(GRUCell, self).__init__(weights, bias, recurrent_weights,
-                                      activation_fn)
+        super(GRUCell, self).__init__(weights, bias, recurrent_weights, activation_fn)
 
     def activate(self, data, prev, reset_gate):
         """
@@ -704,7 +708,7 @@ class GRULayer(RecurrentLayer):
         # copy everything to a picklable object
         state = self.__dict__.copy()
         # do not pickle attributes needed for stateful processing
-        state.pop('_prev', None)
+        state.pop("_prev", None)
         return state
 
     def __setstate__(self, state):
@@ -713,10 +717,14 @@ class GRULayer(RecurrentLayer):
         #       remove this unpickling code after updating all models
         try:
             import warnings
-            warnings.warn('Please update your GRU models by loading them and '
-                          'saving them again. Loading old models will not work'
-                          ' from version 0.18 onwards.', RuntimeWarning)
-            state['init'] = state.pop('hid_init')
+
+            warnings.warn(
+                "Please update your GRU models by loading them and "
+                "saving them again. Loading old models will not work"
+                " from version 0.18 onwards.",
+                RuntimeWarning,
+            )
+            state["init"] = state.pop("hid_init")
         except KeyError:
             pass
         # restore pickled instance attributes
@@ -724,7 +732,7 @@ class GRULayer(RecurrentLayer):
         # Backward compatibility: old models do not have the init attributes, thus create them
         # This allows loading models saved with older versions of madmom
         #       remove this initialisation code after updating the models
-        if not hasattr(self, 'init'):
+        if not hasattr(self, "init"):
             self.init = np.zeros(self.cell.bias.size, dtype=NN_DTYPE)
         # add non-pickled attributes needed for stateful processing
         self._prev = self.init
@@ -786,7 +794,7 @@ class GRULayer(RecurrentLayer):
         return out
 
 
-def _kernel_margins(kernel_shape, margin_shift, pad='valid'):
+def _kernel_margins(kernel_shape, margin_shift, pad="valid"):
     """
     Determine the margin that needs to be cut off when doing a convolution.
 
@@ -805,13 +813,13 @@ def _kernel_margins(kernel_shape, margin_shift, pad='valid'):
         Indices determining the valid part of the convolution output.
     """
 
-    if pad == 'same':
+    if pad == "same":
         return None, None, None, None
-    elif pad != 'valid':
+    elif pad != "valid":
         raise NotImplementedError('only `pad` == "valid" implemented.')
 
-    start_x = int(np.floor(kernel_shape[0] / 2.))
-    start_y = int(np.floor(kernel_shape[1] / 2.))
+    start_x = int(np.floor(kernel_shape[0] / 2.0))
+    start_y = int(np.floor(kernel_shape[1] / 2.0))
 
     margin_shift = -1 if margin_shift else 0
     if kernel_shape[0] % 2 == 0:
@@ -841,17 +849,19 @@ try:
     # pylint: disable=wrong-import-position
 
     # opencv's convolution is much faster for certain kernel sizes
-    from cv2 import filter2D, BORDER_CONSTANT
+    from cv2 import BORDER_CONSTANT, filter2D
 
     def _convolve_opencv(x, k, pad):
         sx, ex, sy, ey = _kernel_margins(k.shape, margin_shift=False, pad=pad)
         anchor = (-1, -1)
-        if pad == 'same':
+        if pad == "same":
             # NOTE: check if this is correct in all cases
             anchor = tuple(-1 * (np.array(k.shape) % 2))
         # opencv computes a correlation, thus flip the kernel
-        return filter2D(x, -1, k[::-1, ::-1], anchor=anchor,
-                        borderType=BORDER_CONSTANT)[sx:ex, sy:ey]
+        return filter2D(x, -1, k[::-1, ::-1], anchor=anchor, borderType=BORDER_CONSTANT)[
+            sx:ex, sy:ey
+        ]
+
 except ImportError:
     _convolve_opencv = None
 
@@ -860,10 +870,10 @@ def _convolve_scipy(x, k, pad):
     # scipy.ndimage.convolve behaves slightly differently with
     # even-sized kernels, thus shift the margins
     sx, ex, sy, ey = _kernel_margins(k.shape, margin_shift=True, pad=pad)
-    return _scipy_convolve(x, k, mode='constant')[sx:ex, sy:ey]
+    return _scipy_convolve(x, k, mode="constant")[sx:ex, sy:ey]
 
 
-def convolve(data, kernel, pad='valid'):
+def convolve(data, kernel, pad="valid"):
     """
     Convolve data with kernel.
 
@@ -928,8 +938,7 @@ class ConvolutionalLayer(FeedForwardLayer):
 
     """
 
-    def __init__(self, weights, bias, stride=None, pad='valid',
-                 activation_fn=None):
+    def __init__(self, weights, bias, stride=None, pad="valid", activation_fn=None):
         super(ConvolutionalLayer, self).__init__(weights, bias, activation_fn)
         self.stride = stride
         self.pad = pad
@@ -957,18 +966,19 @@ class ConvolutionalLayer(FeedForwardLayer):
         num_frames, num_bins, num_channels = data.shape
         num_channels_w, num_features, size_time, size_freq = self.weights.shape
         if num_channels_w != num_channels:
-            raise ValueError('Number of channels in weight vector different '
-                             'from number of channels of input data!')
+            raise ValueError(
+                "Number of channels in weight vector different "
+                "from number of channels of input data!"
+            )
         # adjust the output number of frames and bins depending on `pad`
-        if self.pad == 'valid':
-            num_frames -= (size_time - 1)
-            num_bins -= (size_freq - 1)
-        elif self.pad != 'same':
+        if self.pad == "valid":
+            num_frames -= size_time - 1
+            num_bins -= size_freq - 1
+        elif self.pad != "same":
             raise NotImplementedError('`pad` is neither "valid" nor "same"')
 
         # init the output array with Fortran ordering (column major)
-        out = np.zeros((num_frames, num_bins, num_features),
-                       dtype=NN_DTYPE, order='F')
+        out = np.zeros((num_frames, num_bins, num_features), dtype=NN_DTYPE, order="F")
         # iterate over all channels
         for c in range(num_channels):
             channel = data[:, :, c]
@@ -983,7 +993,7 @@ class ConvolutionalLayer(FeedForwardLayer):
 
         # use only selected parts of the output
         if self.stride not in (None, 1, (1, 1)):
-            out = out[::self.stride[0], ::self.stride[1]]
+            out = out[:: self.stride[0], :: self.stride[1]]
 
         return out
 
@@ -1019,7 +1029,8 @@ class StrideLayer(Layer):
         """
         # re-arrange the data for the following dense layer
         from ...utils import segment_axis
-        data = segment_axis(data, self.block_size, 1, axis=0, end='cut')
+
+        data = segment_axis(data, self.block_size, 1, axis=0, end="cut")
         return data.reshape(len(data), -1)
 
 
@@ -1052,7 +1063,7 @@ class MaxPoolLayer(Layer):
         # Backward compatibility: old models do not have `axis`, thus create it
         # This allows loading models saved with older versions of madmom
         #       remove this initialisation code after updating the models
-        if not hasattr(self, 'axis'):
+        if not hasattr(self, "axis"):
             self.axis = None
 
     def activate(self, data, **kwargs):
@@ -1072,29 +1083,30 @@ class MaxPoolLayer(Layer):
         """
         if self.axis is not None:
             if self.stride is not None:
-                raise NotImplementedError('`axis` with `stride` not supported')
+                raise NotImplementedError("`axis` with `stride` not supported")
             return np.max(data, axis=self.axis)
         # define which part of the maximum filtered data to return
-        slice_dim_1 = slice(self.size[0] // 2,
-                            data.shape[0] - (self.size[0] - 1) // 2,
-                            self.stride[0])
-        slice_dim_2 = slice(self.size[1] // 2,
-                            data.shape[1] - (self.size[1] - 1) // 2,
-                            self.stride[1])
+        slice_dim_1 = slice(
+            self.size[0] // 2, data.shape[0] - (self.size[0] - 1) // 2, self.stride[0]
+        )
+        slice_dim_2 = slice(
+            self.size[1] // 2, data.shape[1] - (self.size[1] - 1) // 2, self.stride[1]
+        )
 
         # NOTE: is constant mode the most appropriate?
         if len(data.shape) == 2:
             # filter the data as is
-            return maximum_filter(data, self.size,
-                                  mode='constant')[slice_dim_1, slice_dim_2]
+            return maximum_filter(data, self.size, mode="constant")[slice_dim_1, slice_dim_2]
         elif len(data.shape) == 3:
             # filter each channel separately
-            data = [maximum_filter(data[:, :, c], self.size, mode='constant')
-                    [slice_dim_1, slice_dim_2] for c in range(data.shape[2])]
+            data = [
+                maximum_filter(data[:, :, c], self.size, mode="constant")[slice_dim_1, slice_dim_2]
+                for c in range(data.shape[2])
+            ]
             # join channels and return as array
             return np.dstack(data)
         else:
-            ValueError('`data` must bei either 2 or 3-dimensional')
+            ValueError("`data` must bei either 2 or 3-dimensional")
 
 
 class BatchNormLayer(Layer):
@@ -1206,7 +1218,7 @@ class ReshapeLayer(Layer):
 
     """
 
-    def __init__(self, newshape, order='C'):
+    def __init__(self, newshape, order="C"):
         self.newshape = newshape
         self.order = order
 
@@ -1267,8 +1279,7 @@ class AverageLayer(Layer):
             Averaged data.
 
         """
-        return np.mean(data, axis=self.axis, dtype=self.dtype,
-                       keepdims=self.keepdims)
+        return np.mean(data, axis=self.axis, dtype=self.dtype, keepdims=self.keepdims)
 
 
 class PadLayer(Layer):
@@ -1286,7 +1297,7 @@ class PadLayer(Layer):
 
     """
 
-    def __init__(self, width, axes, value=0.):
+    def __init__(self, width, axes, value=0.0):
         self.width = width
         self.axes = axes
         self.value = value
@@ -1339,8 +1350,9 @@ class TCNBlock(Layer):
 
     """
 
-    def __init__(self, dilated_conv, dilation_rate, activation_fn=None,
-                 skip_conv=None, residual_conv=None):
+    def __init__(
+        self, dilated_conv, dilation_rate, activation_fn=None, skip_conv=None, residual_conv=None
+    ):
         self.dilated_conv = dilated_conv
         self.dilation_rate = dilation_rate
         self.activation_fn = activation_fn
@@ -1358,15 +1370,15 @@ class TCNBlock(Layer):
         # determine data shape and number of bytes per item
         t, f, n = data.shape
         i = data.itemsize
-        assert f == 1, 'TCNBlock supports only 1D dilated convolutions.'
+        assert f == 1, "TCNBlock supports only 1D dilated convolutions."
         # to be able to use as_strided we have to pad the data accordingly
         # pad twice the dilation_rate on each side with zeros
         zeros = np.zeros((dilation_rate * 2, f, n), dtype=data.dtype)
         padded_data = np.concatenate((zeros, data, zeros))
         # return a dilated view of the data
-        return as_strided(padded_data,
-                          shape=(t, size, n),
-                          strides=(n * i, n * i * dilation_rate, i))
+        return as_strided(
+            padded_data, shape=(t, size, n), strides=(n * i, n * i * dilation_rate, i)
+        )
 
     def activate(self, data, **kwargs):
         """
@@ -1395,8 +1407,7 @@ class TCNBlock(Layer):
         else:
             # layer has only a single dilated convolutions
             size = self.dilated_conv.weights.shape[-1]
-            out = self.dilated_conv(self._dilate_data(data, size,
-                                                      self.dilation_rate))
+            out = self.dilated_conv(self._dilate_data(data, size, self.dilation_rate))
         if self.activation_fn is not None:
             out = self.activation_fn(out)
         if self.skip_conv is not None:

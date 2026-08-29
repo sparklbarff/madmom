@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 This package includes audio handling functionality and low-level features.
 The definition of "low" may vary, but all "high"-level features (e.g. beats,
@@ -21,19 +20,25 @@ and iterable. This way they can be used identically to numpy arrays.
 
 """
 
-from __future__ import absolute_import, division, print_function
-
 # import submodules and classes used often
 from .chroma import DeepChromaProcessor
-from .signal import (FramedSignal, FramedSignalProcessor, Signal,
-                     SignalProcessor, )
-from .spectrogram import (FilteredSpectrogram, FilteredSpectrogramProcessor,
-                          LogarithmicFilteredSpectrogram,
-                          LogarithmicFilteredSpectrogramProcessor,
-                          LogarithmicSpectrogram,
-                          LogarithmicSpectrogramProcessor,
-                          MultiBandSpectrogramProcessor, Spectrogram,
-                          SpectrogramDifference,
-                          SpectrogramDifferenceProcessor,
-                          SpectrogramProcessor, )
+from .signal import (
+    FramedSignal,
+    FramedSignalProcessor,
+    Signal,
+    SignalProcessor,
+)
+from .spectrogram import (
+    FilteredSpectrogram,
+    FilteredSpectrogramProcessor,
+    LogarithmicFilteredSpectrogram,
+    LogarithmicFilteredSpectrogramProcessor,
+    LogarithmicSpectrogram,
+    LogarithmicSpectrogramProcessor,
+    MultiBandSpectrogramProcessor,
+    Spectrogram,
+    SpectrogramDifference,
+    SpectrogramDifferenceProcessor,
+    SpectrogramProcessor,
+)
 from .stft import ShortTimeFourierTransform, ShortTimeFourierTransformProcessor

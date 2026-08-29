@@ -10,7 +10,7 @@ This pull request fixes #.
 
 ### Remaining TODOs before this pull request can be merged
 
-Please remove this section (inluding the headline above) if there aren't any
+Please remove this section (including the headline above) if there aren't any
 open TODOs. If there are, please remove this text, fill the items below and
 add a [WIP] prefix to the pull request's name.
 

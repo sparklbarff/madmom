@@ -1,9 +1,9 @@
-# encoding: utf-8
 """
 This module contains chord recognition related functionality.
 
 """
-from __future__ import absolute_import, annotations, division, print_function
+
+from __future__ import annotations
 
 from functools import partial
 
@@ -36,8 +36,7 @@ def majmin_targets_to_chord_labels(targets, fps):
 
     """
     # create a map of semitone index to semitone name (e.g. 0 -> A, 1 -> A#)
-    pitch_class_to_label = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F',
-                            'F#', 'G', 'G#']
+    pitch_class_to_label = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"]
 
     def pred_to_cl(pred):
         """
@@ -45,12 +44,11 @@ def majmin_targets_to_chord_labels(targets, fps):
         0..11 major chords, 12..23 minor chords, 24 no chord
         """
         if pred == 24:
-            return 'N'
-        return '{}:{}'.format(pitch_class_to_label[pred % 12],
-                              'maj' if pred < 12 else 'min')
+            return "N"
+        return "{}:{}".format(pitch_class_to_label[pred % 12], "maj" if pred < 12 else "min")
 
     # get labels per frame
-    spf = 1. / fps
+    spf = 1.0 / fps
     labels = [(i * spf, pred_to_cl(p)) for i, p in enumerate(targets)]
 
     # join same consecutive predictions
@@ -67,8 +65,7 @@ def majmin_targets_to_chord_labels(targets, fps):
     start_times, chord_labels = zip(*uniq_labels)
     end_times = start_times[1:] + (labels[-1][0] + spf,)
 
-    return np.array(list(zip(start_times, end_times, chord_labels)),
-                    dtype=SEGMENT_DTYPE)
+    return np.array(list(zip(start_times, end_times, chord_labels)), dtype=SEGMENT_DTYPE)
 
 
 class DeepChromaChordRecognitionProcessor(SequentialProcessor):
@@ -133,6 +130,7 @@ class DeepChromaChordRecognitionProcessor(SequentialProcessor):
     def __init__(self, model=None, fps=10, **kwargs):
         from ..ml.crf import ConditionalRandomField
         from ..models import CHORDS_DCCRF
+
         crf = ConditionalRandomField.load(model or CHORDS_DCCRF[0])
         lbl = partial(majmin_targets_to_chord_labels, fps=fps)
         super(DeepChromaChordRecognitionProcessor, self).__init__((crf, lbl))
@@ -149,6 +147,7 @@ def _cnncfp_pad(data):
 def _cnncfp_superframes(data):
     """Segment input into superframes"""
     from ..utils import segment_axis
+
     return segment_axis(data, 3, 1, axis=0)
 
 
@@ -186,9 +185,9 @@ class CNNChordFeatureProcessor(SequentialProcessor):
     """
 
     def __init__(self, **kwargs):
-        from ..audio.signal import SignalProcessor, FramedSignalProcessor
-        from ..audio.stft import ShortTimeFourierTransformProcessor
+        from ..audio.signal import FramedSignalProcessor, SignalProcessor
         from ..audio.spectrogram import LogarithmicFilteredSpectrogramProcessor
+        from ..audio.stft import ShortTimeFourierTransformProcessor
         from ..ml.nn import NeuralNetwork
         from ..models import CHORDS_CNN_FEAT
 
@@ -207,9 +206,9 @@ class CNNChordFeatureProcessor(SequentialProcessor):
         avg = _cnncfp_avg
 
         # create processing pipeline
-        super(CNNChordFeatureProcessor, self).__init__([
-            sig, frames, stft, spec, pad, nn, superframes, avg
-        ])
+        super(CNNChordFeatureProcessor, self).__init__(
+            [sig, frames, stft, spec, pad, nn, superframes, avg]
+        )
 
 
 class CRFChordRecognitionProcessor(SequentialProcessor):
@@ -270,9 +269,11 @@ class CRFChordRecognitionProcessor(SequentialProcessor):
            (1.6, 2.4..., 'A:maj'), (2.4..., 4.1, 'D:min')],
           dtype=[('start', '<f8'), ('end', '<f8'), ('label', 'O')])
     """
+
     def __init__(self, model=None, fps=10, **kwargs):
         from ..ml.crf import ConditionalRandomField
         from ..models import CHORDS_CFCRF
+
         crf = ConditionalRandomField.load(model or CHORDS_CFCRF[0])
         lbl = partial(majmin_targets_to_chord_labels, fps=fps)
         super(CRFChordRecognitionProcessor, self).__init__((crf, lbl))

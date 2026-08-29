@@ -1,29 +1,60 @@
-# encoding: utf-8
 # pylint: skip-file
 """
 This file contains tests for the madmom.evaluation.beats module.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import math
 import unittest
 
 from madmom.evaluation.beats import *
-from madmom.evaluation.beats import (_entropy, _error_histogram,
-                                     _histogram_bins, _information_gain, )
+from madmom.evaluation.beats import (
+    _entropy,
+    _error_histogram,
+    _histogram_bins,
+    _information_gain,
+)
+
 from . import ANNOTATIONS_PATH, DETECTIONS_PATH
 
-ANNOTATIONS = np.asarray([1., 2, 3, 4, 5, 6, 7, 8, 9, 10])
+ANNOTATIONS = np.asarray([1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 OFFBEAT_ANNOTATIONS = np.asarray([1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5])
-DOUBLE_ANNOTATIONS = np.asarray([1., 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6,
-                                 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10])
-TRIPLE_ANNOTATIONS = np.asarray([1, 1.333333, 1.666667, 2, 2.333333, 2.666667,
-                                 3, 3.333333, 3.666667, 4, 4.333333, 4.666667,
-                                 5, 5.333333, 5.666667, 6, 6.333333, 6.666667,
-                                 7, 7.333333, 7.666667, 8, 8.333333, 8.666667,
-                                 9, 9.333333, 9.666667, 10])
+DOUBLE_ANNOTATIONS = np.asarray(
+    [1.0, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10]
+)
+TRIPLE_ANNOTATIONS = np.asarray(
+    [
+        1,
+        1.333333,
+        1.666667,
+        2,
+        2.333333,
+        2.666667,
+        3,
+        3.333333,
+        3.666667,
+        4,
+        4.333333,
+        4.666667,
+        5,
+        5.333333,
+        5.666667,
+        6,
+        6.333333,
+        6.666667,
+        7,
+        7.333333,
+        7.666667,
+        8,
+        8.333333,
+        8.666667,
+        9,
+        9.333333,
+        9.666667,
+        10,
+    ]
+)
 DETECTIONS = np.asarray([1.01, 2, 2.95, 4, 6, 7, 8, 9.1, 10, 11])
 SAMPLE_BEAT_ANNOTATIONS = np.asarray([0.0913, 0.7997, 1.4806, 2.1478])
 
@@ -111,7 +142,7 @@ class TestCalcIntervalFunction(unittest.TestCase):
     def test_values(self):
         # test annotations backwards
         intervals = calc_intervals(ANNOTATIONS)
-        correct = np.asarray([1., 1, 1, 1, 1, 1, 1, 1, 1, 1])
+        correct = np.asarray([1.0, 1, 1, 1, 1, 1, 1, 1, 1, 1])
         self.assertTrue(np.allclose(intervals, correct))
         # test detections backwards
         intervals = calc_intervals(DETECTIONS)
@@ -119,7 +150,7 @@ class TestCalcIntervalFunction(unittest.TestCase):
         self.assertTrue(np.allclose(intervals, correct))
         # test annotations forwards
         intervals = calc_intervals(ANNOTATIONS, fwd=True)
-        correct = np.asarray([1., 1, 1, 1, 1, 1, 1, 1, 1, 1])
+        correct = np.asarray([1.0, 1, 1, 1, 1, 1, 1, 1, 1, 1])
         self.assertTrue(np.allclose(intervals, correct))
         # test detections forwards
         intervals = calc_intervals(DETECTIONS, fwd=True)
@@ -144,7 +175,7 @@ class TestFindClosestIntervalFunction(unittest.TestCase):
         with self.assertRaises(BeatIntervalError):
             find_closest_intervals(DETECTIONS, [])
         with self.assertRaises(BeatIntervalError):
-            find_closest_intervals(DETECTIONS, [1.])
+            find_closest_intervals(DETECTIONS, [1.0])
 
     def test_values(self):
         # empty detections should return an empty result
@@ -152,7 +183,7 @@ class TestFindClosestIntervalFunction(unittest.TestCase):
         self.assertTrue(np.allclose(intervals, []))
         # test detections w.r.t. annotations
         intervals = find_closest_intervals(DETECTIONS, ANNOTATIONS)
-        correct = [1., 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        correct = [1.0, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         self.assertTrue(np.allclose(intervals, correct))
         # test annotations w.r.t. detections
         intervals = find_closest_intervals(ANNOTATIONS, DETECTIONS)
@@ -210,7 +241,7 @@ class TestCalcRelativeErrorsFunction(unittest.TestCase):
         with self.assertRaises(BeatIntervalError):
             calc_relative_errors(DETECTIONS, [])
         with self.assertRaises(BeatIntervalError):
-            calc_relative_errors(DETECTIONS, [1.])
+            calc_relative_errors(DETECTIONS, [1.0])
 
     def test_values(self):
         # empty detections should return an empty result
@@ -314,7 +345,7 @@ class TestCemgilFunction(unittest.TestCase):
         score = cemgil([], [], 0.04)
         self.assertIsInstance(score, float)
         # sigma must be correct type
-        score = cemgil(DETECTIONS, ANNOTATIONS, int(1))
+        score = cemgil(DETECTIONS, ANNOTATIONS, 1)
         self.assertIsInstance(score, float)
 
     def test_errors(self):
@@ -427,7 +458,7 @@ class TestCmlFunction(unittest.TestCase):
         self.assertIsInstance(cmlc, float)
         self.assertIsInstance(cmlt, float)
         # tolerances must be correct type
-        cmlc, cmlt = cml(DETECTIONS, ANNOTATIONS, int(1), int(1))
+        cmlc, cmlt = cml(DETECTIONS, ANNOTATIONS, 1, 1)
         self.assertIsInstance(cmlc, float)
         self.assertIsInstance(cmlt, float)
         with self.assertRaises(TypeError):
@@ -453,9 +484,9 @@ class TestCmlFunction(unittest.TestCase):
             cml(DETECTIONS, None, 0.175, 0.175)
         # score relies on intervals, hence at least 2 ann/det must be given
         with self.assertRaises(BeatIntervalError):
-            cml(DETECTIONS, [1.], 0.175, 0.175)
+            cml(DETECTIONS, [1.0], 0.175, 0.175)
         with self.assertRaises(BeatIntervalError):
-            cml([1.], ANNOTATIONS, 0.175, 0.175)
+            cml([1.0], ANNOTATIONS, 0.175, 0.175)
 
     def test_values(self):
         # two empty sequences should have a perfect score
@@ -475,8 +506,7 @@ class TestCmlFunction(unittest.TestCase):
 class TestContinuityFunction(unittest.TestCase):
 
     def test_types(self):
-        cmlc, cmlt, amlc, amlt = continuity(DETECTIONS, ANNOTATIONS,
-                                            0.175, 0.175)
+        cmlc, cmlt, amlc, amlt = continuity(DETECTIONS, ANNOTATIONS, 0.175, 0.175)
         self.assertIsInstance(cmlc, float)
         self.assertIsInstance(cmlt, float)
         self.assertIsInstance(amlc, float)
@@ -488,7 +518,7 @@ class TestContinuityFunction(unittest.TestCase):
         self.assertIsInstance(amlc, float)
         self.assertIsInstance(amlt, float)
         # tolerances must be correct type
-        scores = continuity(DETECTIONS, ANNOTATIONS, int(1), int(1))
+        scores = continuity(DETECTIONS, ANNOTATIONS, 1, 1)
         cmlc, cmlt, amlc, amlt = scores
         self.assertIsInstance(cmlc, float)
         self.assertIsInstance(cmlt, float)
@@ -536,97 +566,80 @@ class TestContinuityFunction(unittest.TestCase):
         scores = continuity([], ANNOTATIONS, 0.175, 0.175)
         self.assertEqual(scores, (0, 0, 0, 0))
         # single annotation/detection should return 0
-        scores = continuity(DETECTIONS, [1.], 0.175, 0.175)
+        scores = continuity(DETECTIONS, [1.0], 0.175, 0.175)
         self.assertEqual(scores, (0, 0, 0, 0))
-        scores = continuity([1.], ANNOTATIONS, 0.175, 0.175)
+        scores = continuity([1.0], ANNOTATIONS, 0.175, 0.175)
         self.assertEqual(scores, (0, 0, 0, 0))
         # normal calculation
         scores = continuity(DETECTIONS, ANNOTATIONS, 0.175, 0.175)
         self.assertEqual(scores, (0.4, 0.8, 0.4, 0.8))
         # double tempo annotations
         scores = continuity(DETECTIONS, DOUBLE_ANNOTATIONS, 0.175, 0.175)
-        self.assertEqual(scores, (0., 0., 0.4, 0.8))
-        scores = continuity(DETECTIONS, DOUBLE_ANNOTATIONS, 0.175, 0.175,
-                            double=False, triple=False)
-        self.assertEqual(scores, (0., 0., 0., 0.))
-        scores = continuity(DETECTIONS, DOUBLE_ANNOTATIONS, 0.175, 0.175,
-                            double=True, triple=False)
-        self.assertEqual(scores, (0., 0., 0.4, 0.8))
-        scores = continuity(DETECTIONS, DOUBLE_ANNOTATIONS, 0.175, 0.175,
-                            double=False, triple=True)
-        self.assertEqual(scores, (0., 0., 0., 0.))
+        self.assertEqual(scores, (0.0, 0.0, 0.4, 0.8))
+        scores = continuity(
+            DETECTIONS, DOUBLE_ANNOTATIONS, 0.175, 0.175, double=False, triple=False
+        )
+        self.assertEqual(scores, (0.0, 0.0, 0.0, 0.0))
+        scores = continuity(DETECTIONS, DOUBLE_ANNOTATIONS, 0.175, 0.175, double=True, triple=False)
+        self.assertEqual(scores, (0.0, 0.0, 0.4, 0.8))
+        scores = continuity(DETECTIONS, DOUBLE_ANNOTATIONS, 0.175, 0.175, double=False, triple=True)
+        self.assertEqual(scores, (0.0, 0.0, 0.0, 0.0))
         # half tempo annotations (even beats)
         scores = continuity(DETECTIONS, ANNOTATIONS[::2], 0.175, 0.175)
-        self.assertEqual(scores, (0., 0., 0.4, 0.7))
-        scores = continuity(DETECTIONS, ANNOTATIONS[::2], 0.175, 0.175,
-                            double=False, triple=False)
-        self.assertEqual(scores, (0., 0., 0.1, 0.1))
-        scores = continuity(DETECTIONS, ANNOTATIONS[::2], 0.175, 0.175,
-                            double=True, triple=False)
-        self.assertEqual(scores, (0., 0., 0.4, 0.7))
-        scores = continuity(DETECTIONS, ANNOTATIONS[::2], 0.175, 0.175,
-                            double=False, triple=True)
-        self.assertEqual(scores, (0., 0., 0.1, 0.1))
+        self.assertEqual(scores, (0.0, 0.0, 0.4, 0.7))
+        scores = continuity(DETECTIONS, ANNOTATIONS[::2], 0.175, 0.175, double=False, triple=False)
+        self.assertEqual(scores, (0.0, 0.0, 0.1, 0.1))
+        scores = continuity(DETECTIONS, ANNOTATIONS[::2], 0.175, 0.175, double=True, triple=False)
+        self.assertEqual(scores, (0.0, 0.0, 0.4, 0.7))
+        scores = continuity(DETECTIONS, ANNOTATIONS[::2], 0.175, 0.175, double=False, triple=True)
+        self.assertEqual(scores, (0.0, 0.0, 0.1, 0.1))
         # half tempo annotations (odd beats)
         scores = continuity(DETECTIONS, ANNOTATIONS[1::2], 0.175, 0.175)
         self.assertEqual(scores, (0.1, 0.1, 0.4, 0.7))
-        scores = continuity(DETECTIONS, ANNOTATIONS[1::2], 0.175, 0.175,
-                            double=False, triple=False)
+        scores = continuity(DETECTIONS, ANNOTATIONS[1::2], 0.175, 0.175, double=False, triple=False)
         self.assertEqual(scores, (0.1, 0.1, 0.1, 0.1))
-        scores = continuity(DETECTIONS, ANNOTATIONS[1::2], 0.175, 0.175,
-                            double=True, triple=False)
+        scores = continuity(DETECTIONS, ANNOTATIONS[1::2], 0.175, 0.175, double=True, triple=False)
         self.assertEqual(scores, (0.1, 0.1, 0.4, 0.7))
-        scores = continuity(DETECTIONS, ANNOTATIONS[1::2], 0.175, 0.175,
-                            double=False, triple=True)
+        scores = continuity(DETECTIONS, ANNOTATIONS[1::2], 0.175, 0.175, double=False, triple=True)
         self.assertEqual(scores, (0.1, 0.1, 0.1, 0.1))
         # triple tempo annotations
         scores = continuity(DETECTIONS, TRIPLE_ANNOTATIONS, 0.175, 0.175)
-        self.assertEqual(scores, (0., 0., 0.4, 0.8))
-        scores = continuity(DETECTIONS, TRIPLE_ANNOTATIONS, 0.175, 0.175,
-                            double=False, triple=False)
-        self.assertEqual(scores, (0., 0., 0., 0.))
-        scores = continuity(DETECTIONS, TRIPLE_ANNOTATIONS, 0.175, 0.175,
-                            double=True, triple=False)
-        self.assertEqual(scores, (0., 0., 0., 0.))
-        scores = continuity(DETECTIONS, TRIPLE_ANNOTATIONS, 0.175, 0.175,
-                            double=False, triple=True)
-        self.assertEqual(scores, (0., 0., 0.4, 0.8))
+        self.assertEqual(scores, (0.0, 0.0, 0.4, 0.8))
+        scores = continuity(
+            DETECTIONS, TRIPLE_ANNOTATIONS, 0.175, 0.175, double=False, triple=False
+        )
+        self.assertEqual(scores, (0.0, 0.0, 0.0, 0.0))
+        scores = continuity(DETECTIONS, TRIPLE_ANNOTATIONS, 0.175, 0.175, double=True, triple=False)
+        self.assertEqual(scores, (0.0, 0.0, 0.0, 0.0))
+        scores = continuity(DETECTIONS, TRIPLE_ANNOTATIONS, 0.175, 0.175, double=False, triple=True)
+        self.assertEqual(scores, (0.0, 0.0, 0.4, 0.8))
         # third tempo annotations (starting with 1st beat)
         scores = continuity(DETECTIONS, ANNOTATIONS[::3], 0.175, 0.175)
-        self.assertEqual(scores, (0., 0., 0.4, 0.8))
-        scores = continuity(DETECTIONS, ANNOTATIONS[::3], 0.175, 0.175,
-                            double=False, triple=False)
-        self.assertEqual(scores, (0., 0., 0., 0.))
-        scores = continuity(DETECTIONS, ANNOTATIONS[::3], 0.175, 0.175,
-                            double=True, triple=False)
-        self.assertEqual(scores, (0., 0., 0., 0.))
-        scores = continuity(DETECTIONS, ANNOTATIONS[::3], 0.175, 0.175,
-                            double=False, triple=True)
-        self.assertEqual(scores, (0., 0., 0.4, 0.8))
+        self.assertEqual(scores, (0.0, 0.0, 0.4, 0.8))
+        scores = continuity(DETECTIONS, ANNOTATIONS[::3], 0.175, 0.175, double=False, triple=False)
+        self.assertEqual(scores, (0.0, 0.0, 0.0, 0.0))
+        scores = continuity(DETECTIONS, ANNOTATIONS[::3], 0.175, 0.175, double=True, triple=False)
+        self.assertEqual(scores, (0.0, 0.0, 0.0, 0.0))
+        scores = continuity(DETECTIONS, ANNOTATIONS[::3], 0.175, 0.175, double=False, triple=True)
+        self.assertEqual(scores, (0.0, 0.0, 0.4, 0.8))
         # third tempo annotations (starting with 2nd beat)
         scores = continuity(DETECTIONS, ANNOTATIONS[1::3], 0.175, 0.175)
-        self.assertEqual(scores, (0., 0., 0.3, 0.5))
-        scores = continuity(DETECTIONS, ANNOTATIONS[1::3], 0.175, 0.175,
-                            double=False, triple=False)
-        self.assertEqual(scores, (0., 0., 0., 0.))
-        scores = continuity(DETECTIONS, ANNOTATIONS[1::3], 0.175, 0.175,
-                            double=True, triple=False)
-        self.assertEqual(scores, (0., 0., 0., 0.))
-        scores = continuity(DETECTIONS, ANNOTATIONS[1::3], 0.175, 0.175,
-                            double=False, triple=True)
-        self.assertEqual(scores, (0., 0., 0.3, 0.5))
+        self.assertEqual(scores, (0.0, 0.0, 0.3, 0.5))
+        scores = continuity(DETECTIONS, ANNOTATIONS[1::3], 0.175, 0.175, double=False, triple=False)
+        self.assertEqual(scores, (0.0, 0.0, 0.0, 0.0))
+        scores = continuity(DETECTIONS, ANNOTATIONS[1::3], 0.175, 0.175, double=True, triple=False)
+        self.assertEqual(scores, (0.0, 0.0, 0.0, 0.0))
+        scores = continuity(DETECTIONS, ANNOTATIONS[1::3], 0.175, 0.175, double=False, triple=True)
+        self.assertEqual(scores, (0.0, 0.0, 0.3, 0.5))
         # third tempo annotations (starting with 3rd beat)
         scores = continuity(DETECTIONS, ANNOTATIONS[2::3], 0.175, 0.175)
-        self.assertEqual(scores, (0., 0., 0.3, 0.5))
-        scores = continuity(DETECTIONS, ANNOTATIONS[2::3], 0.175, 0.175,
-                            double=False, triple=False)
-        self.assertEqual(scores, (0., 0., 0., 0.))
-        scores = continuity(DETECTIONS, ANNOTATIONS[2::3], 0.175, 0.175,
-                            double=True, triple=False)
-        self.assertEqual(scores, (0., 0., 0., 0.))
-        scores = continuity(DETECTIONS, ANNOTATIONS[2::3], 0.175, 0.175,
-                            double=False, triple=True)
-        self.assertEqual(scores, (0., 0., 0.3, 0.5))
+        self.assertEqual(scores, (0.0, 0.0, 0.3, 0.5))
+        scores = continuity(DETECTIONS, ANNOTATIONS[2::3], 0.175, 0.175, double=False, triple=False)
+        self.assertEqual(scores, (0.0, 0.0, 0.0, 0.0))
+        scores = continuity(DETECTIONS, ANNOTATIONS[2::3], 0.175, 0.175, double=True, triple=False)
+        self.assertEqual(scores, (0.0, 0.0, 0.0, 0.0))
+        scores = continuity(DETECTIONS, ANNOTATIONS[2::3], 0.175, 0.175, double=False, triple=True)
+        self.assertEqual(scores, (0.0, 0.0, 0.3, 0.5))
 
 
 class TestHistogramBinsHelperFunction(unittest.TestCase):
@@ -652,8 +665,7 @@ class TestHistogramBinsHelperFunction(unittest.TestCase):
         self.assertTrue(np.allclose(bins, [-0.75, -0.25, 0.25, 0.75]))
         bins = _histogram_bins(4)
         # the bins must be 0.25 wide and centered around 0
-        self.assertTrue(np.allclose(bins, [-0.625, -0.375, -0.125, 0.125,
-                                           0.375, 0.625]))
+        self.assertTrue(np.allclose(bins, [-0.625, -0.375, -0.125, 0.125, 0.375, 0.625]))
 
 
 class TestErrorHistogramHelperFunction(unittest.TestCase):
@@ -685,10 +697,53 @@ class TestErrorHistogramHelperFunction(unittest.TestCase):
         # E) default annotations and detections with 40 bins
         bins = _histogram_bins(40)
         hist = _error_histogram(DETECTIONS, ANNOTATIONS, bins)
-        self.assertTrue(np.allclose(hist, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                           0, 0, 0, 0, 0, 0, 1, 0, 8, 0, 0, 0,
-                                           1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                           0, 0, 0, 0]))
+        self.assertTrue(
+            np.allclose(
+                hist,
+                [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    8,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            )
+        )
 
 
 class TestEntropyHelperFunction(unittest.TestCase):
@@ -714,8 +769,48 @@ class TestEntropyHelperFunction(unittest.TestCase):
         hist = [0, 0, 3, 1]
         self.assertTrue(np.allclose(_entropy(hist), 0.811278124459))
         # E)
-        hist = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-                8, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        hist = [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            8,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ]
         self.assertTrue(np.allclose(_entropy(hist), 0.921928094887))
 
 
@@ -747,8 +842,48 @@ class TestInformationGainHelperFunction(unittest.TestCase):
         hist = [0, 0, 3, 1]
         self.assertTrue(np.allclose(_information_gain(hist), 1.18872187554))
         # E)
-        hist = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-                8, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        hist = [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            8,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ]
         self.assertTrue(_information_gain(hist) == 4.4)
 
 
@@ -792,7 +927,7 @@ class TestInformationGainFunction(unittest.TestCase):
         self.assertTrue(np.allclose(histogram, np.zeros(4)))
         # if any of detections or annotations are empty, a score of 0 and a
         # uniform histogram should be returned
-        uniform = np.ones(4) * 10. / 4
+        uniform = np.ones(4) * 10.0 / 4
         ig, histogram = information_gain([], ANNOTATIONS, 4)
         self.assertEqual(ig, 0)
         self.assertTrue(np.allclose(histogram, uniform))
@@ -801,10 +936,10 @@ class TestInformationGainFunction(unittest.TestCase):
         self.assertTrue(np.allclose(histogram, uniform))
         # same if only one annotation/detection is given
         # single annotation/detection should return 0
-        ig, histogram = information_gain([1.], ANNOTATIONS, 4)
+        ig, histogram = information_gain([1.0], ANNOTATIONS, 4)
         self.assertEqual(ig, 0)
         self.assertTrue(np.allclose(histogram, uniform))
-        ig, histogram = information_gain(DETECTIONS, [1.], 4)
+        ig, histogram = information_gain(DETECTIONS, [1.0], 4)
         self.assertEqual(ig, 0)
         self.assertTrue(np.allclose(histogram, uniform))
         # normal calculation
@@ -826,10 +961,10 @@ class TestInformationGainFunction(unittest.TestCase):
 
     def test_few_correct_detections(self):
         # if only a few beats are correct, ig should be low, too
-        ig, histogram = information_gain([1., 2.], DETECTIONS, 10)
+        ig, histogram = information_gain([1.0, 2.0], DETECTIONS, 10)
         self.assertTrue(np.allclose(histogram, [0, 0, 0, 0, 0, 9, 1, 0, 0, 0]))
         self.assertTrue(np.allclose(ig, 2.8529325))
-        ig, histogram = information_gain(DETECTIONS, [1., 2.], 10)
+        ig, histogram = information_gain(DETECTIONS, [1.0, 2.0], 10)
         self.assertTrue(np.allclose(histogram, [0, 0, 0, 0, 0, 9, 1, 0, 0, 0]))
         self.assertTrue(np.allclose(ig, 2.8529325))
 
@@ -871,8 +1006,7 @@ class TestBeatEvaluationClass(unittest.TestCase):
         self.assertIsInstance(e.tn, np.ndarray)
         self.assertIsInstance(e.fn, np.ndarray)
         # conversion from 2D arrays
-        e = BeatEvaluation(np.array([[1, 1], [2, 2]]),
-                           np.array([[1, 1], [2, 2]]))
+        e = BeatEvaluation(np.array([[1, 1], [2, 2]]), np.array([[1, 1], [2, 2]]))
         self.assertIsInstance(e.tp, np.ndarray)
         self.assertIsInstance(e.fp, np.ndarray)
         self.assertIsInstance(e.tn, np.ndarray)
@@ -887,7 +1021,7 @@ class TestBeatEvaluationClass(unittest.TestCase):
     def test_errors(self):
         # conversion from list of lists
         with self.assertRaises(BeatIntervalError):
-            BeatEvaluation(0, 1.)
+            BeatEvaluation(0, 1.0)
 
     def test_results_empty(self):
         e = BeatEvaluation([], [])
@@ -921,13 +1055,13 @@ class TestBeatEvaluationClass(unittest.TestCase):
         self.assertEqual(e.num_fp, 2)
         self.assertEqual(e.num_tn, 0)
         self.assertEqual(e.num_fn, 2)
-        self.assertEqual(e.precision, 8. / 10.)
-        self.assertEqual(e.recall, 8. / 10.)
-        f = 2 * (8. / 10.) * (8. / 10.) / ((8. / 10.) + (8. / 10.))
+        self.assertEqual(e.precision, 8.0 / 10.0)
+        self.assertEqual(e.recall, 8.0 / 10.0)
+        f = 2 * (8.0 / 10.0) * (8.0 / 10.0) / ((8.0 / 10.0) + (8.0 / 10.0))
         self.assertEqual(e.fmeasure, f)
-        self.assertEqual(e.accuracy, (8. + 0) / (8 + 2 + 0 + 2))
+        self.assertEqual(e.accuracy, (8.0 + 0) / (8 + 2 + 0 + 2))
         # pscore: delta <= tolerance * median(inter beat interval)
-        self.assertEqual(e.pscore, 9. / 10.)
+        self.assertEqual(e.pscore, 9.0 / 10.0)
         # cemgil:
         self.assertEqual(e.cemgil, 0.74710035298713695)
         self.assertEqual(e.goto, 1)
@@ -1009,9 +1143,9 @@ class TestBeatMeanEvaluationClass(unittest.TestCase):
 
         # mean evaluation of beat evaluation
         e = BeatMeanEvaluation([BeatEvaluation(DETECTIONS, ANNOTATIONS)])
-        f = 2 * (8. / 10.) * (8. / 10.) / ((8. / 10.) + (8. / 10.))
+        f = 2 * (8.0 / 10.0) * (8.0 / 10.0) / ((8.0 / 10.0) + (8.0 / 10.0))
         self.assertEqual(e.fmeasure, f)
-        self.assertEqual(e.pscore, 9. / 10.)
+        self.assertEqual(e.pscore, 9.0 / 10.0)
         self.assertEqual(e.cemgil, 0.74710035298713695)
         self.assertEqual(e.goto, 1)
         self.assertEqual(e.cmlc, 0.4)
@@ -1031,9 +1165,9 @@ class TestBeatMeanEvaluationClass(unittest.TestCase):
         e1 = BeatEvaluation([], [])
         e2 = BeatEvaluation(DETECTIONS, ANNOTATIONS)
         e = BeatMeanEvaluation([e1, e2])
-        f2 = 2 * (8. / 10.) * (8. / 10.) / ((8. / 10.) + (8. / 10.))
+        f2 = 2 * (8.0 / 10.0) * (8.0 / 10.0) / ((8.0 / 10.0) + (8.0 / 10.0))
         self.assertEqual(e.fmeasure, (1 + f2) / 2)
-        self.assertEqual(e.pscore, (1 + 9. / 10.) / 2)
+        self.assertEqual(e.pscore, (1 + 9.0 / 10.0) / 2)
         self.assertEqual(e.cemgil, (1 + 0.74710035298713695) / 2)
         self.assertEqual(e.goto, (1 + 1) / 2)
         self.assertEqual(e.cmlc, (1 + 0.4) / 2)
@@ -1059,20 +1193,20 @@ class TestAddParserFunction(unittest.TestCase):
 
     def setUp(self):
         import argparse
+
         self.parser = argparse.ArgumentParser()
         sub_parser = self.parser.add_subparsers()
         self.sub_parser, self.group = add_parser(sub_parser)
 
     def test_args(self):
-        args = self.parser.parse_args(['beats', ANNOTATIONS_PATH,
-                                       DETECTIONS_PATH])
+        args = self.parser.parse_args(["beats", ANNOTATIONS_PATH, DETECTIONS_PATH])
         self.assertTrue(args.ann_dir is None)
-        self.assertTrue(args.ann_suffix == '.beats')
+        self.assertTrue(args.ann_suffix == ".beats")
         self.assertTrue(args.cemgil_sigma == 0.04)
         self.assertTrue(args.continuity_phase_tolerance == 0.175)
         self.assertTrue(args.continuity_tempo_tolerance == 0.175)
         self.assertTrue(args.det_dir is None)
-        self.assertTrue(args.det_suffix == '.beats.txt')
+        self.assertTrue(args.det_suffix == ".beats.txt")
         self.assertTrue(args.double is True)
         self.assertTrue(args.downbeats is False)
         self.assertTrue(args.eval == BeatEvaluation)
@@ -1087,6 +1221,7 @@ class TestAddParserFunction(unittest.TestCase):
         self.assertTrue(args.offbeat is True)
         # self.assertTrue(args.outfile == StringIO.StringIO)
         from madmom.evaluation import tostring
+
         self.assertTrue(args.output_formatter == tostring)
         self.assertTrue(args.pscore_tolerance == 0.2)
         self.assertTrue(args.quiet is False)

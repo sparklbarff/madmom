@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -7,14 +6,13 @@ This module contains filter and filterbank related functionality.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import numpy as np
 
 from ..processors import Processor
 
 FILTER_DTYPE = np.float32
-A4 = 440.
+A4 = 440.0
 
 
 # Mel frequency scale
@@ -33,7 +31,7 @@ def hz2mel(f):
         Frequencies in Mel [Mel].
 
     """
-    return 1127.01048 * np.log(np.asarray(f) / 700. + 1.)
+    return 1127.01048 * np.log(np.asarray(f) / 700.0 + 1.0)
 
 
 def mel2hz(m):
@@ -51,7 +49,7 @@ def mel2hz(m):
         Frequencies in Hz [Hz].
 
     """
-    return 700. * (np.exp(np.asarray(m) / 1127.01048) - 1.)
+    return 700.0 * (np.exp(np.asarray(m) / 1127.01048) - 1.0)
 
 
 def mel_frequencies(num_bands, fmin, fmax):
@@ -93,11 +91,10 @@ def hz2bark(f):
         Frequencies in Bark [Bark].
 
     """
-    raise NotImplementedError('please check this function, it produces '
-                              'negative values')
+    raise NotImplementedError("please check this function, it produces " "negative values")
     # NOTE: use Zwicker's formula?
     #       return 13 * arctan(0.00076 * f) + 3.5 * arctan((f / 7500.) ** 2)
-    return (26.81 / (1. + 1960. / np.asarray(f))) - 0.53
+    return (26.81 / (1.0 + 1960.0 / np.asarray(f))) - 0.53
 
 
 def bark2hz(z):
@@ -115,13 +112,12 @@ def bark2hz(z):
         Frequencies in Hz [Hz].
 
     """
-    raise NotImplementedError('please check this function, it produces weird '
-                              'values')
+    raise NotImplementedError("please check this function, it produces weird " "values")
     # NOTE: use Zwicker's formula? what's the inverse of the above?
-    return 1960. / (26.81 / (np.asarray(z) + 0.53) - 1.)
+    return 1960.0 / (26.81 / (np.asarray(z) + 0.53) - 1.0)
 
 
-def bark_frequencies(fmin=20., fmax=15500.):
+def bark_frequencies(fmin=20.0, fmax=15500.0):
     """
     Returns frequencies aligned on the Bark scale.
 
@@ -139,17 +135,43 @@ def bark_frequencies(fmin=20., fmax=15500.):
 
     """
     # frequencies aligned to the Bark-scale
-    frequencies = np.array([20, 100, 200, 300, 400, 510, 630, 770, 920, 1080,
-                            1270, 1480, 1720, 2000, 2320, 2700, 3150, 3700,
-                            4400, 5300, 6400, 7700, 9500, 12000, 15500])
+    frequencies = np.array(
+        [
+            20,
+            100,
+            200,
+            300,
+            400,
+            510,
+            630,
+            770,
+            920,
+            1080,
+            1270,
+            1480,
+            1720,
+            2000,
+            2320,
+            2700,
+            3150,
+            3700,
+            4400,
+            5300,
+            6400,
+            7700,
+            9500,
+            12000,
+            15500,
+        ]
+    )
     # filter frequencies
-    frequencies = frequencies[np.searchsorted(frequencies, fmin):]
-    frequencies = frequencies[:np.searchsorted(frequencies, fmax, 'right')]
+    frequencies = frequencies[np.searchsorted(frequencies, fmin) :]
+    frequencies = frequencies[: np.searchsorted(frequencies, fmax, "right")]
     # return
     return frequencies
 
 
-def bark_double_frequencies(fmin=20., fmax=15500.):
+def bark_double_frequencies(fmin=20.0, fmax=15500.0):
     """
     Returns frequencies aligned on the Bark-scale.
 
@@ -169,15 +191,62 @@ def bark_double_frequencies(fmin=20., fmax=15500.):
 
     """
     # frequencies aligned to the Bark-scale, also includes center frequencies
-    frequencies = np.array([20, 50, 100, 150, 200, 250, 300, 350, 400, 450,
-                            510, 570, 630, 700, 770, 840, 920, 1000, 1080,
-                            1170, 1270, 1370, 1480, 1600, 1720, 1850, 2000,
-                            2150, 2320, 2500, 2700, 2900, 3150, 3400, 3700,
-                            4000, 4400, 4800, 5300, 5800, 6400, 7000, 7700,
-                            8500, 9500, 10500, 12000, 13500, 15500])
+    frequencies = np.array(
+        [
+            20,
+            50,
+            100,
+            150,
+            200,
+            250,
+            300,
+            350,
+            400,
+            450,
+            510,
+            570,
+            630,
+            700,
+            770,
+            840,
+            920,
+            1000,
+            1080,
+            1170,
+            1270,
+            1370,
+            1480,
+            1600,
+            1720,
+            1850,
+            2000,
+            2150,
+            2320,
+            2500,
+            2700,
+            2900,
+            3150,
+            3400,
+            3700,
+            4000,
+            4400,
+            4800,
+            5300,
+            5800,
+            6400,
+            7000,
+            7700,
+            8500,
+            9500,
+            10500,
+            12000,
+            13500,
+            15500,
+        ]
+    )
     # filter frequencies
-    frequencies = frequencies[np.searchsorted(frequencies, fmin):]
-    frequencies = frequencies[:np.searchsorted(frequencies, fmax, 'right')]
+    frequencies = frequencies[np.searchsorted(frequencies, fmin) :]
+    frequencies = frequencies[: np.searchsorted(frequencies, fmax, "right")]
     # return
     return frequencies
 
@@ -213,12 +282,11 @@ def log_frequencies(bands_per_octave, fmin, fmax, fref=A4):
     left = np.floor(np.log2(float(fmin) / fref) * bands_per_octave)
     right = np.ceil(np.log2(float(fmax) / fref) * bands_per_octave)
     # generate frequencies
-    frequencies = fref * 2. ** (np.arange(left, right) /
-                                float(bands_per_octave))
+    frequencies = fref * 2.0 ** (np.arange(left, right) / float(bands_per_octave))
     # filter frequencies
     # needed, because range might be bigger because of the use of floor/ceil
-    frequencies = frequencies[np.searchsorted(frequencies, fmin):]
-    frequencies = frequencies[:np.searchsorted(frequencies, fmax, 'right')]
+    frequencies = frequencies[np.searchsorted(frequencies, fmin) :]
+    frequencies = frequencies[: np.searchsorted(frequencies, fmax, "right")]
     # return
     return frequencies
 
@@ -270,7 +338,7 @@ def hz2midi(f, fref=A4):
     to round it to the nearest integer.
 
     """
-    return (12. * np.log2(np.asarray(f, dtype=float) / fref)) + 69.
+    return (12.0 * np.log2(np.asarray(f, dtype=float) / fref)) + 69.0
 
 
 def midi2hz(m, fref=A4):
@@ -290,7 +358,7 @@ def midi2hz(m, fref=A4):
         Corresponding frequencies [Hz].
 
     """
-    return 2. ** ((np.asarray(m, dtype=float) - 69.) / 12.) * fref
+    return 2.0 ** ((np.asarray(m, dtype=float) - 69.0) / 12.0) * fref
 
 
 # provide an alias to semitone_frequencies
@@ -318,7 +386,7 @@ def hz2erb(f):
     https://ccrma.stanford.edu/~jos/bbt/Equivalent_Rectangular_Bandwidth.html
 
     """
-    return 21.4 * np.log10(1 + 4.37 * np.asarray(f) / 1000.)
+    return 21.4 * np.log10(1 + 4.37 * np.asarray(f) / 1000.0)
 
 
 def erb2hz(e):
@@ -341,7 +409,7 @@ def erb2hz(e):
     https://ccrma.stanford.edu/~jos/bbt/Equivalent_Rectangular_Bandwidth.html
 
     """
-    return (10. ** (np.asarray(e) / 21.4) - 1.) * 1000. / 4.37
+    return (10.0 ** (np.asarray(e) / 21.4) - 1.0) * 1000.0 / 4.37
 
 
 # helper functions for filter creation
@@ -429,6 +497,7 @@ class Filter(np.ndarray):
     of a Filterbank.
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
@@ -443,10 +512,10 @@ class Filter(np.ndarray):
             # cast as Filter
             obj = np.asarray(data, dtype=FILTER_DTYPE).view(cls)
         else:
-            raise TypeError('wrong input data for Filter, must be np.ndarray')
+            raise TypeError("wrong input data for Filter, must be np.ndarray")
         # right now, allow only 1D
         if obj.ndim != 1:
-            raise NotImplementedError('please add multi-dimension support')
+            raise NotImplementedError("please add multi-dimension support")
         # normalize
         if norm:
             obj /= np.sum(obj)
@@ -470,7 +539,7 @@ class Filter(np.ndarray):
             (e.g. if the filters should overlap or not).
 
         """
-        raise NotImplementedError('needs to be implemented by sub-classes')
+        raise NotImplementedError("needs to be implemented by sub-classes")
 
     @classmethod
     def filters(cls, bins, norm, **kwargs):
@@ -521,6 +590,7 @@ class TriangularFilter(Filter):
         Normalize the area of the filter to 1.
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
@@ -533,7 +603,7 @@ class TriangularFilter(Filter):
         # pylint: disable=arguments-differ
         # center must be between start & stop
         if not start <= center < stop:
-            raise ValueError('`center` must be between `start` and `stop`')
+            raise ValueError("`center` must be between `start` and `stop`")
         # cast variables to int
         center = int(center)
         start = int(start)
@@ -584,17 +654,17 @@ class TriangularFilter(Filter):
         # pylint: disable=arguments-differ
         # make sure enough bins are given
         if len(bins) < 3:
-            raise ValueError('not enough bins to create a TriangularFilter')
+            raise ValueError("not enough bins to create a TriangularFilter")
         # yield the bins
         index = 0
         while index + 3 <= len(bins):
             # get start, center and stop bins
-            start, center, stop = bins[index: index + 3]
+            start, center, stop = bins[index : index + 3]
             # create non-overlapping filters
             if not overlap:
                 # re-arrange the start and stop positions
-                start = int(np.floor((center + start) / 2.))
-                stop = int(np.ceil((center + stop) / 2.))
+                start = int(np.floor((center + start) / 2.0))
+                stop = int(np.ceil((center + stop) / 2.0))
             # consistently handle too-small filters
             if stop - start < 2:
                 center = start
@@ -622,6 +692,7 @@ class RectangularFilter(Filter):
         Normalize the area of the filter to 1.
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
@@ -634,7 +705,7 @@ class RectangularFilter(Filter):
         # pylint: disable=signature-differs
         # start must be smaller than stop
         if start >= stop:
-            raise ValueError('`start` must be smaller than `stop`')
+            raise ValueError("`start` must be smaller than `stop`")
         # length of the filter
         length = stop - start
         # create filter
@@ -666,15 +737,15 @@ class RectangularFilter(Filter):
         # pylint: disable=arguments-differ
         # make sure enough bins are given
         if len(bins) < 2:
-            raise ValueError('not enough bins to create a RectangularFilter')
+            raise ValueError("not enough bins to create a RectangularFilter")
         # overlapping filters?
         if overlap:
-            raise NotImplementedError('please implement if needed!')
+            raise NotImplementedError("please implement if needed!")
         # yield the bins
         index = 0
         while index + 2 <= len(bins):
             # get start and stop bins
-            start, stop = bins[index: index + 2]
+            start, stop = bins[index : index + 2]
             # yield the bins and continue
             yield start, stop
             # increase counter
@@ -682,8 +753,8 @@ class RectangularFilter(Filter):
 
 
 # default values for filter banks
-FMIN = 30.
-FMAX = 17000.
+FMIN = 30.0
+FMAX = 17000.0
 NUM_BANDS = 12
 NORM_FILTERS = True
 UNIQUE_FILTERS = True
@@ -713,6 +784,7 @@ class Filterbank(np.ndarray):
     of the given `data` array.
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
@@ -727,12 +799,12 @@ class Filterbank(np.ndarray):
             # cast as Filterbank
             obj = np.asarray(data, dtype=FILTER_DTYPE).view(cls)
         else:
-            raise TypeError('wrong input data for Filterbank, must be a 2D '
-                            'np.ndarray')
+            raise TypeError("wrong input data for Filterbank, must be a 2D " "np.ndarray")
         # set bin frequencies
         if len(bin_frequencies) != obj.shape[0]:
-            raise ValueError('`bin_frequencies` must have the same length as '
-                             'the first dimension of `data`.')
+            raise ValueError(
+                "`bin_frequencies` must have the same length as " "the first dimension of `data`."
+            )
         obj.bin_frequencies = np.asarray(bin_frequencies, dtype=float)
         # return the object
         return obj
@@ -741,7 +813,7 @@ class Filterbank(np.ndarray):
         if obj is None:
             return
         # set default values here
-        self.bin_frequencies = getattr(obj, 'bin_frequencies', None)
+        self.bin_frequencies = getattr(obj, "bin_frequencies", None)
 
     @classmethod
     def _put_filter(cls, filt, band):
@@ -765,7 +837,7 @@ class Filterbank(np.ndarray):
 
         """
         if not isinstance(filt, Filter):
-            raise ValueError('unable to determine start position of Filter')
+            raise ValueError("unable to determine start position of Filter")
         # determine start and stop positions
         start = filt.start
         stop = start + len(filt)
@@ -775,7 +847,7 @@ class Filterbank(np.ndarray):
             start = 0
         # truncate the filter if it ends after the last band bin
         if stop > len(band):
-            filt = filt[:-(stop - len(band))]
+            filt = filt[: -(stop - len(band))]
             stop = len(band)
         # put the filter in place
         filter_position = band[start:stop]
@@ -853,10 +925,10 @@ class Filterbank(np.ndarray):
             max_bin = np.max(bins)
             # if we have a uniform filter, use the center bin
             if self[min_bin, band] == self[max_bin, band]:
-                center = int(min_bin + (max_bin - min_bin) / 2.)
+                center = int(min_bin + (max_bin - min_bin) / 2.0)
             # if we have a filter with a peak, use the peak bin
             else:
-                center = min_bin + np.argmax(self[min_bin: max_bin, band])
+                center = min_bin + np.argmax(self[min_bin:max_bin, band])
             freqs.append(center)
         # map to frequencies
         return bins2frequencies(freqs, self.bin_frequencies)
@@ -884,6 +956,7 @@ class FilterbankProcessor(Processor, Filterbank):
     :class:`Filterbank`
 
     """
+
     # Note: this class is only for consistency of the naming scheme. Basically
     #       the process()
 
@@ -910,9 +983,16 @@ class FilterbankProcessor(Processor, Filterbank):
         return np.dot(data, self)
 
     @staticmethod
-    def add_arguments(parser, filterbank=None, num_bands=None,
-                      crossover_frequencies=None, fmin=None, fmax=None,
-                      norm_filters=None, unique_filters=None):
+    def add_arguments(
+        parser,
+        filterbank=None,
+        num_bands=None,
+        crossover_frequencies=None,
+        fmin=None,
+        fmax=None,
+        norm_filters=None,
+        unique_filters=None,
+    ):
         """
         Add filterbank related arguments to an existing parser.
 
@@ -951,83 +1031,120 @@ class FilterbankProcessor(Processor, Filterbank):
 
         """
         from madmom.utils import OverrideDefaultListAction
+
         # add filterbank related options to the existing parser
-        g = parser.add_argument_group('filterbank arguments')
+        g = parser.add_argument_group("filterbank arguments")
         # filterbank
         # NOTE: add a list with filterbank options?
         if filterbank is not None:
             if issubclass(filterbank, Filterbank):
-                g.add_argument('--no_filter', dest='filterbank',
-                               action='store_false', default=filterbank,
-                               help='do not filter the spectrogram with a '
-                                    'filterbank [default=%(default)s]')
+                g.add_argument(
+                    "--no_filter",
+                    dest="filterbank",
+                    action="store_false",
+                    default=filterbank,
+                    help="do not filter the spectrogram with a " "filterbank [default=%(default)s]",
+                )
             else:
-                g.add_argument('--filterbank', action='store_true',
-                               default=None,
-                               help='filter the spectrogram with a filterbank '
-                                    'of this type')
+                g.add_argument(
+                    "--filterbank",
+                    action="store_true",
+                    default=None,
+                    help="filter the spectrogram with a filterbank " "of this type",
+                )
         # number of bands
         # NOTE: add a second argument with num_bands_per_octave and rename the
         #       option at the relevant filterbanks accordingly?
         # depending on the type of num_bands, use different options
         if isinstance(num_bands, int):
-            g.add_argument('--num_bands', action='store', type=int,
-                           default=num_bands,
-                           help='number of filter bands (per octave) '
-                                '[default=%(default)i]')
+            g.add_argument(
+                "--num_bands",
+                action="store",
+                type=int,
+                default=num_bands,
+                help="number of filter bands (per octave) " "[default=%(default)i]",
+            )
         elif isinstance(num_bands, list):
             # Note: this option can be used in conjunction with stacked
             #       spectrograms with different frame sizes to have different
             #       number of bands per frame size
-            g.add_argument('--num_bands', type=int, default=num_bands,
-                           action=OverrideDefaultListAction, sep=',',
-                           help='(comma separated list of) number of filter '
-                                'bands (per octave) [default=%(default)s]')
+            g.add_argument(
+                "--num_bands",
+                type=int,
+                default=num_bands,
+                action=OverrideDefaultListAction,
+                sep=",",
+                help="(comma separated list of) number of filter "
+                "bands (per octave) [default=%(default)s]",
+            )
         # crossover frequencies
         if crossover_frequencies is not None:
-            g.add_argument('--crossover_frequencies', type=float, sep=',',
-                           action=OverrideDefaultListAction,
-                           default=crossover_frequencies,
-                           help='(comma separated) list with crossover '
-                                'frequencies [Hz, default=%(default)s]')
+            g.add_argument(
+                "--crossover_frequencies",
+                type=float,
+                sep=",",
+                action=OverrideDefaultListAction,
+                default=crossover_frequencies,
+                help="(comma separated) list with crossover "
+                "frequencies [Hz, default=%(default)s]",
+            )
         # minimum frequency
         if fmin is not None:
-            g.add_argument('--fmin', action='store', type=float,
-                           default=fmin,
-                           help='minimum frequency of the filterbank '
-                                '[Hz, default=%(default).1f]')
+            g.add_argument(
+                "--fmin",
+                action="store",
+                type=float,
+                default=fmin,
+                help="minimum frequency of the filterbank " "[Hz, default=%(default).1f]",
+            )
         # maximum frequency
         if fmax is not None:
-            g.add_argument('--fmax', action='store', type=float,
-                           default=fmax,
-                           help='maximum frequency of the filterbank '
-                                '[Hz, default=%(default).1f]')
+            g.add_argument(
+                "--fmax",
+                action="store",
+                type=float,
+                default=fmax,
+                help="maximum frequency of the filterbank " "[Hz, default=%(default).1f]",
+            )
         # normalize filters
         if norm_filters is True:
-            g.add_argument('--no_norm_filters', dest='norm_filters',
-                           action='store_false', default=norm_filters,
-                           help='do not normalize the filters to area 1 '
-                                '[default=True]')
+            g.add_argument(
+                "--no_norm_filters",
+                dest="norm_filters",
+                action="store_false",
+                default=norm_filters,
+                help="do not normalize the filters to area 1 " "[default=True]",
+            )
         elif norm_filters is False:
-            g.add_argument('--norm_filters', dest='norm_filters',
-                           action='store_true', default=norm_filters,
-                           help='normalize the filters to area 1 '
-                                '[default=False]')
+            g.add_argument(
+                "--norm_filters",
+                dest="norm_filters",
+                action="store_true",
+                default=norm_filters,
+                help="normalize the filters to area 1 " "[default=False]",
+            )
         # unique or duplicate filters
         if unique_filters is True:
             # add option to keep the duplicate filters
-            g.add_argument('--duplicate_filters', dest='unique_filters',
-                           action='store_false', default=unique_filters,
-                           help='keep duplicate filters resulting from '
-                                'insufficient resolution at low frequencies '
-                                '[default=only unique filters are kept]')
+            g.add_argument(
+                "--duplicate_filters",
+                dest="unique_filters",
+                action="store_false",
+                default=unique_filters,
+                help="keep duplicate filters resulting from "
+                "insufficient resolution at low frequencies "
+                "[default=only unique filters are kept]",
+            )
         elif unique_filters is False:
-            g.add_argument('--unique_filters', action='store_true',
-                           default=unique_filters,
-                           help='keep only unique filters, i.e. remove '
-                                'duplicate filters resulting from '
-                                'insufficient resolution at low frequencies '
-                                '[default=duplicate filters are kept]')
+            g.add_argument(
+                "--unique_filters",
+                action="store_true",
+                default=unique_filters,
+                help="keep only unique filters, i.e. remove "
+                "duplicate filters resulting from "
+                "insufficient resolution at low frequencies "
+                "[default=duplicate filters are kept]",
+            )
         # return the group
         return g
 
@@ -1059,35 +1176,48 @@ class MelFilterbank(Filterbank):
     necessarily match the parameters given.
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
 
     NUM_BANDS = 40
-    FMIN = 20.
-    FMAX = 17000.
+    FMIN = 20.0
+    FMAX = 17000.0
     NORM_FILTERS = True
     UNIQUE_FILTERS = True
 
-    def __init__(self, bin_frequencies, num_bands=NUM_BANDS, fmin=FMIN,
-                 fmax=FMAX, norm_filters=NORM_FILTERS,
-                 unique_filters=UNIQUE_FILTERS, **kwargs):
+    def __init__(
+        self,
+        bin_frequencies,
+        num_bands=NUM_BANDS,
+        fmin=FMIN,
+        fmax=FMAX,
+        norm_filters=NORM_FILTERS,
+        unique_filters=UNIQUE_FILTERS,
+        **kwargs,
+    ):
         # this method is for documentation purposes only
         pass
 
-    def __new__(cls, bin_frequencies, num_bands=NUM_BANDS, fmin=FMIN,
-                fmax=FMAX, norm_filters=NORM_FILTERS,
-                unique_filters=UNIQUE_FILTERS, **kwargs):
+    def __new__(
+        cls,
+        bin_frequencies,
+        num_bands=NUM_BANDS,
+        fmin=FMIN,
+        fmax=FMAX,
+        norm_filters=NORM_FILTERS,
+        unique_filters=UNIQUE_FILTERS,
+        **kwargs,
+    ):
         # pylint: disable=arguments-differ
         # get a list of frequencies aligned on the Mel scale
         # request 2 more bands, because these are the edge frequencies
         frequencies = mel_frequencies(num_bands + 2, fmin, fmax)
         # convert to bins
-        bins = frequencies2bins(frequencies, bin_frequencies,
-                                unique_bins=unique_filters)
+        bins = frequencies2bins(frequencies, bin_frequencies, unique_bins=unique_filters)
         # get overlapping triangular filters
-        filters = TriangularFilter.filters(bins, norm=norm_filters,
-                                           overlap=True)
+        filters = TriangularFilter.filters(bins, norm=norm_filters, overlap=True)
         # create a MelFilterbank from the filters
         return cls.from_filters(filters, bin_frequencies)
 
@@ -1113,39 +1243,52 @@ class BarkFilterbank(Filterbank):
         from insufficient resolution at low frequencies.
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
 
-    FMIN = 20.
-    FMAX = 15500.
-    NUM_BANDS = 'normal'
+    FMIN = 20.0
+    FMAX = 15500.0
+    NUM_BANDS = "normal"
     NORM_FILTERS = True
     UNIQUE_FILTERS = True
 
-    def __init__(self, bin_frequencies, num_bands=NUM_BANDS, fmin=FMIN,
-                 fmax=FMAX, norm_filters=NORM_FILTERS,
-                 unique_filters=UNIQUE_FILTERS, **kwargs):
+    def __init__(
+        self,
+        bin_frequencies,
+        num_bands=NUM_BANDS,
+        fmin=FMIN,
+        fmax=FMAX,
+        norm_filters=NORM_FILTERS,
+        unique_filters=UNIQUE_FILTERS,
+        **kwargs,
+    ):
         # this method is for documentation purposes only
         pass
 
-    def __new__(cls, bin_frequencies, num_bands=NUM_BANDS, fmin=FMIN,
-                fmax=FMAX, norm_filters=NORM_FILTERS,
-                unique_filters=UNIQUE_FILTERS, **kwargs):
+    def __new__(
+        cls,
+        bin_frequencies,
+        num_bands=NUM_BANDS,
+        fmin=FMIN,
+        fmax=FMAX,
+        norm_filters=NORM_FILTERS,
+        unique_filters=UNIQUE_FILTERS,
+        **kwargs,
+    ):
         # pylint: disable=arguments-differ
         # get a list of frequencies
-        if num_bands == 'normal':
+        if num_bands == "normal":
             frequencies = bark_frequencies(fmin, fmax)
-        elif num_bands == 'double':
+        elif num_bands == "double":
             frequencies = bark_double_frequencies(fmin, fmax)
         else:
             raise ValueError("`num_bands` must be {'normal', 'double'}")
         # convert to bins
-        bins = frequencies2bins(frequencies, bin_frequencies,
-                                unique_bins=not unique_filters)
+        bins = frequencies2bins(frequencies, bin_frequencies, unique_bins=not unique_filters)
         # get non-overlapping rectangular filters
-        filters = RectangularFilter.filters(bins, norm=norm_filters,
-                                            overlap=False)
+        filters = RectangularFilter.filters(bins, norm=norm_filters, overlap=False)
         # create a BarkFilterbank from the filters
         return cls.from_filters(filters, bin_frequencies)
 
@@ -1184,21 +1327,38 @@ class LogarithmicFilterbank(Filterbank):
     semitone spacing is created.
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
 
     NUM_BANDS_PER_OCTAVE = 12
 
-    def __init__(self, bin_frequencies, num_bands=NUM_BANDS_PER_OCTAVE,
-                 fmin=FMIN, fmax=FMAX, fref=A4, norm_filters=NORM_FILTERS,
-                 unique_filters=UNIQUE_FILTERS, bands_per_octave=True):
+    def __init__(
+        self,
+        bin_frequencies,
+        num_bands=NUM_BANDS_PER_OCTAVE,
+        fmin=FMIN,
+        fmax=FMAX,
+        fref=A4,
+        norm_filters=NORM_FILTERS,
+        unique_filters=UNIQUE_FILTERS,
+        bands_per_octave=True,
+    ):
         # this method is for documentation purposes only
         pass
 
-    def __new__(cls, bin_frequencies, num_bands=NUM_BANDS_PER_OCTAVE,
-                fmin=FMIN, fmax=FMAX, fref=A4, norm_filters=NORM_FILTERS,
-                unique_filters=UNIQUE_FILTERS, bands_per_octave=True):
+    def __new__(
+        cls,
+        bin_frequencies,
+        num_bands=NUM_BANDS_PER_OCTAVE,
+        fmin=FMIN,
+        fmax=FMAX,
+        fref=A4,
+        norm_filters=NORM_FILTERS,
+        unique_filters=UNIQUE_FILTERS,
+        bands_per_octave=True,
+    ):
         # pylint: disable=arguments-differ
         # decide whether num_bands is bands per octave or total number of bands
         if bands_per_octave:
@@ -1206,16 +1366,16 @@ class LogarithmicFilterbank(Filterbank):
             # get a list of frequencies with logarithmic scaling
             frequencies = log_frequencies(num_bands, fmin, fmax, fref)
             # convert to bins
-            bins = frequencies2bins(frequencies, bin_frequencies,
-                                    unique_bins=unique_filters)
+            bins = frequencies2bins(frequencies, bin_frequencies, unique_bins=unique_filters)
         else:
             # iteratively get the number of bands
-            raise NotImplementedError("please implement `num_bands` with "
-                                      "`bands_per_octave` set to 'False' for "
-                                      "LogarithmicFilterbank")
+            raise NotImplementedError(
+                "please implement `num_bands` with "
+                "`bands_per_octave` set to 'False' for "
+                "LogarithmicFilterbank"
+            )
         # get overlapping triangular filters
-        filters = TriangularFilter.filters(bins, norm=norm_filters,
-                                           overlap=True)
+        filters = TriangularFilter.filters(bins, norm=norm_filters, overlap=True)
         # create a LogarithmicFilterbank from the filters
         obj = cls.from_filters(filters, bin_frequencies)
         # set additional attributes
@@ -1228,9 +1388,8 @@ class LogarithmicFilterbank(Filterbank):
         if obj is None:
             return
         # set default values here
-        self.num_bands_per_octave = getattr(obj, 'num_bands_per_octave',
-                                            self.NUM_BANDS_PER_OCTAVE)
-        self.fref = getattr(obj, 'fref', A4)
+        self.num_bands_per_octave = getattr(obj, "num_bands_per_octave", self.NUM_BANDS_PER_OCTAVE)
+        self.fref = getattr(obj, "fref", A4)
 
 
 # alias
@@ -1258,30 +1417,43 @@ class RectangularFilterbank(Filterbank):
         from insufficient resolution at low frequencies.
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
 
-    def __init__(self, bin_frequencies, crossover_frequencies, fmin=FMIN,
-                 fmax=FMAX, norm_filters=NORM_FILTERS,
-                 unique_filters=UNIQUE_FILTERS):
+    def __init__(
+        self,
+        bin_frequencies,
+        crossover_frequencies,
+        fmin=FMIN,
+        fmax=FMAX,
+        norm_filters=NORM_FILTERS,
+        unique_filters=UNIQUE_FILTERS,
+    ):
         # this method is for documentation purposes only
         pass
 
-    def __new__(cls, bin_frequencies, crossover_frequencies, fmin=FMIN,
-                fmax=FMAX, norm_filters=NORM_FILTERS,
-                unique_filters=UNIQUE_FILTERS):
+    def __new__(
+        cls,
+        bin_frequencies,
+        crossover_frequencies,
+        fmin=FMIN,
+        fmax=FMAX,
+        norm_filters=NORM_FILTERS,
+        unique_filters=UNIQUE_FILTERS,
+    ):
         # pylint: disable=arguments-differ
         # create an empty filterbank
-        fb = np.zeros((len(bin_frequencies), len(crossover_frequencies) + 1),
-                      dtype=FILTER_DTYPE)
+        fb = np.zeros((len(bin_frequencies), len(crossover_frequencies) + 1), dtype=FILTER_DTYPE)
         corner_frequencies = np.r_[fmin, crossover_frequencies, fmax]
         # get the corner bins
-        corner_bins = frequencies2bins(corner_frequencies, bin_frequencies,
-                                       unique_bins=unique_filters)
+        corner_bins = frequencies2bins(
+            corner_frequencies, bin_frequencies, unique_bins=unique_filters
+        )
         # map the bins to the filterbank bands
         for i in range(len(corner_bins) - 1):
-            fb[corner_bins[i]:corner_bins[i + 1], i] = 1
+            fb[corner_bins[i] : corner_bins[i + 1], i] = 1
         # normalize the filterbank
         if norm_filters:
             # if the sum over a band is zero, do not normalize this band
@@ -1291,8 +1463,7 @@ class RectangularFilterbank(Filterbank):
         # create Filterbank and cast as RectangularFilterbank
         obj = Filterbank.__new__(cls, fb, bin_frequencies)
         # set additional attributes
-        obj.crossover_frequencies = bins2frequencies(corner_bins[1:-1],
-                                                     bin_frequencies)
+        obj.crossover_frequencies = bins2frequencies(corner_bins[1:-1], bin_frequencies)
         # return the object
         return obj
 
@@ -1321,28 +1492,50 @@ class SimpleChromaFilterbank(Filterbank):
         from insufficient resolution at low frequencies.
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
 
     NUM_BANDS = 12
 
-    def __init__(self, bin_frequencies, num_bands=NUM_BANDS, fmin=FMIN,
-                 fmax=FMAX, fref=A4, norm_filters=NORM_FILTERS,
-                 unique_filters=UNIQUE_FILTERS):
+    def __init__(
+        self,
+        bin_frequencies,
+        num_bands=NUM_BANDS,
+        fmin=FMIN,
+        fmax=FMAX,
+        fref=A4,
+        norm_filters=NORM_FILTERS,
+        unique_filters=UNIQUE_FILTERS,
+    ):
         # this method is for documentation purposes only
         pass
 
-    def __new__(cls, bin_frequencies, num_bands=NUM_BANDS, fmin=FMIN,
-                fmax=FMAX, fref=A4, norm_filters=NORM_FILTERS,
-                unique_filters=UNIQUE_FILTERS):
+    def __new__(
+        cls,
+        bin_frequencies,
+        num_bands=NUM_BANDS,
+        fmin=FMIN,
+        fmax=FMAX,
+        fref=A4,
+        norm_filters=NORM_FILTERS,
+        unique_filters=UNIQUE_FILTERS,
+    ):
         # pylint: disable=arguments-differ
-        raise NotImplementedError("please check if produces correct/expected "
-                                  "results and enable if yes.")
+        raise NotImplementedError(
+            "please check if produces correct/expected " "results and enable if yes."
+        )
         # Create a logarithmic filterbank as base
-        stf = LogFilterbank(bin_frequencies, num_bands=num_bands, fmin=fmin,
-                            fmax=fmax, fref=fref, norm_filters=norm_filters,
-                            unique_filters=unique_filters)
+        stf = LogFilterbank(
+            bin_frequencies,
+            num_bands=num_bands,
+            fmin=fmin,
+            fmax=fmax,
+            fref=fref,
+            norm_filters=norm_filters,
+            unique_filters=unique_filters,
+        )
         # create an empty filterbank
         fb = np.empty((stf.shape[0], 12))
         spacing = np.arange(8) * 12
@@ -1365,7 +1558,7 @@ class SimpleChromaFilterbank(Filterbank):
         if obj is None:
             return
         # set default values here
-        self.fref = getattr(obj, 'fref', A4)
+        self.fref = getattr(obj, "fref", A4)
 
 
 class HarmonicFilterbank(Filterbank):
@@ -1373,12 +1566,13 @@ class HarmonicFilterbank(Filterbank):
     Harmonic filterbank class.
 
     """
+
     # Note: old code: https://jobim.ofai.at/gitlab/madmom/madmom/snippets/1
     # pylint: disable=no-init
 
     def __new__(cls):
         # pylint: disable=arguments-differ
-        raise NotImplementedError('please implement if needed!')
+        raise NotImplementedError("please implement if needed!")
 
 
 class PitchClassProfileFilterbank(Filterbank):
@@ -1407,21 +1601,20 @@ class PitchClassProfileFilterbank(Filterbank):
            1999.
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
 
     CLASSES = 12
-    FMIN = 100.
-    FMAX = 5000.
+    FMIN = 100.0
+    FMAX = 5000.0
 
-    def __init__(self, bin_frequencies, num_classes=CLASSES, fmin=FMIN,
-                 fmax=FMAX, fref=A4):
+    def __init__(self, bin_frequencies, num_classes=CLASSES, fmin=FMIN, fmax=FMAX, fref=A4):
         # this method is for documentation purposes only
         pass
 
-    def __new__(cls, bin_frequencies, num_classes=CLASSES, fmin=FMIN,
-                fmax=FMAX, fref=A4):
+    def __new__(cls, bin_frequencies, num_classes=CLASSES, fmin=FMIN, fmax=FMAX, fref=A4):
         # pylint: disable=arguments-differ
 
         # init a filterbank
@@ -1435,8 +1628,8 @@ class PitchClassProfileFilterbank(Filterbank):
         # define the pitch class profile filterbank, skip all bins which were 0
         fb[pos_bin_frequencies, num_class.astype(int)] = 1
         # set all bins outside the allowed frequency range to 0
-        fb[np.searchsorted(bin_frequencies, fmax, 'right'):] = 0
-        fb[:np.searchsorted(bin_frequencies, fmin)] = 0
+        fb[np.searchsorted(bin_frequencies, fmax, "right") :] = 0
+        fb[: np.searchsorted(bin_frequencies, fmin)] = 0
         # cast to Filterbank
         obj = Filterbank.__new__(cls, fb, bin_frequencies)
         # set additional attributes
@@ -1448,17 +1641,17 @@ class PitchClassProfileFilterbank(Filterbank):
         if obj is None:
             return
         # set default values here
-        self.fref = getattr(obj, 'fref', A4)
+        self.fref = getattr(obj, "fref", A4)
 
     @property
     def corner_frequencies(self):
         # NOTE: property should return multiple corner frequencies
-        raise NotImplementedError('please implement if needed')
+        raise NotImplementedError("please implement if needed")
 
     @property
     def center_frequencies(self):
         # NOTE: property should return multiple center frequencies
-        raise NotImplementedError('please implement if needed')
+        raise NotImplementedError("please implement if needed")
 
 
 class HarmonicPitchClassProfileFilterbank(PitchClassProfileFilterbank):
@@ -1487,22 +1680,25 @@ class HarmonicPitchClassProfileFilterbank(PitchClassProfileFilterbank):
            PhD thesis, Universitat Pompeu Fabra, Barcelona, Spain, 2006.
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
 
     CLASSES = 36
-    FMIN = 100.
-    FMAX = 5000.
+    FMIN = 100.0
+    FMAX = 5000.0
     WINDOW = 4
 
-    def __init__(self, bin_frequencies, num_classes=CLASSES, fmin=FMIN,
-                 fmax=FMAX, fref=A4, window=WINDOW):
+    def __init__(
+        self, bin_frequencies, num_classes=CLASSES, fmin=FMIN, fmax=FMAX, fref=A4, window=WINDOW
+    ):
         # this method is for documentation purposes only
         pass
 
-    def __new__(cls, bin_frequencies, num_classes=CLASSES, fmin=FMIN,
-                fmax=FMAX, fref=A4, window=WINDOW):
+    def __new__(
+        cls, bin_frequencies, num_classes=CLASSES, fmin=FMIN, fmax=FMAX, fref=A4, window=WINDOW
+    ):
         # pylint: disable=arguments-differ
         # init a filterbank
         fb = np.zeros((len(bin_frequencies), num_classes))
@@ -1517,17 +1713,17 @@ class HarmonicPitchClassProfileFilterbank(PitchClassProfileFilterbank):
             # calculate the distance of the bins to the current class
             distance = num_class - c
             # unwrap
-            distance[distance < -num_classes / 2.] += num_classes
-            distance[distance > num_classes / 2.] -= num_classes
+            distance[distance < -num_classes / 2.0] += num_classes
+            distance[distance > num_classes / 2.0] -= num_classes
             # get all bins which are within the defined window
-            idx = np.abs(distance) < window / 2.
+            idx = np.abs(distance) < window / 2.0
             # apply the weighting function
-            filt = np.cos((num_class[idx] - c) * np.pi / window) ** 2.
+            filt = np.cos((num_class[idx] - c) * np.pi / window) ** 2.0
             # map these indices to the positive bin frequencies
             fb[pos_bin_frequencies[idx], c] = filt
         # set all bins outside the allowed frequency range to 0
-        fb[np.searchsorted(bin_frequencies, fmax, 'right'):] = 0
-        fb[:np.searchsorted(bin_frequencies, fmin)] = 0
+        fb[np.searchsorted(bin_frequencies, fmax, "right") :] = 0
+        fb[: np.searchsorted(bin_frequencies, fmin)] = 0
         # cast to Filterbank
         obj = Filterbank.__new__(cls, fb, bin_frequencies)
         # set additional attributes
@@ -1540,11 +1736,11 @@ class HarmonicPitchClassProfileFilterbank(PitchClassProfileFilterbank):
         if obj is None:
             return
         # set default values here
-        self.fref = getattr(obj, 'fref', A4)
-        self.window = getattr(obj, 'window', self.WINDOW)
+        self.fref = getattr(obj, "fref", A4)
+        self.window = getattr(obj, "window", self.WINDOW)
 
 
-class SemitoneBandpassFilterbank(object):
+class SemitoneBandpassFilterbank:
     """
     Time domain semitone filterbank of elliptic filters as proposed in [1]_.
 
@@ -1578,9 +1774,18 @@ class SemitoneBandpassFilterbank(object):
 
     """
 
-    def __init__(self, order=4, passband_ripple=1, stopband_rejection=50,
-                 q_factor=25, fmin=27.5, fmax=4200., fref=A4):
+    def __init__(
+        self,
+        order=4,
+        passband_ripple=1,
+        stopband_rejection=50,
+        q_factor=25,
+        fmin=27.5,
+        fmax=4200.0,
+        fref=A4,
+    ):
         from scipy.signal import ellip
+
         self.order = order
         self.passband_ripple = passband_ripple
         self.stopband_rejection = stopband_rejection
@@ -1592,13 +1797,14 @@ class SemitoneBandpassFilterbank(object):
         self.band_sample_rates[self.center_frequencies > 2000] = 22050
         self.band_sample_rates[self.center_frequencies < 250] = 882
         self.filters = []
-        for freq, sample_rate in zip(self.center_frequencies,
-                                     self.band_sample_rates):
-            freqs = [(freq - freq / q_factor / 2.) * 2. / sample_rate,
-                     (freq + freq / q_factor / 2.) * 2. / sample_rate]
-            self.filters.append(ellip(order, passband_ripple,
-                                      stopband_rejection, freqs,
-                                      btype='bandpass'))
+        for freq, sample_rate in zip(self.center_frequencies, self.band_sample_rates):
+            freqs = [
+                (freq - freq / q_factor / 2.0) * 2.0 / sample_rate,
+                (freq + freq / q_factor / 2.0) * 2.0 / sample_rate,
+            ]
+            self.filters.append(
+                ellip(order, passband_ripple, stopband_rejection, freqs, btype="bandpass")
+            )
 
     @property
     def num_bands(self):
@@ -1609,10 +1815,10 @@ class SemitoneBandpassFilterbank(object):
     def fmin(self):
         """Minimum frequency of the filterbank."""
         f = self.center_frequencies[0]
-        return f - f / self.q_factor / 2.
+        return f - f / self.q_factor / 2.0
 
     @property
     def fmax(self):
         """Maximum frequency of the filterbank."""
         f = self.center_frequencies[-1]
-        return f + f / self.q_factor / 2.
+        return f + f / self.q_factor / 2.0

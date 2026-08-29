@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -7,17 +6,38 @@ This module contains key recognition related functionality.
 
 """
 
-from __future__ import absolute_import, annotations, division, print_function
+from __future__ import annotations
 
 import numpy as np
 
 from ..processors import SequentialProcessor
 
-KEY_LABELS = ['A major', 'Bb major', 'B major', 'C major', 'Db major',
-              'D major', 'Eb major', 'E major', 'F major', 'F# major',
-              'G major', 'Ab major', 'A minor', 'Bb minor', 'B minor',
-              'C minor', 'C# minor', 'D minor', 'D# minor', 'E minor',
-              'F minor', 'F# minor', 'G minor', 'G# minor']
+KEY_LABELS = [
+    "A major",
+    "Bb major",
+    "B major",
+    "C major",
+    "Db major",
+    "D major",
+    "Eb major",
+    "E major",
+    "F major",
+    "F# major",
+    "G major",
+    "Ab major",
+    "A minor",
+    "Bb minor",
+    "B minor",
+    "C minor",
+    "C# minor",
+    "D minor",
+    "D# minor",
+    "E minor",
+    "F minor",
+    "F# minor",
+    "G minor",
+    "G# minor",
+]
 
 
 def key_prediction_to_label(prediction):
@@ -77,9 +97,9 @@ class CNNKeyRecognitionProcessor(SequentialProcessor):
     """
 
     def __init__(self, nn_files=None, **kwargs):
-        from ..audio.signal import SignalProcessor, FramedSignalProcessor
-        from ..audio.stft import ShortTimeFourierTransformProcessor
+        from ..audio.signal import FramedSignalProcessor, SignalProcessor
         from ..audio.spectrogram import LogarithmicFilteredSpectrogramProcessor
+        from ..audio.stft import ShortTimeFourierTransformProcessor
         from ..ml.nn import NeuralNetworkEnsemble
         from ..ml.nn.activations import softmax
         from ..models import KEY_CNN
@@ -97,6 +117,6 @@ class CNNKeyRecognitionProcessor(SequentialProcessor):
         nn = NeuralNetworkEnsemble.load(nn_files)
 
         # create processing pipeline
-        super(CNNKeyRecognitionProcessor, self).__init__([
-            sig, frames, stft, spec, nn, add_axis, softmax
-        ])
+        super(CNNKeyRecognitionProcessor, self).__init__(
+            [sig, frames, stft, spec, nn, add_axis, softmax]
+        )

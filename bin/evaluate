@@ -1,11 +1,9 @@
 #!/usr/bin/env python
-# encoding: utf-8
 """
 Evaluation script.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import argparse
 import os
@@ -21,7 +19,8 @@ def main():
 
     # define parser
     p = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter, description='''
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""
     This program evaluates pairs of files containing annotations and
     detections.
 
@@ -30,12 +29,13 @@ def main():
 
       $ evaluate onsets -h
 
-    ''')
+    """,
+    )
     # add version
-    p.add_argument('--version', action='version', version='evaluate')
+    p.add_argument("--version", action="version", version="evaluate")
 
     # add subparsers
-    sub_parsers = p.add_subparsers(title='available evaluation options')
+    sub_parsers = p.add_subparsers(title="available evaluation options")
     # onset evaluation
     onsets.add_parser(sub_parsers)
     # beat evaluation
@@ -74,7 +74,7 @@ def main():
     eval_objects = []
 
     # progress
-    progress = ''
+    progress = ""
 
     # evaluate all files
     num_files = len(ann_files)
@@ -82,15 +82,14 @@ def main():
         # print progress
         progress_len = len(progress)
         if args.verbose >= 2:
-            progress = 'evaluating %s' % os.path.basename(ann_file)
+            progress = "evaluating %s" % os.path.basename(ann_file)
         else:
-            progress = 'evaluating file %d of %d' % (num_file + 1, num_files)
-        sys.stderr.write('\r%s' % progress.ljust(progress_len))
+            progress = "evaluating file %d of %d" % (num_file + 1, num_files)
+        sys.stderr.write("\r%s" % progress.ljust(progress_len))
         sys.stderr.flush()
 
         # get the matching detection files
-        matches = match_file(ann_file, det_files,
-                             args.ann_suffix, args.det_suffix)
+        matches = match_file(ann_file, det_files, args.ann_suffix, args.det_suffix)
         if len(matches) > 1:
             # exit if multiple detections were found
             raise SystemExit("multiple detections for %s found" % ann_file)
@@ -111,14 +110,13 @@ def main():
         annotations = args.load_fn(ann_file)
 
         # evaluate them
-        e = args.eval(detections, annotations, name=os.path.basename(ann_file),
-                      **vars(args))
+        e = args.eval(detections, annotations, name=os.path.basename(ann_file), **vars(args))
 
         # add this file's evaluation to the global evaluation list
         eval_objects.append(e)
 
     # clear progress
-    sys.stderr.write('\r%s\r' % ' '.ljust(len(progress)))
+    sys.stderr.write("\r%s\r" % " ".ljust(len(progress)))
     sys.stderr.flush()
 
     # output every evaluation object individually
@@ -131,8 +129,8 @@ def main():
     out_list.append(args.mean_eval(eval_objects))
 
     # output everything
-    args.outfile.write(args.output_formatter(out_list, **vars(args)) + '\n')
+    args.outfile.write(args.output_formatter(out_list, **vars(args)) + "\n")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

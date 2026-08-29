@@ -1,22 +1,22 @@
 #!/usr/bin/env python
-# encoding: utf-8
 """
 SuperFlux with neural network based peak picking onset detection algorithm.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import argparse
 
 import numpy as np
 
-from madmom.audio import (FramedSignalProcessor,
-                          LogarithmicSpectrogramProcessor, SignalProcessor,
-                          SpectrogramDifferenceProcessor)
+from madmom.audio import (
+    FramedSignalProcessor,
+    LogarithmicSpectrogramProcessor,
+    SignalProcessor,
+    SpectrogramDifferenceProcessor,
+)
 from madmom.audio.filters import FilterbankProcessor, LogarithmicFilterbank
-from madmom.features import (ActivationsProcessor, OnsetPeakPickingProcessor,
-                             SpectralOnsetProcessor)
+from madmom.features import ActivationsProcessor, OnsetPeakPickingProcessor, SpectralOnsetProcessor
 from madmom.io import write_onsets
 from madmom.ml.nn import NeuralNetworkEnsemble
 from madmom.models import ONSETS_BRNN_PP
@@ -28,7 +28,8 @@ def main():
 
     # define parser
     p = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter, description='''
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""
     The SuperFluxNN program detects all onsets in an audio file with the
     SuperFlux algorithm with neural network based peak-picking as described in:
 
@@ -57,31 +58,30 @@ def main():
     exactly reproduce experiments.
 
 
-    ''')
+    """,
+    )
     # version
-    p.add_argument('--version', action='version', version='SuperFluxNN.2016')
+    p.add_argument("--version", action="version", version="SuperFluxNN.2016")
     # input/output options
-    io_arguments(p, output_suffix='.onsets.txt')
+    io_arguments(p, output_suffix=".onsets.txt")
     ActivationsProcessor.add_arguments(p)
     # add signal processing arguments
     SignalProcessor.add_arguments(p, norm=False, gain=0)
     FramedSignalProcessor.add_arguments(p)
-    FilterbankProcessor.add_arguments(p, num_bands=24, fmin=30, fmax=17000,
-                                      norm_filters=False)
+    FilterbankProcessor.add_arguments(p, num_bands=24, fmin=30, fmax=17000, norm_filters=False)
     LogarithmicSpectrogramProcessor.add_arguments(p, log=True, mul=1, add=1)
-    SpectrogramDifferenceProcessor.add_arguments(p, diff_ratio=0.5,
-                                                 diff_max_bins=3,
-                                                 positive_diffs=True)
+    SpectrogramDifferenceProcessor.add_arguments(
+        p, diff_ratio=0.5, diff_max_bins=3, positive_diffs=True
+    )
     # peak picking arguments
-    OnsetPeakPickingProcessor.add_arguments(p, threshold=0.4, smooth=0.07,
-                                            combine=0.04, delay=0)
+    OnsetPeakPickingProcessor.add_arguments(p, threshold=0.4, smooth=0.07, combine=0.04, delay=0)
     # parse arguments
     args = p.parse_args()
 
     # set immutable defaults
     args.num_channels = 1
     args.fps = 100
-    args.onset_method = 'superflux'
+    args.onset_method = "superflux"
     args.filterbank = LogarithmicFilterbank
 
     # print arguments
@@ -91,14 +91,14 @@ def main():
     # input processor
     if args.load:
         # load the activations from file
-        in_processor = ActivationsProcessor(mode='r', **vars(args))
+        in_processor = ActivationsProcessor(mode="r", **vars(args))
     else:
         in_processor = SpectralOnsetProcessor(**vars(args))
 
     # output processor
     if args.save:
         # save the Onset activations to file
-        out_processor = ActivationsProcessor(mode='w', **vars(args))
+        out_processor = ActivationsProcessor(mode="w", **vars(args))
     else:
         # process everything with multiple RNNs and average the predictions
         rnn = NeuralNetworkEnsemble.load(ONSETS_BRNN_PP, **vars(args))
@@ -115,5 +115,5 @@ def main():
     args.func(processor, **vars(args))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

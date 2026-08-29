@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -14,13 +13,12 @@ References
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import numpy as np
 
-from . import Evaluation, MeanEvaluation, SumEvaluation, evaluation_io
 from ..io import load_onsets
 from ..utils import combine_events
+from . import Evaluation, MeanEvaluation, SumEvaluation, evaluation_io
 
 # default onset evaluation values
 WINDOW = 0.025
@@ -65,7 +63,7 @@ def onset_evaluation(detections, annotations, window=WINDOW):
     annotations = np.asarray(annotations, dtype=float)
     # NOTE: right now, it only works with 1D arrays
     if detections.ndim > 1 or annotations.ndim > 1:
-        raise NotImplementedError('please implement multi-dim support')
+        raise NotImplementedError("please implement multi-dim support")
 
     # init TP, FP, FN and errors
     tp = np.zeros(0)
@@ -89,7 +87,7 @@ def onset_evaluation(detections, annotations, window=WINDOW):
 
     # window must be greater than 0
     if float(window) <= 0:
-        raise ValueError('window must be greater than 0')
+        raise ValueError("window must be greater than 0")
 
     # sort the detections and annotations
     det = np.sort(detections)
@@ -128,18 +126,18 @@ def onset_evaluation(detections, annotations, window=WINDOW):
             ann_index += 1
         else:
             # can't match detected with annotated onset
-            raise AssertionError('can not match % with %', d, a)
+            raise AssertionError("can not match % with %", d, a)
     # the remaining detections are FP
     fp = np.append(fp, det[det_index:])
     # the remaining annotations are FN
     fn = np.append(fn, ann[ann_index:])
     # check calculations
     if len(tp) + len(fp) != len(detections):
-        raise AssertionError('bad TP / FP calculation')
+        raise AssertionError("bad TP / FP calculation")
     if len(tp) + len(fn) != len(annotations):
-        raise AssertionError('bad FN calculation')
+        raise AssertionError("bad FN calculation")
     if len(tp) != len(errors):
-        raise AssertionError('bad errors calculation')
+        raise AssertionError("bad errors calculation")
     # convert to numpy arrays and return them
     return np.array(tp), np.array(fp), tn, np.array(fn), np.array(errors)
 
@@ -165,8 +163,7 @@ class OnsetEvaluation(Evaluation):
 
     """
 
-    def __init__(self, detections, annotations, window=WINDOW, combine=0,
-                 delay=0, **kwargs):
+    def __init__(self, detections, annotations, window=WINDOW, combine=0, delay=0, **kwargs):
         # convert to numpy array
         detections = np.array(detections, dtype=float, ndmin=1)
         annotations = np.array(annotations, dtype=float, ndmin=1)
@@ -177,8 +174,7 @@ class OnsetEvaluation(Evaluation):
         if delay != 0:
             detections += delay
         # evaluate
-        tp, fp, tn, fn, errors = onset_evaluation(detections, annotations,
-                                                  window)
+        tp, fp, tn, fn, errors = onset_evaluation(detections, annotations, window)
         # instantiate a Evaluation object
         super(OnsetEvaluation, self).__init__(tp, fp, tn, fn, **kwargs)
         # add the errors
@@ -208,14 +204,24 @@ class OnsetEvaluation(Evaluation):
             Evaluation metrics formatted as a human readable string.
 
         """
-        ret = ''
+        ret = ""
         if self.name is not None:
-            ret += '%s\n  ' % self.name
-        ret += 'Onsets: %5d TP: %5d FP: %5d FN: %5d Precision: %.3f ' \
-               'Recall: %.3f F-measure: %.3f mean: %5.1f ms std: %5.1f ms' % \
-               (self.num_annotations, self.num_tp, self.num_fp, self.num_fn,
-                self.precision, self.recall, self.fmeasure,
-                self.mean_error * 1000., self.std_error * 1000.)
+            ret += "%s\n  " % self.name
+        ret += (
+            "Onsets: %5d TP: %5d FP: %5d FN: %5d Precision: %.3f "
+            "Recall: %.3f F-measure: %.3f mean: %5.1f ms std: %5.1f ms"
+            % (
+                self.num_annotations,
+                self.num_tp,
+                self.num_fp,
+                self.num_fn,
+                self.precision,
+                self.recall,
+                self.fmeasure,
+                self.mean_error * 1000.0,
+                self.std_error * 1000.0,
+            )
+        )
         return ret
 
     def __str__(self):
@@ -264,15 +270,25 @@ class OnsetMeanEvaluation(MeanEvaluation, OnsetSumEvaluation):
 
         """
         # format with floats instead of integers
-        ret = ''
+        ret = ""
         if self.name is not None:
-            ret += '%s\n  ' % self.name
-        ret += 'Onsets: %5.2f TP: %5.2f FP: %5.2f FN: %5.2f ' \
-               'Precision: %.3f Recall: %.3f F-measure: %.3f ' \
-               'mean: %5.1f ms std: %5.1f ms' % \
-               (self.num_annotations, self.num_tp, self.num_fp, self.num_fn,
-                self.precision, self.recall, self.fmeasure,
-                self.mean_error * 1000., self.std_error * 1000.)
+            ret += "%s\n  " % self.name
+        ret += (
+            "Onsets: %5.2f TP: %5.2f FP: %5.2f FN: %5.2f "
+            "Precision: %.3f Recall: %.3f F-measure: %.3f "
+            "mean: %5.1f ms std: %5.1f ms"
+            % (
+                self.num_annotations,
+                self.num_tp,
+                self.num_fp,
+                self.num_fn,
+                self.precision,
+                self.recall,
+                self.fmeasure,
+                self.mean_error * 1000.0,
+                self.std_error * 1000.0,
+            )
+        )
         return ret
 
 
@@ -294,11 +310,13 @@ def add_parser(parser):
 
     """
     import argparse
+
     # add beat evaluation sub-parser to the existing parser
     p = parser.add_parser(
-        'onsets', help='onset evaluation',
+        "onsets",
+        help="onset evaluation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description='''
+        description="""
     This program evaluates pairs of files containing the onset annotations and
     detections. Suffixes can be given to filter them from the list of files.
 
@@ -307,23 +325,41 @@ def add_parser(parser):
 
     Lines starting with # are treated as comments and are ignored.
 
-    ''')
+    """,
+    )
     # set defaults
-    p.set_defaults(eval=OnsetEvaluation, sum_eval=OnsetSumEvaluation,
-                   mean_eval=OnsetMeanEvaluation, load_fn=load_onsets)
+    p.set_defaults(
+        eval=OnsetEvaluation,
+        sum_eval=OnsetSumEvaluation,
+        mean_eval=OnsetMeanEvaluation,
+        load_fn=load_onsets,
+    )
     # file I/O
-    evaluation_io(p, ann_suffix='.onsets', det_suffix='.onsets.txt')
+    evaluation_io(p, ann_suffix=".onsets", det_suffix=".onsets.txt")
     # evaluation parameters
-    g = p.add_argument_group('onset evaluation arguments')
-    g.add_argument('-w', dest='window', action='store', type=float,
-                   default=WINDOW,
-                   help='evaluation window (+/- the given size) '
-                        '[seconds, default=%(default).3f]')
-    g.add_argument('-c', dest='combine', action='store', type=float,
-                   default=COMBINE,
-                   help='combine annotation events within this range '
-                        '[seconds, default=%(default).3f]')
-    g.add_argument('--delay', action='store', type=float, default=0.,
-                   help='add given delay to all detections [seconds]')
+    g = p.add_argument_group("onset evaluation arguments")
+    g.add_argument(
+        "-w",
+        dest="window",
+        action="store",
+        type=float,
+        default=WINDOW,
+        help="evaluation window (+/- the given size) " "[seconds, default=%(default).3f]",
+    )
+    g.add_argument(
+        "-c",
+        dest="combine",
+        action="store",
+        type=float,
+        default=COMBINE,
+        help="combine annotation events within this range " "[seconds, default=%(default).3f]",
+    )
+    g.add_argument(
+        "--delay",
+        action="store",
+        type=float,
+        default=0.0,
+        help="add given delay to all detections [seconds]",
+    )
     # return the sub-parser and evaluation argument group
     return p, g

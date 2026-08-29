@@ -76,8 +76,9 @@ def test_every_model_constant_is_covered_by_a_package_data_glob():
             if not any(_matches(g, rel) for g in globs):
                 uncovered.append(f"{name} -> {rel}")
 
-    assert not uncovered, "model files no package-data glob ships (they will be missing from an installed madmom):\n  " + "\n  ".join(
-        uncovered
+    assert not uncovered, (
+        "model files no package-data glob ships (they will be missing from an installed madmom):\n  "
+        + "\n  ".join(uncovered)
     )
 
 
@@ -89,7 +90,9 @@ def test_every_model_constant_resolves_to_at_least_one_file():
         for name, pattern in _declared_constants()
         if not glob.glob(str(MODELS_INIT.parent / pattern))
     ]
-    assert not empty, "model constants matching no file in the source tree:\n  " + "\n  ".join(empty)
+    assert not empty, "model constants matching no file in the source tree:\n  " + "\n  ".join(
+        empty
+    )
 
 
 def test_the_constant_scraper_actually_found_constants():

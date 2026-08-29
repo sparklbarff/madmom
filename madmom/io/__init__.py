@@ -1,30 +1,27 @@
-# encoding: utf-8
 """
 Input/output package.
 
 """
-
-from __future__ import absolute_import, division, print_function
 
 import contextlib
 import io as _io
 
 import numpy as np
 
+from ..utils import string_types, suppress_warnings
 from .audio import load_audio_file
 from .midi import load_midi, write_midi
-from ..utils import suppress_warnings, string_types
 
-ENCODING = 'utf8'
+ENCODING = "utf8"
 
 # dtype for numpy structured arrays that contain labelled segments
 # 'label' needs to be castable to str
-SEGMENT_DTYPE = [('start', float), ('end', float), ('label', object)]
+SEGMENT_DTYPE = [("start", float), ("end", float), ("label", object)]
 
 
 # overwrite the built-in open() to transparently apply some magic file handling
 @contextlib.contextmanager
-def open_file(filename, mode='r'):
+def open_file(filename, mode="r"):
     """
     Context manager which yields an open file or handle with the given mode
     and closes it if needed afterwards.
@@ -43,7 +40,7 @@ def open_file(filename, mode='r'):
     """
     # check if we need to open the file
     if isinstance(filename, string_types):
-        f = fid = _io.open(filename, mode)
+        f = fid = open(filename, mode)
     else:
         f = filename
         fid = None
@@ -81,7 +78,7 @@ def load_events(filename):
     return events[:, 0]
 
 
-def write_events(events, filename, fmt='%.3f', delimiter='\t', header=None):
+def write_events(events, filename, fmt="%.3f", delimiter="\t", header=None):
     """
     Write the events to a file, one event per line.
 
@@ -105,10 +102,10 @@ def write_events(events, filename, fmt='%.3f', delimiter='\t', header=None):
     if isinstance(fmt, (list, tuple)):
         fmt = delimiter.join(fmt)
     # write output
-    with open_file(filename, 'wb') as f:
+    with open_file(filename, "wb") as f:
         # write header
         if header is not None:
-            f.write(bytes(('# ' + header + '\n').encode(ENCODING)))
+            f.write(bytes(("# " + header + "\n").encode(ENCODING)))
         # write events
         for e in events:
             try:
@@ -117,7 +114,7 @@ def write_events(events, filename, fmt='%.3f', delimiter='\t', header=None):
                 string = e
             except TypeError:
                 string = fmt % e
-            f.write(bytes((string + '\n').encode(ENCODING)))
+            f.write(bytes((string + "\n").encode(ENCODING)))
             f.flush()
 
 
@@ -151,7 +148,7 @@ def load_beats(filename, downbeats=False):
     return values[:, 0]
 
 
-def write_beats(beats, filename, fmt=None, delimiter='\t', header=None):
+def write_beats(beats, filename, fmt=None, delimiter="\t", header=None):
     """
     Write the beats to a file.
 
@@ -172,9 +169,9 @@ def write_beats(beats, filename, fmt=None, delimiter='\t', header=None):
 
     """
     if fmt is None and beats.ndim == 2:
-        fmt = ['%.3f', '%d']
+        fmt = ["%.3f", "%d"]
     elif fmt is None:
-        fmt = '%.3f'
+        fmt = "%.3f"
     write_events(beats, filename, fmt, delimiter, header)
 
 
@@ -196,7 +193,7 @@ def load_downbeats(filename):
     return load_beats(filename, downbeats=True)
 
 
-def write_downbeats(beats, filename, fmt=None, delimiter='\t', header=None):
+def write_downbeats(beats, filename, fmt=None, delimiter="\t", header=None):
     """
     Write the downbeats to a file.
 
@@ -225,7 +222,7 @@ def write_downbeats(beats, filename, fmt=None, delimiter='\t', header=None):
     if beats.ndim == 2:
         beats = beats[beats[:, 1] == 1][:, 0]
     if fmt is None:
-        fmt = '%.3f'
+        fmt = "%.3f"
     write_events(beats, filename, fmt, delimiter, header)
 
 
@@ -249,7 +246,7 @@ def load_notes(filename):
     return np.loadtxt(filename, ndmin=2)
 
 
-def write_notes(notes, filename, fmt=None, delimiter='\t', header=None):
+def write_notes(notes, filename, fmt=None, delimiter="\t", header=None):
     """
     Write the notes to a file.
 
@@ -276,11 +273,11 @@ def write_notes(notes, filename, fmt=None, delimiter='\t', header=None):
     """
     # set default format
     if fmt is None:
-        fmt = ['%.3f', '%d', '%.3f', '%d']
+        fmt = ["%.3f", "%d", "%.3f", "%d"]
     if not notes.ndim == 2:
-        raise ValueError('unknown format for `notes`')
+        raise ValueError("unknown format for `notes`")
     # truncate format to the number of columns given
-    fmt = delimiter.join(fmt[:notes.shape[1]])
+    fmt = delimiter.join(fmt[: notes.shape[1]])
     # write the notes
     write_events(notes, filename, fmt=fmt, delimiter=delimiter, header=header)
 
@@ -313,13 +310,13 @@ def load_segments(filename):
             label.append(l)
 
     segments = np.zeros(len(start), dtype=SEGMENT_DTYPE)
-    segments['start'] = start
-    segments['end'] = end
-    segments['label'] = label
+    segments["start"] = start
+    segments["end"] = end
+    segments["label"] = label
     return segments
 
 
-def write_segments(segments, filename, fmt=None, delimiter='\t', header=None):
+def write_segments(segments, filename, fmt=None, delimiter="\t", header=None):
     """
     Write labelled segments to a file.
 
@@ -350,9 +347,8 @@ def write_segments(segments, filename, fmt=None, delimiter='\t', header=None):
 
     """
     if fmt is None:
-        fmt = ['%.3f', '%.3f', '%s']
-    write_events(segments, filename, fmt=fmt, delimiter=delimiter,
-                 header=header)
+        fmt = ["%.3f", "%.3f", "%s"]
+    write_events(segments, filename, fmt=fmt, delimiter=delimiter, header=header)
 
 
 load_chords = load_segments
@@ -397,11 +393,10 @@ def write_key(key, filename, header=None):
         Key name.
 
     """
-    write_events([key], filename, fmt='%s', header=header)
+    write_events([key], filename, fmt="%s", header=header)
 
 
-def load_tempo(filename, split_value=1., sort=None, norm_strengths=None,
-               max_len=None):
+def load_tempo(filename, split_value=1.0, sort=None, norm_strengths=None, max_len=None):
     """
     Load tempo information from the given file.
 
@@ -443,45 +438,54 @@ def load_tempo(filename, split_value=1., sort=None, norm_strengths=None,
     strength_sum = np.sum(strengths)
     # relative strengths are given (one less than tempi)
     if len(tempi) - len(strengths) == 1:
-        strengths = np.append(strengths, 1. - strength_sum)
+        strengths = np.append(strengths, 1.0 - strength_sum)
         if np.any(strengths < 0):
-            raise AssertionError('strengths must be positive')
+            raise AssertionError("strengths must be positive")
     # no strength is given, assume an evenly distributed one
     if strength_sum == 0:
         strengths = np.ones_like(tempi) / float(len(tempi))
     # normalize the strengths
     if norm_strengths is not None:
         import warnings
-        warnings.warn('`norm_strengths` is deprecated as of version 0.16 and '
-                      'will be removed in 0.18. Please normalize strengths '
-                      'separately.')
+
+        warnings.warn(
+            "`norm_strengths` is deprecated as of version 0.16 and "
+            "will be removed in 0.18. Please normalize strengths "
+            "separately."
+        )
         strengths /= float(strength_sum)
     # tempi and strengths must have same length
     if len(tempi) != len(strengths):
-        raise AssertionError('tempi and strengths must have same length')
+        raise AssertionError("tempi and strengths must have same length")
     # order the tempi according to their strengths
     if sort:
         import warnings
-        warnings.warn('`sort` is deprecated as of version 0.16 and will be '
-                      'removed in 0.18. Please sort the returned array '
-                      'separately.')
+
+        warnings.warn(
+            "`sort` is deprecated as of version 0.16 and will be "
+            "removed in 0.18. Please sort the returned array "
+            "separately."
+        )
         # Note: use 'mergesort', because we want a stable sorting algorithm
         #       which keeps the order of the keys in case of duplicate keys
         #       but we need to apply this '(-strengths)' trick because we want
         #       tempi with uniformly distributed strengths to keep their order
-        sort_idx = (-strengths).argsort(kind='mergesort')
+        sort_idx = (-strengths).argsort(kind="mergesort")
         tempi = tempi[sort_idx]
         strengths = strengths[sort_idx]
     # return at most 'max_len' tempi and their relative strength
     if max_len is not None:
         import warnings
-        warnings.warn('`max_len` is deprecated as of version 0.16 and will be '
-                      'removed in 0.18. Please truncate the returned array '
-                      'separately.')
+
+        warnings.warn(
+            "`max_len` is deprecated as of version 0.16 and will be "
+            "removed in 0.18. Please truncate the returned array "
+            "separately."
+        )
     return np.vstack((tempi[:max_len], strengths[:max_len])).T
 
 
-def write_tempo(tempi, filename, delimiter='\t', header=None, mirex=None):
+def write_tempo(tempi, filename, delimiter="\t", header=None, mirex=None):
     """
     Write the most dominant tempi and the relative strength to a file.
 
@@ -516,7 +520,7 @@ def write_tempo(tempi, filename, delimiter='\t', header=None, mirex=None):
     # only one tempo was detected
     if len(tempi) == 1:
         t1 = tempi[0][0]
-        strength = 1.
+        strength = 1.0
     # consider only the two strongest tempi and strengths
     elif len(tempi) > 1:
         t1, t2 = tempi[:2, 0]
@@ -524,12 +528,14 @@ def write_tempo(tempi, filename, delimiter='\t', header=None, mirex=None):
     # for MIREX, the lower tempo must be given first
     if mirex is not None:
         import warnings
-        warnings.warn('`mirex` argument is deprecated as of version 0.16 '
-                      'and will be removed in version 0.17. Please sort the '
-                      'tempi manually')
+
+        warnings.warn(
+            "`mirex` argument is deprecated as of version 0.16 "
+            "and will be removed in version 0.17. Please sort the "
+            "tempi manually"
+        )
         if t1 > t2:
-            t1, t2, strength = t2, t1, 1. - strength
+            t1, t2, strength = t2, t1, 1.0 - strength
     # format as a numpy array and write to output
     out = np.array([t1, t2, strength], ndmin=2)
-    write_events(out, filename, fmt=['%.2f', '%.2f', '%.2f'],
-                 delimiter=delimiter, header=header)
+    write_events(out, filename, fmt=["%.2f", "%.2f", "%.2f"], delimiter=delimiter, header=header)

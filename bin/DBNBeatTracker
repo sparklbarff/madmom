@@ -1,17 +1,14 @@
 #!/usr/bin/env python
-# encoding: utf-8
 """
 DBNBeatTracker beat tracking algorithm.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import argparse
 
 from madmom.audio import SignalProcessor
-from madmom.features import (ActivationsProcessor, DBNBeatTrackingProcessor,
-                             RNNBeatProcessor)
+from madmom.features import ActivationsProcessor, DBNBeatTrackingProcessor, RNNBeatProcessor
 from madmom.io import write_beats
 from madmom.ml.nn import NeuralNetworkEnsemble
 from madmom.processors import IOProcessor, io_arguments
@@ -22,7 +19,8 @@ def main():
 
     # define parser
     p = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter, description='''
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""
     The DBNBeatTracker program detects all beats in an audio file according to
     the method described in:
 
@@ -60,12 +58,12 @@ def main():
     The 'pickle' mode can be used to store the used parameters to be able to
     exactly reproduce experiments.
 
-    ''')
+    """,
+    )
     # version
-    p.add_argument('--version', action='version',
-                   version='DBNBeatTracker.2016')
+    p.add_argument("--version", action="version", version="DBNBeatTracker.2016")
     # input/output options
-    io_arguments(p, output_suffix='.beats.txt', online=True)
+    io_arguments(p, output_suffix=".beats.txt", online=True)
     ActivationsProcessor.add_arguments(p)
     # signal processing arguments
     SignalProcessor.add_arguments(p, norm=False, gain=0)
@@ -86,7 +84,7 @@ def main():
     # input processor
     if args.load:
         # load the activations from file
-        in_processor = ActivationsProcessor(mode='r', **vars(args))
+        in_processor = ActivationsProcessor(mode="r", **vars(args))
     else:
         # use a RNN to predict the beats
         in_processor = RNNBeatProcessor(**vars(args))
@@ -94,7 +92,7 @@ def main():
     # output processor
     if args.save:
         # save the RNN beat activations to file
-        out_processor = ActivationsProcessor(mode='w', **vars(args))
+        out_processor = ActivationsProcessor(mode="w", **vars(args))
     else:
         # track the beats with a DBN and output them
         beat_processor = DBNBeatTrackingProcessor(**vars(args))
@@ -107,5 +105,5 @@ def main():
     args.func(processor, **vars(args))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

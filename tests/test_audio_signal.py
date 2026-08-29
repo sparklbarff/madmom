@@ -1,11 +1,9 @@
-# encoding: utf-8
 # pylint: skip-file
 """
 This file contains tests for the madmom.audio.signal module.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import os
 import sys
@@ -14,12 +12,13 @@ import unittest
 from os.path import join as pj
 
 from madmom.audio.signal import *
+
 from . import AUDIO_PATH
 from .test_audio_comb_filters import sig_1d, sig_2d
 
-sample_file = pj(AUDIO_PATH, 'sample.wav')
-sample_file_22k = pj(AUDIO_PATH, 'sample_22050.wav')
-stereo_sample_file = pj(AUDIO_PATH, 'stereo_sample.wav')
+sample_file = pj(AUDIO_PATH, "sample.wav")
+sample_file_22k = pj(AUDIO_PATH, "sample_22050.wav")
+stereo_sample_file = pj(AUDIO_PATH, "stereo_sample.wav")
 tmp_file = tempfile.NamedTemporaryFile(delete=False).name
 
 
@@ -50,7 +49,7 @@ class TestSmoothFunction(unittest.TestCase):
         with self.assertRaises(ValueError):
             smooth(np.zeros(9).reshape(3, 3), -1)
         with self.assertRaises(ValueError):
-            smooth(np.zeros(9).reshape(3, 3), 'bla')
+            smooth(np.zeros(9).reshape(3, 3), "bla")
         with self.assertRaises(ValueError):
             smooth(np.zeros(18).reshape(3, 3, 2), 4)
 
@@ -79,16 +78,22 @@ class TestSmoothFunction(unittest.TestCase):
         result = smooth(sig_2d, None)
         self.assertTrue(np.allclose(result, sig_2d))
         result = smooth(sig_2d, 3)
-        result_3 = [[0, 0.08, 1, 0.08, 0.08, 1, 0.08, 0.08, 1],
-                    [1, 0.16, 1, 0.16, 1, 0.16, 1, 0.16, 1]]
+        result_3 = [
+            [0, 0.08, 1, 0.08, 0.08, 1, 0.08, 0.08, 1],
+            [1, 0.16, 1, 0.16, 1, 0.16, 1, 0.16, 1],
+        ]
         self.assertTrue(np.allclose(result, np.asarray(result_3).T))
         result = smooth(sig_2d, 5)
-        result_5 = [[0.08, 0.54, 1, 0.62, 0.62, 1, 0.62, 0.62, 1],
-                    [1.08, 1.08, 1.16, 1.08, 1.16, 1.08, 1.16, 1.08, 1.08]]
+        result_5 = [
+            [0.08, 0.54, 1, 0.62, 0.62, 1, 0.62, 0.62, 1],
+            [1.08, 1.08, 1.16, 1.08, 1.16, 1.08, 1.16, 1.08, 1.08],
+        ]
         self.assertTrue(np.allclose(result, np.asarray(result_5).T))
         result = smooth(sig_2d, 7)
-        result_7 = [[0.31, 0.77, 1.08, 1.08, 1.08, 1.16, 1.08, 1.08, 1.08],
-                    [1.31, 1.62, 1.62, 1.7, 1.62, 1.7, 1.62, 1.62, 1.31]]
+        result_7 = [
+            [0.31, 0.77, 1.08, 1.08, 1.08, 1.16, 1.08, 1.08, 1.08],
+            [1.31, 1.62, 1.62, 1.7, 1.62, 1.7, 1.62, 1.62, 1.31],
+        ]
         self.assertTrue(np.allclose(result, np.asarray(result_7).T))
 
 
@@ -367,8 +372,9 @@ class TestResampleFunction(unittest.TestCase):
         self.signal_22k = Signal(sample_file_22k)
         self.signal_float = Signal(sample_file, dtype=np.float32)
         self.stereo_signal = Signal(stereo_sample_file)
-        self.float_target = np.array([-0.07537885, -0.077897, -0.08440731,
-                                      -0.07527363, -0.06685895, -0.05827513])
+        self.float_target = np.array(
+            [-0.07537885, -0.077897, -0.08440731, -0.07527363, -0.06685895, -0.05827513]
+        )
 
     def test_types(self):
         # mono signal
@@ -418,9 +424,11 @@ class TestResampleFunction(unittest.TestCase):
         self.assertEqual(result.num_channels, self.stereo_signal.num_channels)
         self.assertTrue(np.allclose(result.length, self.stereo_signal.length))
         # Allow ±1 LSB tolerance for ffmpeg version differences
-        self.assertTrue(np.allclose(result[:6],
-                                    [[34, 38], [32, 33], [37, 31],
-                                     [35, 35], [32, 34], [33, 34]], atol=1))
+        self.assertTrue(
+            np.allclose(
+                result[:6], [[34, 38], [32, 33], [37, 31], [35, 35], [32, 34], [33, 34]], atol=1
+            )
+        )
 
     def test_values_upmixing(self):
         result = resample(self.signal, 22050, num_channels=2)
@@ -489,21 +497,31 @@ class TestRescaleFunction(unittest.TestCase):
         # from file
         signal = Signal(sample_file)
         result = rescale(signal)
-        self.assertTrue(np.allclose(result[:6],
-                                    [-0.07611316, -0.07660146, -0.07580798,
-                                     -0.08172857, -0.08645894, -0.08212531]))
+        self.assertTrue(
+            np.allclose(
+                result[:6],
+                [-0.07611316, -0.07660146, -0.07580798, -0.08172857, -0.08645894, -0.08212531],
+            )
+        )
         # multi-channel signals
         result = rescale(sig_2d, np.float16)
         self.assertTrue(np.allclose(result, sig_2d))
         # from file
         signal = Signal(stereo_sample_file)
         result = rescale(signal, float)
-        self.assertTrue(np.allclose(result[:6], [[0.00100711, 0.0011597],
-                                                 [0.00106815, 0.00109867],
-                                                 [0.00088504, 0.00103763],
-                                                 [0.00109867, 0.00094607],
-                                                 [0.00112918, 0.00091556],
-                                                 [0.00109867, 0.00103763]]))
+        self.assertTrue(
+            np.allclose(
+                result[:6],
+                [
+                    [0.00100711, 0.0011597],
+                    [0.00106815, 0.00109867],
+                    [0.00088504, 0.00103763],
+                    [0.00109867, 0.00094607],
+                    [0.00112918, 0.00091556],
+                    [0.00109867, 0.00103763],
+                ],
+            )
+        )
 
 
 class TestTrimFunction(unittest.TestCase):
@@ -616,7 +634,7 @@ class TestRootMeanSquareFunction(unittest.TestCase):
         self.assertTrue(np.allclose(result, 0))
         # multi-channel signals
         result = root_mean_square(sig_2d)
-        self.assertTrue(np.allclose(result, 2. / 3))
+        self.assertTrue(np.allclose(result, 2.0 / 3))
         result = root_mean_square(np.zeros(100).reshape(-1, 2))
         self.assertTrue(np.allclose(result, 0))
 
@@ -630,9 +648,9 @@ class TestRootMeanSquareFunction(unittest.TestCase):
         # multi-channel signals
         frames = FramedSignal(sig_2d, frame_size=4, hop_size=2)
         result = root_mean_square(frames)
-        self.assertTrue(np.allclose(result, [0.35355339, 0.61237244,
-                                             0.70710678, 0.61237244,
-                                             0.61237244]))
+        self.assertTrue(
+            np.allclose(result, [0.35355339, 0.61237244, 0.70710678, 0.61237244, 0.61237244])
+        )
         result = root_mean_square(np.zeros(100).reshape(-1, 2))
         self.assertTrue(np.allclose(result, 0))
 
@@ -657,11 +675,11 @@ class TestSoundPressureLevelFunction(unittest.TestCase):
         # maximum float amplitude, alternating between -1 and 1
         sinus = np.cos(np.linspace(0, 2 * np.pi * 100, 2 * 100 + 1))
         result = sound_pressure_level(sinus)
-        self.assertTrue(np.allclose(result, 0.))
+        self.assertTrue(np.allclose(result, 0.0))
         # maximum int16 amplitude, alternating between -1 and 1
         sinus_int16 = (sinus * np.iinfo(np.int16).max).astype(np.int16)
         result = sound_pressure_level(sinus_int16)
-        self.assertTrue(np.allclose(result, 0., atol=1e-3))
+        self.assertTrue(np.allclose(result, 0.0, atol=1e-3))
 
         # multi-channel signals
         result = sound_pressure_level(sig_2d)
@@ -672,26 +690,27 @@ class TestSoundPressureLevelFunction(unittest.TestCase):
         # maximum float amplitude, alternating between -1 and 1
         sig = remix(sinus, 2)
         result = sound_pressure_level(sig)
-        self.assertTrue(np.allclose(result, 0.))
+        self.assertTrue(np.allclose(result, 0.0))
         # maximum int16 amplitude, alternating between -1 and 1
         sig = remix(sinus_int16, 2)
         result = sound_pressure_level(sig)
-        self.assertTrue(np.allclose(result, 0., atol=1e-3))
+        self.assertTrue(np.allclose(result, 0.0, atol=1e-3))
 
     def test_frames(self):
         # mono signals
         frames = FramedSignal(sig_1d, frame_size=4, hop_size=2)
         result = sound_pressure_level(frames)
-        self.assertTrue(np.allclose(result, [-np.finfo(float).max, -6.0206,
-                                             -3.0103, -6.0206, -6.0206]))
+        self.assertTrue(
+            np.allclose(result, [-np.finfo(float).max, -6.0206, -3.0103, -6.0206, -6.0206])
+        )
         result = sound_pressure_level(np.zeros(100))
         self.assertTrue(np.allclose(result, -np.finfo(float).max))
         # multi-channel signals
         frames = FramedSignal(sig_2d, frame_size=4, hop_size=2)
         result = sound_pressure_level(frames)
-        self.assertTrue(np.allclose(result, [-9.03089987, -4.25968732,
-                                             -3.01029996, -4.25968732,
-                                             -4.25968732]))
+        self.assertTrue(
+            np.allclose(result, [-9.03089987, -4.25968732, -3.01029996, -4.25968732, -4.25968732])
+        )
         result = sound_pressure_level(np.zeros(100).reshape(-1, 2))
         self.assertTrue(np.allclose(result, -np.finfo(float).max))
 
@@ -762,14 +781,12 @@ class TestSignalClass(unittest.TestCase):
 
     def test_num_channels(self):
         result = Signal(sig_2d, sample_rate=1, num_channels=1)
-        self.assertTrue(result.shape == (9, ))
-        self.assertTrue(np.allclose(result,
-                                    [0.5, 0, 1, 0, 0.5, 0.5, 0.5, 0, 1]))
+        self.assertTrue(result.shape == (9,))
+        self.assertTrue(np.allclose(result, [0.5, 0, 1, 0, 0.5, 0.5, 0.5, 0, 1]))
 
     def test_values_file(self):
         result = Signal(sample_file)
-        self.assertTrue(np.allclose(result[:5],
-                                    [-2494, -2510, -2484, -2678, -2833]))
+        self.assertTrue(np.allclose(result[:5], [-2494, -2510, -2484, -2678, -2833]))
         self.assertTrue(len(result) == 123481)
         self.assertTrue(result.num_samples == 123481)
         self.assertTrue(result.sample_rate == 44100)
@@ -792,9 +809,8 @@ class TestSignalClass(unittest.TestCase):
         # multi-channel signals
         signal = Signal(sig_2d)
         self.assertTrue(np.allclose(signal.energy(), 8))
-        self.assertTrue(np.allclose(signal.root_mean_square(), 2. / 3))
-        self.assertTrue(np.allclose(signal.sound_pressure_level(),
-                                    -3.52182518111))
+        self.assertTrue(np.allclose(signal.root_mean_square(), 2.0 / 3))
+        self.assertTrue(np.allclose(signal.sound_pressure_level(), -3.52182518111))
 
 
 class TestSignalProcessorClass(unittest.TestCase):
@@ -827,8 +843,7 @@ class TestSignalProcessorClass(unittest.TestCase):
         self.assertIsInstance(result, Signal)
         self.assertIsInstance(result, np.ndarray)
         self.assertTrue(result.dtype == np.int16)
-        self.assertTrue(np.allclose(result[:5],
-                                    [-2494, -2510, -2484, -2678, -2833]))
+        self.assertTrue(np.allclose(result[:5], [-2494, -2510, -2484, -2678, -2833]))
         self.assertTrue(len(result) == 123481)
         self.assertTrue(result.min() == -20603)
         self.assertTrue(result.max() == 17977)
@@ -855,8 +870,7 @@ class TestSignalProcessorClass(unittest.TestCase):
         self.assertIsInstance(result, Signal)
         self.assertIsInstance(result, np.ndarray)
         self.assertTrue(result.dtype == np.int16)
-        self.assertTrue(np.allclose(result[:5],
-                                    [-3966, -3991, -3950, -4259, -4505]))
+        self.assertTrue(np.allclose(result[:5], [-3966, -3991, -3950, -4259, -4505]))
         self.assertTrue(len(result) == 123481)
         self.assertTrue(result.min() == -32767)
         self.assertTrue(result.max() == 28590)
@@ -870,13 +884,12 @@ class TestSignalProcessorClass(unittest.TestCase):
 
     def test_process_gain(self):
         self.processor.gain = -10
-        self.assertTrue(self.processor.gain == -10.)
+        self.assertTrue(self.processor.gain == -10.0)
         result = self.processor.process(sample_file)
         self.assertIsInstance(result, Signal)
         self.assertIsInstance(result, np.ndarray)
         self.assertTrue(result.dtype == np.int16)
-        self.assertTrue(np.allclose(result[:5],
-                                    [-788, -793, -785, -846, -895]))
+        self.assertTrue(np.allclose(result[:5], [-788, -793, -785, -846, -895]))
         self.assertTrue(len(result) == 123481)
         # attributes
         self.assertTrue(result.sample_rate == 44100)
@@ -889,18 +902,17 @@ class TestSignalProcessorClass(unittest.TestCase):
         self.processor.dump(tmp_file)
         processor = SignalProcessor.load(tmp_file)
         self.assertEqual(type(self.processor), type(processor))
-        self.assertEqual(self.processor.sample_rate,
-                         processor.sample_rate)
-        self.assertEqual(self.processor.num_channels,
-                         processor.num_channels)
+        self.assertEqual(self.processor.sample_rate, processor.sample_rate)
+        self.assertEqual(self.processor.num_channels, processor.num_channels)
         self.assertEqual(self.processor.start, processor.start)
         self.assertEqual(self.processor.stop, processor.stop)
         self.assertEqual(self.processor.norm, processor.norm)
         self.assertEqual(self.processor.gain, processor.gain)
 
-    @unittest.skipIf(sys.version_info < (3, 2), 'assertWarns needs Python 3.2')
+    @unittest.skipIf(sys.version_info < (3, 2), "assertWarns needs Python 3.2")
     def test_multiprocessing(self):
         from concurrent.futures import ProcessPoolExecutor
+
         sig = Signal(sample_file)
         pool = ProcessPoolExecutor(max_workers=2)
         pool.submit(self.processor, sig).result()
@@ -1007,39 +1019,33 @@ class TestSignalFrameFunction(unittest.TestCase):
         result = signal_frame(x, 5, frame_size=4, hop_size=2, pad=-1)
         self.assertTrue(np.allclose(result, [18, 19, -1, -1]))
         # repeat first value
-        result = signal_frame(x, 0, frame_size=4, hop_size=2, pad='repeat')
+        result = signal_frame(x, 0, frame_size=4, hop_size=2, pad="repeat")
         self.assertTrue(np.allclose(result, [10, 10, 10, 11]))
-        result = signal_frame(x, -10, frame_size=4, hop_size=2, pad='repeat')
+        result = signal_frame(x, -10, frame_size=4, hop_size=2, pad="repeat")
         self.assertTrue(np.allclose(result, [10, 10, 10, 10]))
         # repeat last value
-        result = signal_frame(x, 0, frame_size=4, hop_size=2, pad='repeat')
+        result = signal_frame(x, 0, frame_size=4, hop_size=2, pad="repeat")
         self.assertTrue(np.allclose(result, [10, 10, 10, 11]))
-        result = signal_frame(x, 20, frame_size=3, hop_size=3, pad='repeat')
+        result = signal_frame(x, 20, frame_size=3, hop_size=3, pad="repeat")
         self.assertTrue(np.allclose(result, [19, 19, 19]))
 
         # 2D signal
         x = np.arange(10, 30).reshape((10, 2))
         # pad with a fixed value
         result = signal_frame(x, 0, frame_size=4, hop_size=2, pad=-1)
-        self.assertTrue(
-            np.allclose(result, [[-1, -1], [-1, -1], [10, 11], [12, 13]]))
+        self.assertTrue(np.allclose(result, [[-1, -1], [-1, -1], [10, 11], [12, 13]]))
         result = signal_frame(x, 0, frame_size=4, hop_size=2, pad=[-1, -2])
-        self.assertTrue(
-            np.allclose(result, [[-1, -2], [-1, -2], [10, 11], [12, 13]]))
+        self.assertTrue(np.allclose(result, [[-1, -2], [-1, -2], [10, 11], [12, 13]]))
         # pad by repeating first/last frame
-        result = signal_frame(x, 0, frame_size=4, hop_size=2, pad='repeat')
-        self.assertTrue(
-            np.allclose(result, [[10, 11], [10, 11], [10, 11], [12, 13]]))
-        result = signal_frame(x, 5, frame_size=4, hop_size=2, pad='repeat')
-        self.assertTrue(
-            np.allclose(result, [[26, 27], [28, 29], [28, 29], [28, 29]]))
+        result = signal_frame(x, 0, frame_size=4, hop_size=2, pad="repeat")
+        self.assertTrue(np.allclose(result, [[10, 11], [10, 11], [10, 11], [12, 13]]))
+        result = signal_frame(x, 5, frame_size=4, hop_size=2, pad="repeat")
+        self.assertTrue(np.allclose(result, [[26, 27], [28, 29], [28, 29], [28, 29]]))
         # requested frame out of signal
-        result = signal_frame(x, -2, frame_size=4, hop_size=2, pad='repeat')
-        self.assertTrue(
-            np.allclose(result, [[10, 11], [10, 11], [10, 11], [10, 11]]))
-        result = signal_frame(x, 7, frame_size=4, hop_size=2, pad='repeat')
-        self.assertTrue(
-            np.allclose(result, [[28, 29], [28, 29], [28, 29], [28, 29]]))
+        result = signal_frame(x, -2, frame_size=4, hop_size=2, pad="repeat")
+        self.assertTrue(np.allclose(result, [[10, 11], [10, 11], [10, 11], [10, 11]]))
+        result = signal_frame(x, 7, frame_size=4, hop_size=2, pad="repeat")
+        self.assertTrue(np.allclose(result, [[28, 29], [28, 29], [28, 29], [28, 29]]))
 
 
 # framing classes
@@ -1150,7 +1156,7 @@ class TestFramedSignalClass(unittest.TestCase):
         self.assertTrue(np.allclose(result[0], [0, 0, 0, 1]))
         # attributes
         self.assertTrue(result.frame_size == 4)
-        self.assertTrue(result.hop_size == 2.)
+        self.assertTrue(result.hop_size == 2.0)
         self.assertTrue(result.origin == 0)
         self.assertTrue(result.num_frames == 5)
         # properties
@@ -1164,7 +1170,7 @@ class TestFramedSignalClass(unittest.TestCase):
     def test_values_array_end(self):
         result = FramedSignal(np.arange(10), 4, 2)
         self.assertTrue(result.num_frames == 5)
-        result = FramedSignal(np.arange(10), 4, 2, end='extend')
+        result = FramedSignal(np.arange(10), 4, 2, end="extend")
         self.assertTrue(result.num_frames == 6)
 
     def test_values_array_with_sample_rate(self):
@@ -1179,7 +1185,7 @@ class TestFramedSignalClass(unittest.TestCase):
             result[5]
         # attributes
         self.assertTrue(result.frame_size == 4)
-        self.assertTrue(result.hop_size == 2.)
+        self.assertTrue(result.hop_size == 2.0)
         self.assertTrue(result.origin == 0)
         self.assertTrue(result.num_frames == 5)
         # properties
@@ -1202,7 +1208,7 @@ class TestFramedSignalClass(unittest.TestCase):
             result[4]
         # attributes
         self.assertTrue(result.frame_size == 4)
-        self.assertTrue(result.hop_size == 2.)
+        self.assertTrue(result.hop_size == 2.0)
         self.assertTrue(result.origin == -2)
         self.assertTrue(result.num_frames == 4)
         # properties
@@ -1223,27 +1229,27 @@ class TestFramedSignalClass(unittest.TestCase):
             FramedSignal(np.arange(10), 4, 2, sample_rate=4)[2:4:2]
         # only slices with integers should work
         with self.assertRaises(TypeError):
-            FramedSignal(np.arange(10), 4, 2, sample_rate=4)['foo':'bar']
+            FramedSignal(np.arange(10), 4, 2, sample_rate=4)["foo":"bar"]
         # only slices or integers should work
         with self.assertRaises(TypeError):
-            FramedSignal(np.arange(10), 4, 2, sample_rate=4)['bar']
+            FramedSignal(np.arange(10), 4, 2, sample_rate=4)["bar"]
 
     def test_values_file(self):
         signal = Signal(sample_file)
         result = FramedSignal(sample_file)
         self.assertTrue(np.allclose(result[0][:5], [0, 0, 0, 0, 0]))
         # 3rd frame should start at 3 * 441 - 2048 / 2 = 299
-        self.assertTrue(np.allclose(result[3], signal[299: 299 + 2048]))
+        self.assertTrue(np.allclose(result[3], signal[299 : 299 + 2048]))
         # attributes
         self.assertTrue(result.frame_size == 2048)
-        self.assertTrue(result.hop_size == 441.)
+        self.assertTrue(result.hop_size == 441.0)
         self.assertTrue(result.origin == 0)
         self.assertTrue(result.num_frames == 281)
         # properties
         self.assertTrue(len(result) == 281)
         self.assertTrue(result.shape == (281, 2048))
-        self.assertTrue(result.frame_rate == 100.)
-        self.assertTrue(result.fps == 100.)
+        self.assertTrue(result.frame_rate == 100.0)
+        self.assertTrue(result.fps == 100.0)
         self.assertTrue(result.overlap_factor == 0.78466796875)
         self.assertTrue(result.ndim == 2)
 
@@ -1252,10 +1258,10 @@ class TestFramedSignalClass(unittest.TestCase):
         result = FramedSignal(stereo_sample_file)
         self.assertTrue(np.allclose(result[0][:3], [[0, 0], [0, 0], [0, 0]]))
         # 3rd frame should start at 3 * 441 - 2048 / 2 = 299
-        self.assertTrue(np.allclose(result[3], signal[299: 299 + 2048]))
+        self.assertTrue(np.allclose(result[3], signal[299 : 299 + 2048]))
         # attributes
         self.assertTrue(result.frame_size == 2048)
-        self.assertTrue(result.hop_size == 441.)
+        self.assertTrue(result.hop_size == 441.0)
         self.assertTrue(result.origin == 0)
         self.assertTrue(result.num_frames == 415)
         # properties
@@ -1269,28 +1275,28 @@ class TestFramedSignalClass(unittest.TestCase):
     def test_values_file_origin(self):
         signal = Signal(sample_file)
         # literal origin
-        result = FramedSignal(sample_file, origin='online')
+        result = FramedSignal(sample_file, origin="online")
         self.assertTrue(result.origin == 1023)
         self.assertTrue(result.num_frames == 281)
         # 6th frame should start at 6 * 441 - 2048 + 1 (ref sample) = 599
-        self.assertTrue(np.allclose(result[6], signal[599: 599 + 2048]))
+        self.assertTrue(np.allclose(result[6], signal[599 : 599 + 2048]))
         # literal left origin
-        result = FramedSignal(sample_file, origin='left')
+        result = FramedSignal(sample_file, origin="left")
         self.assertTrue(result.origin == 1023)
         # positive origin shifts the window to the left
         result = FramedSignal(sample_file, origin=10)
         self.assertTrue(result.origin == 10)
         # literal offline origin
-        result = FramedSignal(sample_file, origin='offline')
+        result = FramedSignal(sample_file, origin="offline")
         self.assertTrue(result.origin == 0)
         # literal center origin
-        result = FramedSignal(sample_file, origin='center')
+        result = FramedSignal(sample_file, origin="center")
         self.assertTrue(result.origin == 0)
         # literal right origin
-        result = FramedSignal(sample_file, origin='right')
+        result = FramedSignal(sample_file, origin="right")
         self.assertTrue(result.origin == -1024)
         # literal future origin
-        result = FramedSignal(sample_file, origin='future')
+        result = FramedSignal(sample_file, origin="future")
         self.assertTrue(result.origin == -1024)
 
     def test_values_file_start(self):
@@ -1300,7 +1306,7 @@ class TestFramedSignalClass(unittest.TestCase):
         self.assertTrue(result.origin == -10)
         self.assertTrue(result.num_frames == 281)
         # 3rd frame should start at 3 * 441 - 2048 / 2 + 10 = 309
-        self.assertTrue(np.allclose(result[3], signal[309: 309 + 2048]))
+        self.assertTrue(np.allclose(result[3], signal[309 : 309 + 2048]))
 
     def test_values_file_fps(self):
         result = FramedSignal(sample_file, fps=200)
@@ -1308,26 +1314,31 @@ class TestFramedSignalClass(unittest.TestCase):
         self.assertTrue(result.hop_size == 220.5)
         result = FramedSignal(sample_file, fps=50)
         self.assertTrue(result.frame_size == 2048)
-        self.assertTrue(result.hop_size == 882.)
+        self.assertTrue(result.hop_size == 882.0)
 
     def test_methods(self):
         # mono signals
         frames = FramedSignal(sig_1d, frame_size=4, hop_size=2)
         self.assertTrue(np.allclose(frames.energy(), [0, 1, 2, 1, 1]))
-        self.assertTrue(np.allclose(frames.rms(),
-                                    [0, 0.5, 0.70710678, 0.5, 0.5]))
-        self.assertTrue(np.allclose(frames.spl(),
-                                    [-np.finfo(float).max, -6.0206, -3.0103,
-                                     -6.0206, -6.0206]))
+        self.assertTrue(np.allclose(frames.rms(), [0, 0.5, 0.70710678, 0.5, 0.5]))
+        self.assertTrue(
+            np.allclose(frames.spl(), [-np.finfo(float).max, -6.0206, -3.0103, -6.0206, -6.0206])
+        )
         # multi-channel signals
         frames = FramedSignal(sig_2d, frame_size=4, hop_size=2)
         self.assertTrue(np.allclose(frames.energy(), [1, 3, 4, 3, 3]))
-        self.assertTrue(np.allclose(frames.root_mean_square(),
-                                    [0.35355339, 0.61237244, 0.70710678,
-                                     0.61237244, 0.61237244]))
-        self.assertTrue(np.allclose(frames.sound_pressure_level(),
-                                    [-9.03089987, -4.25968732, -3.01029996,
-                                     -4.25968732, -4.25968732]))
+        self.assertTrue(
+            np.allclose(
+                frames.root_mean_square(),
+                [0.35355339, 0.61237244, 0.70710678, 0.61237244, 0.61237244],
+            )
+        )
+        self.assertTrue(
+            np.allclose(
+                frames.sound_pressure_level(),
+                [-9.03089987, -4.25968732, -3.01029996, -4.25968732, -4.25968732],
+            )
+        )
 
     def test_iterating(self):
         frames = FramedSignal(sig_1d, frame_size=4, hop_size=2)
@@ -1349,10 +1360,10 @@ class TestFramedSignalProcessorClass(unittest.TestCase):
 
     def test_values(self):
         self.assertTrue(self.processor.frame_size == 2048)
-        self.assertTrue(self.processor.hop_size == 441.)
+        self.assertTrue(self.processor.hop_size == 441.0)
         self.assertTrue(self.processor.fps is None)
         self.assertTrue(self.processor.origin == 0)
-        self.assertTrue(self.processor.end == 'normal')
+        self.assertTrue(self.processor.end == "normal")
         self.assertTrue(self.processor.num_frames is None)
 
     def test_process(self):
@@ -1361,25 +1372,25 @@ class TestFramedSignalProcessorClass(unittest.TestCase):
         self.assertTrue(np.allclose(result[0][1024], -2494))
         # attributes
         self.assertTrue(result.frame_size == 2048)
-        self.assertTrue(result.hop_size == 441.)
+        self.assertTrue(result.hop_size == 441.0)
         self.assertTrue(result.origin == 0)
         self.assertTrue(result.num_frames == 281)
         # properties
-        self.assertTrue(len(result) == 281.)
-        self.assertTrue(result.fps == 100.)
-        self.assertTrue(result.frame_rate == 100.)
+        self.assertTrue(len(result) == 281.0)
+        self.assertTrue(result.fps == 100.0)
+        self.assertTrue(result.frame_rate == 100.0)
         self.assertTrue(result.overlap_factor == 0.78466796875)
         self.assertTrue(result.shape == (281, 2048))
         self.assertTrue(result.ndim == 2)
 
     def test_rewrite_values(self):
-        self.processor.end = 'bogus'
-        self.assertTrue(self.processor.end == 'bogus')
+        self.processor.end = "bogus"
+        self.assertTrue(self.processor.end == "bogus")
 
     def test_process_online(self):
         # set online
-        self.processor.origin = 'online'
-        self.assertEqual(self.processor.origin, 'online')
+        self.processor.origin = "online"
+        self.assertEqual(self.processor.origin, "online")
         result = self.processor.process(sample_file)
         self.assertTrue(np.allclose(result[0][-1], -2494))
         self.assertTrue(len(result) == 281)
@@ -1390,7 +1401,7 @@ class TestFramedSignalProcessorClass(unittest.TestCase):
 
     def test_process_fps(self):
         # set fps
-        self.processor.fps = 200.
+        self.processor.fps = 200.0
         self.assertTrue(self.processor.fps == 200)
         result = self.processor.process(sample_file)
         self.assertTrue(np.allclose(result[0][:1023], np.zeros(1023)))
@@ -1398,13 +1409,13 @@ class TestFramedSignalProcessorClass(unittest.TestCase):
         self.assertTrue(len(result) == 561)
         self.assertTrue(result.num_frames == 561)
         # reset fps
-        self.processor.fps = 100.
+        self.processor.fps = 100.0
         self.assertTrue(self.processor.fps == 100)
 
     def test_process_end(self):
         # set end
-        self.processor.end = 'normal'
-        self.assertTrue(self.processor.end == 'normal')
+        self.processor.end = "normal"
+        self.assertTrue(self.processor.end == "normal")
         # test with a file
         result = self.processor.process(sample_file)
         self.assertTrue(np.allclose(result[0][:1023], np.zeros(1023)))
@@ -1418,17 +1429,17 @@ class TestFramedSignalProcessorClass(unittest.TestCase):
         self.assertTrue(len(result) == 3)
         self.assertTrue(result.num_frames == 3)
         # rewrite the end
-        self.processor.end = 'extend'
+        self.processor.end = "extend"
         result = self.processor.process(np.arange(18))
         self.assertTrue(len(result) == 4)
         self.assertTrue(result.num_frames == 4)
         # test with incorrect end value
         with self.assertRaises(ValueError):
-            processor = FramedSignalProcessor(end='bla')
+            processor = FramedSignalProcessor(end="bla")
             processor.process(sample_file)
         # reset end
-        self.processor.end = 'normal'
-        self.assertTrue(self.processor.end == 'normal')
+        self.processor.end = "normal"
+        self.assertTrue(self.processor.end == "normal")
 
     def test_pickle(self):
         self.processor.dump(tmp_file)

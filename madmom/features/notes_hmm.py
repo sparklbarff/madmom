@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -13,13 +12,13 @@ integer values because of performance reasons.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import numpy as np
-from madmom.ml.hmm import TransitionModel, ObservationModel
+
+from madmom.ml.hmm import ObservationModel, TransitionModel
 
 
-class ADSRStateSpace(object):
+class ADSRStateSpace:
     """
     Map state numbers to actual states.
 
@@ -77,8 +76,7 @@ class ADSRTransitionModel(TransitionModel):
 
     """
 
-    def __init__(self, state_space, onset_prob=0.8, note_prob=0.8,
-                 offset_prob=0.2, end_prob=1.):
+    def __init__(self, state_space, onset_prob=0.8, note_prob=0.8, offset_prob=0.2, end_prob=1.0):
         # save attributes
         self.state_space = state_space
         # states
@@ -89,14 +87,13 @@ class ADSRTransitionModel(TransitionModel):
         release = state_space.release
         # transitions = [(from_state, to_state, prob), ...]
         # onset phase & min_onset_length
-        t = [(silence, silence, 1. - onset_prob),
-             (silence, attack, onset_prob)]
+        t = [(silence, silence, 1.0 - onset_prob), (silence, attack, onset_prob)]
         for s in range(attack, decay):
-            t.append((s, silence, 1. - onset_prob))
+            t.append((s, silence, 1.0 - onset_prob))
             t.append((s, s + 1, onset_prob))
         # transition to note & min_note_duration
         for s in range(decay, sustain):
-            t.append((s, silence, 1. - note_prob))
+            t.append((s, silence, 1.0 - note_prob))
             t.append((s, s + 1, note_prob))
         # 3 possibilities to continue note
         prob_sum = onset_prob + note_prob + offset_prob
@@ -109,14 +106,13 @@ class ADSRTransitionModel(TransitionModel):
         # release phase
         for s in range(sustain + 1, release):
             t.append((s, sustain, offset_prob))
-            t.append((s, s + 1, 1. - offset_prob))
+            t.append((s, s + 1, 1.0 - offset_prob))
         # after releasing a note, go back to silence or start new note
         t.append((release, silence, end_prob))
-        t.append((release, release, 1. - end_prob))
+        t.append((release, release, 1.0 - end_prob))
         t = np.array(t)
         # make the transitions sparse
-        t = self.make_sparse(t[:, 1].astype(int), t[:, 0].astype(int),
-                             t[:, 2])
+        t = self.make_sparse(t[:, 1].astype(int), t[:, 0].astype(int), t[:, 2])
         # instantiate a TransitionModel
         super(ADSRTransitionModel, self).__init__(*t)
 
@@ -141,11 +137,11 @@ class ADSRObservationModel(ObservationModel):
         # define observation pointers
         pointers = np.zeros(state_space.num_states, dtype=np.uint32)
         # map from densities to states
-        pointers[state_space.silence:] = 0
-        pointers[state_space.attack:] = 1
-        pointers[state_space.decay:] = 2
+        pointers[state_space.silence :] = 0
+        pointers[state_space.attack :] = 1
+        pointers[state_space.decay :] = 2
         # Note: sustain uses the same observations as decay
-        pointers[state_space.release:] = 3
+        pointers[state_space.release :] = 3
         # instantiate a ObservationModel with the pointers
         super(ADSRObservationModel, self).__init__(pointers)
 
@@ -167,7 +163,7 @@ class ADSRObservationModel(ObservationModel):
         # observations: notes, onsets, offsets
         densities = np.ones((len(observations), 4), dtype=float)
         # silence (not onset)
-        densities[:, 0] = 1. - observations[:, 1]
+        densities[:, 0] = 1.0 - observations[:, 1]
         # attack: onset
         densities[:, 1] = observations[:, 1]
         # decay + sustain: note

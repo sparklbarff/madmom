@@ -154,9 +154,19 @@ filterwarnings = [
     "ignore::PendingDeprecationWarning",
 ]
 
+[tool.black]
+# Fleet pin is black 25.11.0 at 100 columns. This section did not exist before,
+# so black fell back to its 88 default while upstream's pre-commit entry passed
+# -l 120 on the command line: the width depended on how black was invoked.
+# -S (skip string normalization) is deliberately NOT carried over from that entry.
+line-length = 100
+target-version = ["py312"]
+
 [tool.ruff]
-target-version = "py39"
-line-length = 88
+# py39 contradicted requires-python = ">=3.12" above, which held the UP rules
+# back from modernising the tree to the Python it actually runs on.
+target-version = "py312"
+line-length = 100
 
 [tool.ruff.lint]
 select = [
@@ -169,6 +179,12 @@ select = [
 ]
 ignore = [
     "E501",   # line too long (handled by formatter)
+    # F403/F405 are mis-specified for this codebase rather than tolerated in it.
+    # madmom's package layout is deliberately built on `from .x import *`, so
+    # these two fire 3920 times across the tree: 93% of every finding ruff had.
+    # Left on, they bury the 292 findings that are actually about defects.
+    "F403",   # star import used
+    "F405",   # name may be undefined, or defined from star imports
 ]
 
 [tool.ruff.lint.isort]

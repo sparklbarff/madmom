@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -7,14 +6,13 @@ This module contains all cepstrogram related functionality.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import numpy as np
 from scipy.fftpack import dct
 
+from ..processors import Processor
 from .filters import MelFilterbank
 from .spectrogram import Spectrogram
-from ..processors import Processor
 
 
 class Cepstrogram(np.ndarray):
@@ -33,6 +31,7 @@ class Cepstrogram(np.ndarray):
         one is instantiated with these additional keyword arguments.
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
@@ -63,9 +62,9 @@ class Cepstrogram(np.ndarray):
         if obj is None:
             return
         # set default values here, also needed for views
-        self.spectrogram = getattr(obj, 'spectrogram', None)
-        self.bin_frequencies = getattr(obj, 'bin_frequencies', None)
-        self.transform = getattr(obj, 'transform', None)
+        self.spectrogram = getattr(obj, "spectrogram", None)
+        self.bin_frequencies = getattr(obj, "bin_frequencies", None)
+        self.transform = getattr(obj, "transform", None)
 
     @property
     def num_frames(self):
@@ -112,11 +111,11 @@ class CepstrogramProcessor(Processor):
 
 
 MFCC_BANDS = 30
-MFCC_FMIN = 40.
-MFCC_FMAX = 15000.
+MFCC_FMIN = 40.0
+MFCC_FMAX = 15000.0
 MFCC_NORM_FILTERS = True
-MFCC_MUL = 1.
-MFCC_ADD = 0.
+MFCC_MUL = 1.0
+MFCC_ADD = 0.0
 
 
 class MFCC(Cepstrogram):
@@ -172,47 +171,72 @@ class MFCC(Cepstrogram):
     5) The MFCCs are the amplitudes of the resulting spectrum
 
     """
+
     # pylint: disable=super-on-old-class
     # pylint: disable=super-init-not-called
     # pylint: disable=attribute-defined-outside-init
 
-    def __init__(self, spectrogram, transform=dct, filterbank=MelFilterbank,
-                 num_bands=MFCC_BANDS, fmin=MFCC_FMIN, fmax=MFCC_FMAX,
-                 norm_filters=MFCC_NORM_FILTERS, mul=MFCC_MUL, add=MFCC_ADD,
-                 **kwargs):
+    def __init__(
+        self,
+        spectrogram,
+        transform=dct,
+        filterbank=MelFilterbank,
+        num_bands=MFCC_BANDS,
+        fmin=MFCC_FMIN,
+        fmax=MFCC_FMAX,
+        norm_filters=MFCC_NORM_FILTERS,
+        mul=MFCC_MUL,
+        add=MFCC_ADD,
+        **kwargs,
+    ):
         # this method is for documentation purposes only
         pass
 
-    def __new__(cls, spectrogram, transform=dct, filterbank=MelFilterbank,
-                num_bands=MFCC_BANDS, fmin=MFCC_FMIN, fmax=MFCC_FMAX,
-                norm_filters=MFCC_NORM_FILTERS, mul=MFCC_MUL, add=MFCC_ADD,
-                **kwargs):
+    def __new__(
+        cls,
+        spectrogram,
+        transform=dct,
+        filterbank=MelFilterbank,
+        num_bands=MFCC_BANDS,
+        fmin=MFCC_FMIN,
+        fmax=MFCC_FMAX,
+        norm_filters=MFCC_NORM_FILTERS,
+        mul=MFCC_MUL,
+        add=MFCC_ADD,
+        **kwargs,
+    ):
         # for signature documentation see __init__()
         from .filters import Filterbank
+
         # instantiate a Spectrogram if needed
         if not isinstance(spectrogram, Spectrogram):
             # try to instantiate a Spectrogram object
             spectrogram = Spectrogram(spectrogram, **kwargs)
 
         # recalculate the spec if it is filtered or scaled already
-        if (spectrogram.filterbank is not None or
-                spectrogram.mul is not None or
-                spectrogram.add is not None):
+        if (
+            spectrogram.filterbank is not None
+            or spectrogram.mul is not None
+            or spectrogram.add is not None
+        ):
             import warnings
-            warnings.warn('Spectrogram was filtered or scaled already, redo '
-                          'calculation!')
+
+            warnings.warn("Spectrogram was filtered or scaled already, redo " "calculation!")
             spectrogram = Spectrogram(spectrogram.stft)
 
         # instantiate a Filterbank if needed
         if issubclass(filterbank, Filterbank):
             # create a filterbank of the given type
-            filterbank = filterbank(spectrogram.bin_frequencies,
-                                    num_bands=num_bands, fmin=fmin, fmax=fmax,
-                                    norm_filters=norm_filters,
-                                    duplicate_filters=False)
+            filterbank = filterbank(
+                spectrogram.bin_frequencies,
+                num_bands=num_bands,
+                fmin=fmin,
+                fmax=fmax,
+                norm_filters=norm_filters,
+                duplicate_filters=False,
+            )
         if not isinstance(filterbank, Filterbank):
-            raise ValueError('not a Filterbank type or instance: %s' %
-                             filterbank)
+            raise ValueError("not a Filterbank type or instance: %s" % filterbank)
         # filter the spectrogram
         data = np.dot(spectrogram, filterbank)
         # logarithmically scale the magnitudes
@@ -234,9 +258,9 @@ class MFCC(Cepstrogram):
         if obj is None:
             return
         # set default values here, also needed for views
-        self.filterbank = getattr(obj, 'filterbank', None)
-        self.mul = getattr(obj, 'mul', MFCC_MUL)
-        self.add = getattr(obj, 'add', MFCC_ADD)
+        self.filterbank = getattr(obj, "filterbank", None)
+        self.mul = getattr(obj, "mul", MFCC_MUL)
+        self.add = getattr(obj, "add", MFCC_ADD)
         super(MFCC, self).__array_finalize__(obj)
 
 
@@ -266,9 +290,17 @@ class MFCCProcessor(Processor):
 
     """
 
-    def __init__(self, num_bands=MFCC_BANDS, fmin=MFCC_FMIN, fmax=MFCC_FMAX,
-                 norm_filters=MFCC_NORM_FILTERS, mul=MFCC_MUL, add=MFCC_ADD,
-                 transform=dct, **kwargs):
+    def __init__(
+        self,
+        num_bands=MFCC_BANDS,
+        fmin=MFCC_FMIN,
+        fmax=MFCC_FMAX,
+        norm_filters=MFCC_NORM_FILTERS,
+        mul=MFCC_MUL,
+        add=MFCC_ADD,
+        transform=dct,
+        **kwargs,
+    ):
         # pylint: disable=unused-argument
         self.num_bands = num_bands
         self.fmin = fmin
@@ -293,6 +325,12 @@ class MFCCProcessor(Processor):
             MFCCs of the data.
 
         """
-        return MFCC(data, num_bands=self.num_bands, fmin=self.fmin,
-                    fmax=self.fmax, norm_filters=self.norm_filters,
-                    mul=self.mul, add=self.add)
+        return MFCC(
+            data,
+            num_bands=self.num_bands,
+            fmin=self.fmin,
+            fmax=self.fmax,
+            norm_filters=self.norm_filters,
+            mul=self.mul,
+            add=self.add,
+        )

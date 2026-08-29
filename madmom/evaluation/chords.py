@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 This module contains chord evaluation functionality.
 
@@ -31,16 +30,12 @@ References
 
 import numpy as np
 
-from . import evaluation_io, EvaluationMixin
 from ..io import load_chords
+from . import EvaluationMixin, evaluation_io
 
-CHORD_DTYPE = [('root', int),
-               ('bass', int),
-               ('intervals', int, (12,))]
+CHORD_DTYPE = [("root", int), ("bass", int), ("intervals", int, (12,))]
 
-CHORD_ANN_DTYPE = [('start', float),
-                   ('end', float),
-                   ('chord', CHORD_DTYPE)]
+CHORD_ANN_DTYPE = [("start", float), ("end", float), ("chord", CHORD_DTYPE)]
 
 NO_CHORD = (-1, -1, np.zeros(12, dtype=int))
 UNKNOWN_CHORD = (-1, -1, np.ones(12, dtype=int) * -1)
@@ -62,9 +57,9 @@ def encode(chord_labels):
 
     """
     encoded_chords = np.zeros(len(chord_labels), dtype=CHORD_ANN_DTYPE)
-    encoded_chords['start'] = chord_labels['start']
-    encoded_chords['end'] = chord_labels['end']
-    encoded_chords['chord'] = chords(chord_labels['label'])
+    encoded_chords["start"] = chord_labels["start"]
+    encoded_chords["end"] = chord_labels["end"]
+    encoded_chords["chord"] = chords(chord_labels["label"])
     return encoded_chords
 
 
@@ -112,30 +107,30 @@ def chord(label):
         Numeric representation of the chord: (root, bass, intervals array).
 
     """
-    if label == 'N':
+    if label == "N":
         return NO_CHORD
-    if label == 'X':
+    if label == "X":
         return UNKNOWN_CHORD
 
-    c_idx = label.find(':')
-    s_idx = label.find('/')
+    c_idx = label.find(":")
+    s_idx = label.find("/")
 
     if c_idx == -1:
-        quality_str = 'maj'
+        quality_str = "maj"
         if s_idx == -1:
             root_str = label
-            bass_str = ''
+            bass_str = ""
         else:
             root_str = label[:s_idx]
-            bass_str = label[s_idx + 1:]
+            bass_str = label[s_idx + 1 :]
     else:
         root_str = label[:c_idx]
         if s_idx == -1:
-            quality_str = label[c_idx + 1:]
-            bass_str = ''
+            quality_str = label[c_idx + 1 :]
+            bass_str = ""
         else:
-            quality_str = label[c_idx + 1:s_idx]
-            bass_str = label[s_idx + 1:]
+            quality_str = label[c_idx + 1 : s_idx]
+            bass_str = label[s_idx + 1 :]
 
     root = pitch(root_str)
     bass = interval(bass_str) if bass_str else 0
@@ -170,12 +165,12 @@ def modify(base_pitch, modifier):
 
     """
     for m in modifier:
-        if m == 'b':
+        if m == "b":
             base_pitch -= 1
-        elif m == '#':
+        elif m == "#":
             base_pitch += 1
         else:
-            raise ValueError('Unknown modifier: {}'.format(m))
+            raise ValueError(f"Unknown modifier: {m}")
     return base_pitch
 
 
@@ -195,8 +190,7 @@ def pitch(pitch_str):
         Integer representation of a pitch class.
 
     """
-    return modify(_chroma_id[(ord(pitch_str[0]) - ord('C')) % 7],
-                  pitch_str[1:]) % 12
+    return modify(_chroma_id[(ord(pitch_str[0]) - ord("C")) % 7], pitch_str[1:]) % 12
 
 
 def interval(interval_str):
@@ -218,8 +212,7 @@ def interval(interval_str):
     """
     for i, c in enumerate(interval_str):
         if c.isdigit():
-            return modify(_chroma_id[int(interval_str[i:]) - 1],
-                          interval_str[:i]) % 12
+            return modify(_chroma_id[int(interval_str[i:]) - 1], interval_str[:i]) % 12
 
 
 def interval_list(intervals_str, given_pitch_classes=None):
@@ -244,9 +237,9 @@ def interval_list(intervals_str, given_pitch_classes=None):
     """
     if given_pitch_classes is None:
         given_pitch_classes = np.zeros(12, dtype=int)
-    for int_def in intervals_str[1:-1].split(','):
+    for int_def in intervals_str[1:-1].split(","):
         int_def = int_def.strip()
-        if int_def[0] == '*':
+        if int_def[0] == "*":
             given_pitch_classes[interval(int_def[1:])] = 0
         else:
             given_pitch_classes[interval(int_def)] = 1
@@ -255,30 +248,30 @@ def interval_list(intervals_str, given_pitch_classes=None):
 
 # mapping of shorthand interval notations to the actual interval representation
 _shorthands = {
-    'maj': interval_list('(1,3,5)'),
-    'min': interval_list('(1,b3,5)'),
-    'dim': interval_list('(1,b3,b5)'),
-    'aug': interval_list('(1,3,#5)'),
-    'maj7': interval_list('(1,3,5,7)'),
-    'min7': interval_list('(1,b3,5,b7)'),
-    '7': interval_list('(1,3,5,b7)'),
-    '5': interval_list('(1,5)'),
-    '1': interval_list('(1)'),
-    'dim7': interval_list('(1,b3,b5,bb7)'),
-    'hdim7': interval_list('(1,b3,b5,b7)'),
-    'minmaj7': interval_list('(1,b3,5,7)'),
-    'maj6': interval_list('(1,3,5,6)'),
-    'min6': interval_list('(1,b3,5,6)'),
-    '9': interval_list('(1,3,5,b7,9)'),
-    'maj9': interval_list('(1,3,5,7,9)'),
-    'min9': interval_list('(1,b3,5,b7,9)'),
-    'sus2': interval_list('(1,2,5)'),
-    'sus4': interval_list('(1,4,5)'),
-    '11': interval_list('(1,3,5,b7,9,11)'),
-    'min11': interval_list('(1,b3,5,b7,9,11)'),
-    '13': interval_list('(1,3,5,b7,13)'),
-    'maj13': interval_list('(1,3,5,7,13)'),
-    'min13': interval_list('(1,b3,5,b7,13)')
+    "maj": interval_list("(1,3,5)"),
+    "min": interval_list("(1,b3,5)"),
+    "dim": interval_list("(1,b3,b5)"),
+    "aug": interval_list("(1,3,#5)"),
+    "maj7": interval_list("(1,3,5,7)"),
+    "min7": interval_list("(1,b3,5,b7)"),
+    "7": interval_list("(1,3,5,b7)"),
+    "5": interval_list("(1,5)"),
+    "1": interval_list("(1)"),
+    "dim7": interval_list("(1,b3,b5,bb7)"),
+    "hdim7": interval_list("(1,b3,b5,b7)"),
+    "minmaj7": interval_list("(1,b3,5,7)"),
+    "maj6": interval_list("(1,3,5,6)"),
+    "min6": interval_list("(1,b3,5,6)"),
+    "9": interval_list("(1,3,5,b7,9)"),
+    "maj9": interval_list("(1,3,5,7,9)"),
+    "min9": interval_list("(1,b3,5,b7,9)"),
+    "sus2": interval_list("(1,2,5)"),
+    "sus4": interval_list("(1,4,5)"),
+    "11": interval_list("(1,3,5,b7,9,11)"),
+    "min11": interval_list("(1,b3,5,b7,9,11)"),
+    "13": interval_list("(1,3,5,b7,13)"),
+    "maj13": interval_list("(1,3,5,7,13)"),
+    "min13": interval_list("(1,b3,5,b7,13)"),
 }
 
 
@@ -298,7 +291,7 @@ def chord_intervals(quality_str):
         Binary pitch class representation of chord quality.
 
     """
-    list_idx = quality_str.find('(')
+    list_idx = quality_str.find("(")
     if list_idx == -1:
         return _shorthands[quality_str].copy()
     if list_idx != 0:
@@ -315,7 +308,7 @@ def merge_chords(chords):
 
     Parameters
     ----------
-    chords : numpy structured arrray
+    chords : numpy structured array
         Chord annotations to be merged, in `CHORD_ANN_DTYPE` format.
 
     Returns
@@ -339,9 +332,9 @@ def merge_chords(chords):
             merged_ends[-1] = end
 
     crds = np.zeros(len(merged_chords), dtype=CHORD_ANN_DTYPE)
-    crds['start'] = merged_starts
-    crds['end'] = merged_ends
-    crds['chord'] = merged_chords
+    crds["start"] = merged_starts
+    crds["end"] = merged_ends
+    crds["chord"] = merged_chords
     return crds
 
 
@@ -367,14 +360,17 @@ def evaluation_pairs(det_chords, ann_chords):
         Durations of evaluation segments.
 
     """
-    times = np.unique(np.hstack([ann_chords['start'], ann_chords['end'],
-                                 det_chords['start'], det_chords['end']]))
+    times = np.unique(
+        np.hstack([ann_chords["start"], ann_chords["end"], det_chords["start"], det_chords["end"]])
+    )
 
     durations = times[1:] - times[:-1]
-    annotations = ann_chords['chord'][
-        np.searchsorted(ann_chords['start'], times[:-1], side='right') - 1]
-    detections = det_chords['chord'][
-        np.searchsorted(det_chords['start'], times[:-1], side='right') - 1]
+    annotations = ann_chords["chord"][
+        np.searchsorted(ann_chords["start"], times[:-1], side="right") - 1
+    ]
+    detections = det_chords["chord"][
+        np.searchsorted(det_chords["start"], times[:-1], side="right") - 1
+    ]
 
     return annotations, detections, durations
 
@@ -397,7 +393,7 @@ def score_root(det_chords, ann_chords):
         Similarity score for each chord.
 
     """
-    return (ann_chords['root'] == det_chords['root']).astype(float)
+    return (ann_chords["root"] == det_chords["root"]).astype(float)
 
 
 def score_exact(det_chords, ann_chords):
@@ -418,10 +414,11 @@ def score_exact(det_chords, ann_chords):
         Similarity score for each chord.
 
     """
-    return ((ann_chords['root'] == det_chords['root']) &
-            (ann_chords['bass'] == det_chords['bass']) &
-            ((ann_chords['intervals'] == det_chords['intervals']).all(axis=1))
-            ).astype(float)
+    return (
+        (ann_chords["root"] == det_chords["root"])
+        & (ann_chords["bass"] == det_chords["bass"])
+        & ((ann_chords["intervals"] == det_chords["intervals"]).all(axis=1))
+    ).astype(float)
 
 
 def reduce_to_triads(chords, keep_bass=False):
@@ -452,40 +449,39 @@ def reduce_to_triads(chords, keep_bass=False):
            In Proceedings of ICASSP 2013, Vancouver, Canada, 2013.
 
     """
-    unison = chords['intervals'][:, 0].astype(bool)
-    maj_sec = chords['intervals'][:, 2].astype(bool)
-    min_third = chords['intervals'][:, 3].astype(bool)
-    maj_third = chords['intervals'][:, 4].astype(bool)
-    perf_fourth = chords['intervals'][:, 5].astype(bool)
-    dim_fifth = chords['intervals'][:, 6].astype(bool)
-    perf_fifth = chords['intervals'][:, 7].astype(bool)
-    aug_fifth = chords['intervals'][:, 8].astype(bool)
-    no_chord = (chords['intervals'] == NO_CHORD[-1]).all(axis=1)
+    unison = chords["intervals"][:, 0].astype(bool)
+    maj_sec = chords["intervals"][:, 2].astype(bool)
+    min_third = chords["intervals"][:, 3].astype(bool)
+    maj_third = chords["intervals"][:, 4].astype(bool)
+    perf_fourth = chords["intervals"][:, 5].astype(bool)
+    dim_fifth = chords["intervals"][:, 6].astype(bool)
+    perf_fifth = chords["intervals"][:, 7].astype(bool)
+    aug_fifth = chords["intervals"][:, 8].astype(bool)
+    no_chord = (chords["intervals"] == NO_CHORD[-1]).all(axis=1)
 
     reduced_chords = chords.copy()
-    ivs = reduced_chords['intervals']
+    ivs = reduced_chords["intervals"]
 
-    ivs[~no_chord] = interval_list('(1)')
-    ivs[unison & perf_fifth] = interval_list('(1,5)')
-    ivs[~perf_fourth & maj_sec] = _shorthands['sus2']
-    ivs[perf_fourth & ~maj_sec] = _shorthands['sus4']
+    ivs[~no_chord] = interval_list("(1)")
+    ivs[unison & perf_fifth] = interval_list("(1,5)")
+    ivs[~perf_fourth & maj_sec] = _shorthands["sus2"]
+    ivs[perf_fourth & ~maj_sec] = _shorthands["sus4"]
 
-    ivs[min_third] = _shorthands['min']
-    ivs[min_third & aug_fifth & ~perf_fifth] = interval_list('(1,b3,#5)')
-    ivs[min_third & dim_fifth & ~perf_fifth] = _shorthands['dim']
+    ivs[min_third] = _shorthands["min"]
+    ivs[min_third & aug_fifth & ~perf_fifth] = interval_list("(1,b3,#5)")
+    ivs[min_third & dim_fifth & ~perf_fifth] = _shorthands["dim"]
 
-    ivs[maj_third] = _shorthands['maj']
-    ivs[maj_third & dim_fifth & ~perf_fifth] = interval_list('(1,3,b5)')
-    ivs[maj_third & aug_fifth & ~perf_fifth] = _shorthands['aug']
+    ivs[maj_third] = _shorthands["maj"]
+    ivs[maj_third & dim_fifth & ~perf_fifth] = interval_list("(1,3,b5)")
+    ivs[maj_third & aug_fifth & ~perf_fifth] = _shorthands["aug"]
 
     if not keep_bass:
-        reduced_chords['bass'] = 0
+        reduced_chords["bass"] = 0
     else:
         # remove bass notes if they are not part of the intervals anymore
-        reduced_chords['bass'] *= ivs[range(len(reduced_chords)),
-                                      reduced_chords['bass']]
+        reduced_chords["bass"] *= ivs[range(len(reduced_chords)), reduced_chords["bass"]]
     # keep -1 in bass for no chords
-    reduced_chords['bass'][no_chord] = -1
+    reduced_chords["bass"][no_chord] = -1
 
     return reduced_chords
 
@@ -518,75 +514,74 @@ def reduce_to_tetrads(chords, keep_bass=False):
            In Proceedings of ICASSP 2013, Vancouver, Canada, 2013.
 
     """
-    unison = chords['intervals'][:, 0].astype(bool)
-    maj_sec = chords['intervals'][:, 2].astype(bool)
-    min_third = chords['intervals'][:, 3].astype(bool)
-    maj_third = chords['intervals'][:, 4].astype(bool)
-    perf_fourth = chords['intervals'][:, 5].astype(bool)
-    dim_fifth = chords['intervals'][:, 6].astype(bool)
-    perf_fifth = chords['intervals'][:, 7].astype(bool)
-    aug_fifth = chords['intervals'][:, 8].astype(bool)
-    maj_sixth = chords['intervals'][:, 9].astype(bool)
+    unison = chords["intervals"][:, 0].astype(bool)
+    maj_sec = chords["intervals"][:, 2].astype(bool)
+    min_third = chords["intervals"][:, 3].astype(bool)
+    maj_third = chords["intervals"][:, 4].astype(bool)
+    perf_fourth = chords["intervals"][:, 5].astype(bool)
+    dim_fifth = chords["intervals"][:, 6].astype(bool)
+    perf_fifth = chords["intervals"][:, 7].astype(bool)
+    aug_fifth = chords["intervals"][:, 8].astype(bool)
+    maj_sixth = chords["intervals"][:, 9].astype(bool)
     dim_seventh = maj_sixth
-    min_seventh = chords['intervals'][:, 10].astype(bool)
-    maj_seventh = chords['intervals'][:, 11].astype(bool)
-    no_chord = (chords['intervals'] == NO_CHORD[-1]).all(axis=1)
+    min_seventh = chords["intervals"][:, 10].astype(bool)
+    maj_seventh = chords["intervals"][:, 11].astype(bool)
+    no_chord = (chords["intervals"] == NO_CHORD[-1]).all(axis=1)
 
     reduced_chords = chords.copy()
-    ivs = reduced_chords['intervals']
+    ivs = reduced_chords["intervals"]
 
-    ivs[~no_chord] = interval_list('(1)')
-    ivs[unison & perf_fifth] = interval_list('(1,5)')
+    ivs[~no_chord] = interval_list("(1)")
+    ivs[unison & perf_fifth] = interval_list("(1,5)")
 
     sus2 = ~perf_fourth & maj_sec
-    sus2_ivs = _shorthands['sus2']
+    sus2_ivs = _shorthands["sus2"]
     ivs[sus2] = sus2_ivs
-    ivs[sus2 & maj_sixth] = interval_list('(6)', sus2_ivs.copy())
-    ivs[sus2 & maj_seventh] = interval_list('(7)', sus2_ivs.copy())
-    ivs[sus2 & min_seventh] = interval_list('(b7)', sus2_ivs.copy())
+    ivs[sus2 & maj_sixth] = interval_list("(6)", sus2_ivs.copy())
+    ivs[sus2 & maj_seventh] = interval_list("(7)", sus2_ivs.copy())
+    ivs[sus2 & min_seventh] = interval_list("(b7)", sus2_ivs.copy())
 
     sus4 = perf_fourth & ~maj_sec
-    sus4_ivs = _shorthands['sus4']
+    sus4_ivs = _shorthands["sus4"]
     ivs[sus4] = sus4_ivs
-    ivs[sus4 & maj_sixth] = interval_list('(6)', sus4_ivs.copy())
-    ivs[sus4 & maj_seventh] = interval_list('(7)', sus4_ivs.copy())
-    ivs[sus4 & min_seventh] = interval_list('(b7)', sus4_ivs.copy())
+    ivs[sus4 & maj_sixth] = interval_list("(6)", sus4_ivs.copy())
+    ivs[sus4 & maj_seventh] = interval_list("(7)", sus4_ivs.copy())
+    ivs[sus4 & min_seventh] = interval_list("(b7)", sus4_ivs.copy())
 
-    ivs[min_third] = _shorthands['min']
-    ivs[min_third & maj_sixth] = _shorthands['min6']
-    ivs[min_third & maj_seventh] = _shorthands['minmaj7']
-    ivs[min_third & min_seventh] = _shorthands['min7']
+    ivs[min_third] = _shorthands["min"]
+    ivs[min_third & maj_sixth] = _shorthands["min6"]
+    ivs[min_third & maj_seventh] = _shorthands["minmaj7"]
+    ivs[min_third & min_seventh] = _shorthands["min7"]
     minaugfifth = min_third & ~perf_fifth & aug_fifth
-    ivs[minaugfifth] = interval_list('(1,b3,#5)')
-    ivs[minaugfifth & maj_seventh] = interval_list('(1,b3,#5,7)')
-    ivs[minaugfifth & min_seventh] = interval_list('(1,b3,#5,b7)')
+    ivs[minaugfifth] = interval_list("(1,b3,#5)")
+    ivs[minaugfifth & maj_seventh] = interval_list("(1,b3,#5,7)")
+    ivs[minaugfifth & min_seventh] = interval_list("(1,b3,#5,b7)")
     mindimfifth = min_third & ~perf_fifth & dim_fifth
-    ivs[mindimfifth] = _shorthands['dim']
-    ivs[mindimfifth & dim_seventh] = _shorthands['dim7']
-    ivs[mindimfifth & min_seventh] = _shorthands['hdim7']
+    ivs[mindimfifth] = _shorthands["dim"]
+    ivs[mindimfifth & dim_seventh] = _shorthands["dim7"]
+    ivs[mindimfifth & min_seventh] = _shorthands["hdim7"]
 
-    ivs[maj_third] = _shorthands['maj']
-    ivs[maj_third & maj_sixth] = _shorthands['maj6']
-    ivs[maj_third & maj_seventh] = _shorthands['maj7']
-    ivs[maj_third & min_seventh] = _shorthands['7']
+    ivs[maj_third] = _shorthands["maj"]
+    ivs[maj_third & maj_sixth] = _shorthands["maj6"]
+    ivs[maj_third & maj_seventh] = _shorthands["maj7"]
+    ivs[maj_third & min_seventh] = _shorthands["7"]
     majdimfifth = maj_third & ~perf_fifth & dim_fifth
-    ivs[majdimfifth] = interval_list('(1,3,b5)')
-    ivs[majdimfifth & maj_seventh] = interval_list('(1,3,b5,7)')
-    ivs[majdimfifth & min_seventh] = interval_list('(1,3,b5,b7)')
+    ivs[majdimfifth] = interval_list("(1,3,b5)")
+    ivs[majdimfifth & maj_seventh] = interval_list("(1,3,b5,7)")
+    ivs[majdimfifth & min_seventh] = interval_list("(1,3,b5,b7)")
     majaugfifth = maj_third & ~perf_fifth & aug_fifth
-    aug_ivs = _shorthands['aug']
-    ivs[majaugfifth] = _shorthands['aug']
-    ivs[majaugfifth & maj_seventh] = interval_list('(7)', aug_ivs.copy())
-    ivs[majaugfifth & min_seventh] = interval_list('(b7)', aug_ivs.copy())
+    aug_ivs = _shorthands["aug"]
+    ivs[majaugfifth] = _shorthands["aug"]
+    ivs[majaugfifth & maj_seventh] = interval_list("(7)", aug_ivs.copy())
+    ivs[majaugfifth & min_seventh] = interval_list("(b7)", aug_ivs.copy())
 
     if not keep_bass:
-        reduced_chords['bass'] = 0
+        reduced_chords["bass"] = 0
     else:
         # remove bass notes if they are not part of the intervals anymore
-        reduced_chords['bass'] *= ivs[range(len(reduced_chords)),
-                                      reduced_chords['bass']]
+        reduced_chords["bass"] *= ivs[range(len(reduced_chords)), reduced_chords["bass"]]
     # keep -1 in bass for no chords
-    reduced_chords['bass'][no_chord] = -1
+    reduced_chords["bass"][no_chord] = -1
 
     return reduced_chords
 
@@ -607,9 +602,11 @@ def select_majmin(chords):
         Selection mask for major, minor, and "no chords".
 
     """
-    return ((chords['intervals'] == _shorthands['maj']).all(axis=1) |
-            (chords['intervals'] == _shorthands['min']).all(axis=1) |
-            (chords['intervals'] == NO_CHORD[-1]).all(axis=1))
+    return (
+        (chords["intervals"] == _shorthands["maj"]).all(axis=1)
+        | (chords["intervals"] == _shorthands["min"]).all(axis=1)
+        | (chords["intervals"] == NO_CHORD[-1]).all(axis=1)
+    )
 
 
 def select_sevenths(chords):
@@ -628,10 +625,12 @@ def select_sevenths(chords):
         Selection mask for major, minor, seventh, and "no chords".
 
     """
-    return (select_majmin(chords) |
-            (chords['intervals'] == _shorthands['7']).all(axis=1) |
-            (chords['intervals'] == _shorthands['min7']).all(axis=1) |
-            (chords['intervals'] == _shorthands['maj7']).all(axis=1))
+    return (
+        select_majmin(chords)
+        | (chords["intervals"] == _shorthands["7"]).all(axis=1)
+        | (chords["intervals"] == _shorthands["min7"]).all(axis=1)
+        | (chords["intervals"] == _shorthands["maj7"]).all(axis=1)
+    )
 
 
 def adjust(det_chords, ann_chords):
@@ -641,7 +640,7 @@ def adjust(det_chords, ann_chords):
 
     Discard detected chords that start after the annotation ended,
     and shorten the last detection to fit the last annotation;
-    discared detected chords that end before the annotation begins,
+    discarded detected chords that end before the annotation begins,
     and shorten the first detection to match the first annotation.
 
     Parameters
@@ -657,25 +656,23 @@ def adjust(det_chords, ann_chords):
         Adjusted detected chord segments.
 
     """
-    det_start = det_chords[0]['start']
-    ann_start = ann_chords[0]['start']
+    det_start = det_chords[0]["start"]
+    ann_start = ann_chords[0]["start"]
     if det_start > ann_start:
-        filler = np.array((ann_start, det_start, chord('N')),
-                          dtype=CHORD_ANN_DTYPE)
+        filler = np.array((ann_start, det_start, chord("N")), dtype=CHORD_ANN_DTYPE)
         det_chords = np.hstack([filler, det_chords])
     elif det_start < ann_start:
-        det_chords = det_chords[det_chords['end'] > ann_start]
-        det_chords[0]['start'] = ann_start
+        det_chords = det_chords[det_chords["end"] > ann_start]
+        det_chords[0]["start"] = ann_start
 
-    det_end = det_chords[-1]['end']
-    ann_end = ann_chords[-1]['end']
+    det_end = det_chords[-1]["end"]
+    ann_end = ann_chords[-1]["end"]
     if det_end < ann_end:
-        filler = np.array((det_end, ann_end, chord('N')),
-                          dtype=CHORD_ANN_DTYPE)
+        filler = np.array((det_end, ann_end, chord("N")), dtype=CHORD_ANN_DTYPE)
         det_chords = np.hstack([det_chords, filler])
     elif det_end > ann_end:
-        det_chords = det_chords[det_chords['start'] < ann_end]
-        det_chords[-1]['end'] = ann_chords[-1]['end']
+        det_chords = det_chords[det_chords["start"] < ann_end]
+        det_chords[-1]["end"] = ann_chords[-1]["end"]
 
     return det_chords
 
@@ -711,11 +708,10 @@ def segmentation(ann_starts, ann_ends, det_starts, det_ends):
 
     """
     est_ts = np.unique(np.hstack([det_starts, det_ends]))
-    seg = 0.
+    seg = 0.0
     for start, end in zip(ann_starts, ann_ends):
         dur = end - start
-        seg_ts = np.hstack([
-            start, est_ts[(est_ts > start) & (est_ts < end)], end])
+        seg_ts = np.hstack([start, est_ts[(est_ts > start) & (est_ts < end)], end])
         seg += dur - np.diff(seg_ts).max()
 
     return seg / (ann_ends[-1] - ann_starts[0])
@@ -737,36 +733,35 @@ class ChordEvaluation(EvaluationMixin):
     """
 
     METRIC_NAMES = [
-        ('root', 'Root'),
-        ('majmin', 'MajMin'),
-        ('majminbass', 'MajMinBass'),
-        ('sevenths', 'Sevenths'),
-        ('seventhsbass', 'SeventhsBass'),
-        ('segmentation', 'Segmentation'),
-        ('oversegmentation', 'OverSegmentation'),
-        ('undersegmentation', 'UnderSegmentation'),
+        ("root", "Root"),
+        ("majmin", "MajMin"),
+        ("majminbass", "MajMinBass"),
+        ("sevenths", "Sevenths"),
+        ("seventhsbass", "SeventhsBass"),
+        ("segmentation", "Segmentation"),
+        ("oversegmentation", "OverSegmentation"),
+        ("undersegmentation", "UnderSegmentation"),
     ]
 
     def __init__(self, detections, annotations, name=None, **kwargs):
-        self.name = name or ''
+        self.name = name or ""
         self.ann_chords = merge_chords(encode(annotations))
-        self.det_chords = merge_chords(adjust(encode(detections),
-                                              self.ann_chords))
+        self.det_chords = merge_chords(adjust(encode(detections), self.ann_chords))
         self.annotations, self.detections, self.durations = evaluation_pairs(
-            self.det_chords, self.ann_chords)
+            self.det_chords, self.ann_chords
+        )
         self._underseg = None
         self._overseg = None
 
     @property
     def length(self):
         """Length of annotations."""
-        return self.ann_chords['end'][-1] - self.ann_chords['start'][0]
+        return self.ann_chords["end"][-1] - self.ann_chords["start"][0]
 
     @property
     def root(self):
         """Fraction of correctly detected chord roots."""
-        return np.average(score_root(self.detections, self.annotations),
-                          weights=self.durations)
+        return np.average(score_root(self.detections, self.annotations), weights=self.durations)
 
     @property
     def majmin(self):
@@ -777,8 +772,7 @@ class ChordEvaluation(EvaluationMixin):
         det_triads = reduce_to_triads(self.detections)
         ann_triads = reduce_to_triads(self.annotations)
         majmin_sel = select_majmin(ann_triads)
-        return np.average(score_exact(det_triads, ann_triads),
-                          weights=self.durations * majmin_sel)
+        return np.average(score_exact(det_triads, ann_triads), weights=self.durations * majmin_sel)
 
     @property
     def majminbass(self):
@@ -789,8 +783,7 @@ class ChordEvaluation(EvaluationMixin):
         det_triads = reduce_to_triads(self.detections, keep_bass=True)
         ann_triads = reduce_to_triads(self.annotations, keep_bass=True)
         majmin_sel = select_majmin(ann_triads)
-        return np.average(score_exact(det_triads, ann_triads),
-                          weights=self.durations * majmin_sel)
+        return np.average(score_exact(det_triads, ann_triads), weights=self.durations * majmin_sel)
 
     @property
     def sevenths(self):
@@ -801,8 +794,9 @@ class ChordEvaluation(EvaluationMixin):
         det_tetrads = reduce_to_tetrads(self.detections)
         ann_tetrads = reduce_to_tetrads(self.annotations)
         sevenths_sel = select_sevenths(ann_tetrads)
-        return np.average(score_exact(det_tetrads, ann_tetrads),
-                          weights=self.durations * sevenths_sel)
+        return np.average(
+            score_exact(det_tetrads, ann_tetrads), weights=self.durations * sevenths_sel
+        )
 
     @property
     def seventhsbass(self):
@@ -813,8 +807,9 @@ class ChordEvaluation(EvaluationMixin):
         det_tetrads = reduce_to_tetrads(self.detections, keep_bass=True)
         ann_tetrads = reduce_to_tetrads(self.annotations, keep_bass=True)
         sevenths_sel = select_sevenths(ann_tetrads)
-        return np.average(score_exact(det_tetrads, ann_tetrads),
-                          weights=self.durations * sevenths_sel)
+        return np.average(
+            score_exact(det_tetrads, ann_tetrads), weights=self.durations * sevenths_sel
+        )
 
     @property
     def undersegmentation(self):
@@ -824,8 +819,10 @@ class ChordEvaluation(EvaluationMixin):
         """
         if self._underseg is None:
             self._underseg = 1 - segmentation(
-                self.det_chords['start'], self.det_chords['end'],
-                self.ann_chords['start'], self.ann_chords['end'],
+                self.det_chords["start"],
+                self.det_chords["end"],
+                self.ann_chords["start"],
+                self.ann_chords["end"],
             )
         return self._underseg
 
@@ -837,8 +834,10 @@ class ChordEvaluation(EvaluationMixin):
         """
         if self._overseg is None:
             self._overseg = 1 - segmentation(
-                self.ann_chords['start'], self.ann_chords['end'],
-                self.det_chords['start'], self.det_chords['end'],
+                self.ann_chords["start"],
+                self.ann_chords["end"],
+                self.det_chords["start"],
+                self.det_chords["end"],
             )
         return self._overseg
 
@@ -858,15 +857,10 @@ class ChordEvaluation(EvaluationMixin):
 
         """
         ret = (
-            '{}\n'
-            '  Root: {:5.2f} MajMin: {:5.2f} MajMinBass: {:5.2f} '
-            'Sevenths: {:5.2f} SeventhsBass: {:5.2f}\n'
-            '  Seg: {:5.2f} UnderSeg: {:5.2f} OverSeg: {:5.2f}'.format(
-                self.name,
-                self.root * 100, self.majmin * 100, self.majminbass * 100,
-                self.sevenths * 100, self.seventhsbass * 100,
-                self.segmentation * 100, self.undersegmentation * 100,
-                self.oversegmentation * 100)
+            f"{self.name}\n"
+            f"  Root: {self.root * 100:5.2f} MajMin: {self.majmin * 100:5.2f} MajMinBass: {self.majminbass * 100:5.2f} "
+            f"Sevenths: {self.sevenths * 100:5.2f} SeventhsBass: {self.seventhsbass * 100:5.2f}\n"
+            f"  Seg: {self.segmentation * 100:5.2f} UnderSeg: {self.undersegmentation * 100:5.2f} OverSeg: {self.oversegmentation * 100:5.2f}"
         )
         return ret
 
@@ -885,10 +879,11 @@ class ChordSumEvaluation(ChordEvaluation):
         Name to be displayed.
 
     """
+
     # pylint: disable=super-init-not-called
 
     def __init__(self, eval_objects, name=None):
-        self.name = name or 'weighted mean for %d files' % len(eval_objects)
+        self.name = name or "weighted mean for %d files" % len(eval_objects)
 
         self.annotations = np.hstack([e.annotations for e in eval_objects])
         self.detections = np.hstack([e.detections for e in eval_objects])
@@ -927,10 +922,11 @@ class ChordMeanEvaluation(ChordEvaluation):
         Name to be displayed.
 
     """
+
     # pylint: disable=super-init-not-called
 
     def __init__(self, eval_objects, name=None):
-        self.name = name or 'piecewise mean for %d files' % len(eval_objects)
+        self.name = name or "piecewise mean for %d files" % len(eval_objects)
         self.eval_objects = eval_objects
 
     def length(self):
@@ -986,11 +982,13 @@ def add_parser(parser):
 
     """
     import argparse
+
     # add chord evaluation sub-parser to the existing parser
     p = parser.add_parser(
-        'chords', help='chord evaluation',
+        "chords",
+        help="chord evaluation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description='''
+        description="""
     This program evaluates pairs of files containing the chord annotations and
     predictions. Suffixes can be given to filter them from the list of files.
 
@@ -998,11 +996,16 @@ def add_parser(parser):
     being separated by whitespace (chord_label follows the syntax as defined
     by Harte 2010):
     `start_time end_time chord_label`
-    ''')
+    """,
+    )
     # set defaults
-    p.set_defaults(eval=ChordEvaluation, sum_eval=ChordSumEvaluation,
-                   mean_eval=ChordMeanEvaluation, load_fn=load_chords)
+    p.set_defaults(
+        eval=ChordEvaluation,
+        sum_eval=ChordSumEvaluation,
+        mean_eval=ChordMeanEvaluation,
+        load_fn=load_chords,
+    )
     # file I/O
-    evaluation_io(p, ann_suffix='.chords', det_suffix='.chords.txt')
+    evaluation_io(p, ann_suffix=".chords", det_suffix=".chords.txt")
     # return the sub-parser and evaluation argument group
     return p

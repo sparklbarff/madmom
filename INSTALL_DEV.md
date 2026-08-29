@@ -70,4 +70,3 @@ The GitHub Actions workflow (`.github/workflows/test.yml`) automatically:
 4. Verifies Cython compilation
 5. Verifies model submodule loading
 6. Runs the full test suite
-

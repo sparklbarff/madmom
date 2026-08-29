@@ -1,16 +1,17 @@
 #!/usr/bin/env python
-# encoding: utf-8
 """
 Chord Recognizer based on features extracted by a Convolutional Neural Network.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import argparse
 
-from madmom.features import (ActivationsProcessor, CNNChordFeatureProcessor,
-                             CRFChordRecognitionProcessor)
+from madmom.features import (
+    ActivationsProcessor,
+    CNNChordFeatureProcessor,
+    CRFChordRecognitionProcessor,
+)
 from madmom.io import write_chords
 from madmom.processors import IOProcessor, io_arguments
 
@@ -19,7 +20,8 @@ def main():
     """CNNChordRecognition"""
 
     p = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter, description='''
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""
     The CNNChordRecognition program recognises major and minor chords in an
     audio file by first extracting learned features using a Convolutional
     Neural network, and then decoding the most likely chord sequence using a
@@ -49,12 +51,11 @@ def main():
     The 'pickle' mode can be used to store the used parameters to be able to
     exactly reproduce experiments.
 
-    '''
+    """,
     )
     # version
-    p.add_argument('--version', action='version',
-                   version='CNNChordRecognition.2016')
-    io_arguments(p, output_suffix='.chords.txt')
+    p.add_argument("--version", action="version", version="CNNChordRecognition.2016")
+    io_arguments(p, output_suffix=".chords.txt")
     ActivationsProcessor.add_arguments(p)
 
     args = p.parse_args()
@@ -68,14 +69,14 @@ def main():
     # input processor
     if args.load:
         # load activations (features) from a file
-        in_processor = ActivationsProcessor(mode='r', **vars(args))
+        in_processor = ActivationsProcessor(mode="r", **vars(args))
     else:
         in_processor = CNNChordFeatureProcessor(**vars(args))
 
     # output processor
     if args.save:
         # save activations (features) to a file
-        out_processor = ActivationsProcessor(mode='w', **vars(args))
+        out_processor = ActivationsProcessor(mode="w", **vars(args))
     else:
         # load conditional random field
         chord_processor = CRFChordRecognitionProcessor(**vars(args))
@@ -85,5 +86,5 @@ def main():
     args.func(processor, **vars(args))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

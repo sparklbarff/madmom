@@ -1,20 +1,20 @@
 #!/usr/bin/env python
-# encoding: utf-8
 """
 ComplexFlux onset detection algorithm.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import argparse
 
-from madmom.audio import (FramedSignalProcessor,
-                          LogarithmicSpectrogramProcessor, SignalProcessor,
-                          SpectrogramDifferenceProcessor)
+from madmom.audio import (
+    FramedSignalProcessor,
+    LogarithmicSpectrogramProcessor,
+    SignalProcessor,
+    SpectrogramDifferenceProcessor,
+)
 from madmom.audio.filters import FilterbankProcessor, LogarithmicFilterbank
-from madmom.features import (ActivationsProcessor, OnsetPeakPickingProcessor,
-                             SpectralOnsetProcessor)
+from madmom.features import ActivationsProcessor, OnsetPeakPickingProcessor, SpectralOnsetProcessor
 from madmom.io import write_onsets
 from madmom.processors import IOProcessor, io_arguments
 
@@ -24,7 +24,8 @@ def main():
 
     # define parser
     p = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter, description='''
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""
     The ComplexFlux program detects all onsets in an audio file according to
     the method described in:
 
@@ -50,28 +51,34 @@ def main():
     The 'pickle' mode can be used to store the used parameters to be able to
     exactly reproduce experiments.
 
-    ''')
+    """,
+    )
     # version
-    p.add_argument('--version', action='version', version='ComplexFlux.2016')
+    p.add_argument("--version", action="version", version="ComplexFlux.2016")
     # add arguments
-    io_arguments(p, output_suffix='.onsets.txt')
+    io_arguments(p, output_suffix=".onsets.txt")
     ActivationsProcessor.add_arguments(p)
     SignalProcessor.add_arguments(p, norm=False, gain=0)
     FramedSignalProcessor.add_arguments(p, fps=200)
-    FilterbankProcessor.add_arguments(p, num_bands=24, fmin=30, fmax=17000,
-                                      norm_filters=False)
+    FilterbankProcessor.add_arguments(p, num_bands=24, fmin=30, fmax=17000, norm_filters=False)
     LogarithmicSpectrogramProcessor.add_arguments(p, log=True, mul=1, add=1)
-    SpectrogramDifferenceProcessor.add_arguments(p, diff_ratio=0.5,
-                                                 diff_max_bins=3)
-    OnsetPeakPickingProcessor.add_arguments(p, threshold=0.25, pre_max=0.01,
-                                            post_max=0.05, pre_avg=0.15,
-                                            post_avg=0, combine=0.03, delay=0)
+    SpectrogramDifferenceProcessor.add_arguments(p, diff_ratio=0.5, diff_max_bins=3)
+    OnsetPeakPickingProcessor.add_arguments(
+        p,
+        threshold=0.25,
+        pre_max=0.01,
+        post_max=0.05,
+        pre_avg=0.15,
+        post_avg=0,
+        combine=0.03,
+        delay=0,
+    )
     # parse arguments
     args = p.parse_args()
 
     # set immutable defaults
     args.num_channels = 1
-    args.onset_method = 'complex_flux'
+    args.onset_method = "complex_flux"
     args.filterbank = LogarithmicFilterbank
 
     # print arguments
@@ -81,7 +88,7 @@ def main():
     # input processor
     if args.load:
         # load the activations from file
-        in_processor = ActivationsProcessor(mode='r', **vars(args))
+        in_processor = ActivationsProcessor(mode="r", **vars(args))
     else:
         # define spectral onset detection function
         in_processor = SpectralOnsetProcessor(**vars(args))
@@ -89,7 +96,7 @@ def main():
     # output processor
     if args.save:
         # save the onset activations to file
-        out_processor = ActivationsProcessor(mode='w', **vars(args))
+        out_processor = ActivationsProcessor(mode="w", **vars(args))
     else:
         # detect the onsets and output them
         peak_picking = OnsetPeakPickingProcessor(**vars(args))
@@ -102,5 +109,5 @@ def main():
     args.func(processor, **vars(args))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

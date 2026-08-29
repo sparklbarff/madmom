@@ -1,11 +1,9 @@
-# encoding: utf-8
 # pylint: skip-file
 """
 This file contains tests for the madmom.processors module.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import tempfile
 import unittest
@@ -89,4 +87,5 @@ class TestBufferProcessor(unittest.TestCase):
 # clean up
 def teardown_module():
     import os
+
     os.unlink(tmp_file)

@@ -1,19 +1,19 @@
 #!/usr/bin/env python
-# encoding: utf-8
 """
 GMMPatternTracker for tracking (down-)beats based on rhythmic patterns.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import argparse
 
 from madmom.audio.signal import FramedSignalProcessor, SignalProcessor
-from madmom.audio.spectrogram import (FilteredSpectrogramProcessor,
-                                      LogarithmicSpectrogramProcessor,
-                                      MultiBandSpectrogramProcessor,
-                                      SpectrogramDifferenceProcessor)
+from madmom.audio.spectrogram import (
+    FilteredSpectrogramProcessor,
+    LogarithmicSpectrogramProcessor,
+    MultiBandSpectrogramProcessor,
+    SpectrogramDifferenceProcessor,
+)
 from madmom.audio.stft import ShortTimeFourierTransformProcessor
 from madmom.features import ActivationsProcessor
 from madmom.features.downbeats import PatternTrackingProcessor
@@ -27,7 +27,8 @@ def main():
 
     # define parser
     p = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter, description='''
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""
     The GMMPatternTracker program detects rhythmic patterns in an audio file
     and reports the (down-)beats according to the method described in:
 
@@ -61,12 +62,12 @@ def main():
     The 'pickle' mode can be used to store the used parameters to be able to
     exactly reproduce experiments.
 
-    ''')
+    """,
+    )
     # version
-    p.add_argument('--version', action='version',
-                   version='GMMPatternTracker.2013')
+    p.add_argument("--version", action="version", version="GMMPatternTracker.2013")
     # add arguments
-    io_arguments(p, output_suffix='.beats.txt')
+    io_arguments(p, output_suffix=".beats.txt")
     ActivationsProcessor.add_arguments(p)
     SignalProcessor.add_arguments(p, norm=False, gain=0)
     PatternTrackingProcessor.add_arguments(p)
@@ -96,7 +97,7 @@ def main():
     # input processor
     if args.load:
         # load the activations from file
-        in_processor = ActivationsProcessor(mode='r', **vars(args))
+        in_processor = ActivationsProcessor(mode="r", **vars(args))
     else:
         # define an input processor
         sig = SignalProcessor(**vars(args))
@@ -111,7 +112,7 @@ def main():
     # output processor
     if args.save:
         # save the multiband features to file
-        out_processor = ActivationsProcessor(mode='w', **vars(args))
+        out_processor = ActivationsProcessor(mode="w", **vars(args))
     else:
         # track the (down-)beats (i.e. patterns) and output them
         out_processor = [PatternTrackingProcessor(**vars(args))]
@@ -127,5 +128,5 @@ def main():
     args.func(processor, **vars(args))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

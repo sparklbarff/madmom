@@ -1,4 +1,3 @@
-# encoding: utf-8
 # pylint: disable=no-member
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
@@ -11,13 +10,12 @@ Notes are stored as numpy arrays with the following column definition:
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import numpy as np
 
-from .onsets import OnsetPeakPickingProcessor, peak_picking
 from ..processors import ParallelProcessor, Processor, SequentialProcessor
 from ..utils import combine_events
+from .onsets import OnsetPeakPickingProcessor, peak_picking
 
 
 # class for detecting notes with a RNN
@@ -56,13 +54,15 @@ class RNNPianoNoteProcessor(SequentialProcessor):
 
     def __init__(self, **kwargs):
         # pylint: disable=unused-argument
-        from ..audio.signal import SignalProcessor, FramedSignalProcessor
-        from ..audio.stft import ShortTimeFourierTransformProcessor
+        from ..audio.signal import FramedSignalProcessor, SignalProcessor
         from ..audio.spectrogram import (
-            FilteredSpectrogramProcessor, LogarithmicSpectrogramProcessor,
-            SpectrogramDifferenceProcessor)
-        from ..models import NOTES_BRNN
+            FilteredSpectrogramProcessor,
+            LogarithmicSpectrogramProcessor,
+            SpectrogramDifferenceProcessor,
+        )
+        from ..audio.stft import ShortTimeFourierTransformProcessor
         from ..ml.nn import NeuralNetwork
+        from ..models import NOTES_BRNN
 
         # define pre-processing chain
         sig = SignalProcessor(num_channels=1, sample_rate=44100)
@@ -72,10 +72,12 @@ class RNNPianoNoteProcessor(SequentialProcessor):
             frames = FramedSignalProcessor(frame_size=frame_size, fps=100)
             stft = ShortTimeFourierTransformProcessor()  # caching FFT window
             filt = FilteredSpectrogramProcessor(
-                num_bands=12, fmin=30, fmax=17000, norm_filters=True)
+                num_bands=12, fmin=30, fmax=17000, norm_filters=True
+            )
             spec = LogarithmicSpectrogramProcessor(mul=5, add=1)
             diff = SpectrogramDifferenceProcessor(
-                diff_ratio=0.5, positive_diffs=True, stack_diffs=np.hstack)
+                diff_ratio=0.5, positive_diffs=True, stack_diffs=np.hstack
+            )
             # process each frame size with spec and diff sequentially
             multi.append(SequentialProcessor((frames, stft, filt, spec, diff)))
         # stack the features and processes everything sequentially
@@ -149,24 +151,42 @@ class NoteOnsetPeakPickingProcessor(OnsetPeakPickingProcessor):
            [ 3.37, 75.  ]])
 
     """
-    THRESHOLD = 0.5  # binary threshold
-    SMOOTH = 0.
-    PRE_AVG = 0.
-    POST_AVG = 0.
-    PRE_MAX = 0.
-    POST_MAX = 0.
-    COMBINE = 0.03
-    DELAY = 0.
 
-    def __init__(self, threshold=THRESHOLD, smooth=SMOOTH, pre_avg=PRE_AVG,
-                 post_avg=POST_AVG, pre_max=PRE_MAX, post_max=POST_MAX,
-                 combine=COMBINE, delay=DELAY, fps=None, pitch_offset=0,
-                 **kwargs):
+    THRESHOLD = 0.5  # binary threshold
+    SMOOTH = 0.0
+    PRE_AVG = 0.0
+    POST_AVG = 0.0
+    PRE_MAX = 0.0
+    POST_MAX = 0.0
+    COMBINE = 0.03
+    DELAY = 0.0
+
+    def __init__(
+        self,
+        threshold=THRESHOLD,
+        smooth=SMOOTH,
+        pre_avg=PRE_AVG,
+        post_avg=POST_AVG,
+        pre_max=PRE_MAX,
+        post_max=POST_MAX,
+        combine=COMBINE,
+        delay=DELAY,
+        fps=None,
+        pitch_offset=0,
+        **kwargs,
+    ):
         # pylint: disable=unused-argument
         super(NoteOnsetPeakPickingProcessor, self).__init__(
-            threshold=threshold, smooth=smooth, pre_avg=pre_avg,
-            post_avg=post_avg, pre_max=pre_max, post_max=post_max,
-            combine=combine, delay=delay, fps=fps)
+            threshold=threshold,
+            smooth=smooth,
+            pre_avg=pre_avg,
+            post_avg=post_avg,
+            pre_max=pre_max,
+            post_max=post_max,
+            combine=combine,
+            delay=delay,
+            fps=fps,
+        )
         self.pitch_offset = pitch_offset
 
     def process(self, activations, **kwargs):
@@ -186,8 +206,10 @@ class NoteOnsetPeakPickingProcessor(OnsetPeakPickingProcessor):
         """
         # convert timing information to frames and set default values
         # Ensure at least 1 frame if any timing value is > 0 (prevents zero-frame operations)
-        timings = np.array([self.smooth, self.pre_avg, self.post_avg,
-                            self.pre_max, self.post_max]) * self.fps
+        timings = (
+            np.array([self.smooth, self.pre_avg, self.post_avg, self.pre_max, self.post_max])
+            * self.fps
+        )
         timings = np.round(timings).astype(int)
         # Use at least 1 frame if any value is > 0 to ensure meaningful processing
         timings = np.maximum(timings, (timings > 0).astype(int))
@@ -210,7 +232,7 @@ class NoteOnsetPeakPickingProcessor(OnsetPeakPickingProcessor):
                 # get all onsets for this pitch
                 onsets_ = onsets[pitches == pitch]
                 # combine onsets
-                onsets_ = combine_events(onsets_, self.combine, 'left')
+                onsets_ = combine_events(onsets_, self.combine, "left")
                 # zip onsets and pitches and add them to list of detections
                 notes.extend(list(zip(onsets_, [pitch] * len(onsets_))))
         else:
@@ -230,8 +252,7 @@ class NotePeakPickingProcessor(NoteOnsetPeakPickingProcessor):
 
     def __init__(self, fps=100, pitch_offset=21, **kwargs):
         # pylint: disable=unused-argument
-        super(NotePeakPickingProcessor, self).__init__(
-            fps=fps, pitch_offset=pitch_offset, **kwargs)
+        super(NotePeakPickingProcessor, self).__init__(fps=fps, pitch_offset=pitch_offset, **kwargs)
 
 
 def _cnn_pad(data):
@@ -293,12 +314,15 @@ class CNNPianoNoteProcessor(SequentialProcessor):
     """
 
     def __init__(self, **kwargs):
-        from ..audio.signal import SignalProcessor, FramedSignalProcessor
+        from ..audio.signal import FramedSignalProcessor, SignalProcessor
+        from ..audio.spectrogram import (
+            FilteredSpectrogramProcessor,
+            LogarithmicSpectrogramProcessor,
+        )
         from ..audio.stft import ShortTimeFourierTransformProcessor
-        from ..audio.spectrogram import (FilteredSpectrogramProcessor,
-                                         LogarithmicSpectrogramProcessor)
-        from ..models import NOTES_CNN
         from ..ml.nn import NeuralNetworkEnsemble
+        from ..models import NOTES_CNN
+
         # define pre-processing chain
         sig = SignalProcessor(num_channels=1, sample_rate=44100)
         frames = FramedSignalProcessor(frame_size=4096, fps=50)
@@ -306,8 +330,7 @@ class CNNPianoNoteProcessor(SequentialProcessor):
         filt = FilteredSpectrogramProcessor(num_bands=24, fmin=30, fmax=10000)
         spec = LogarithmicSpectrogramProcessor(add=1)
         # pre-processes everything sequentially
-        pre_processor = SequentialProcessor(
-            (sig, frames, stft, filt, spec, _cnn_pad))
+        pre_processor = SequentialProcessor((sig, frames, stft, filt, spec, _cnn_pad))
         # process the pre-processed signal with a NN
         nn = NeuralNetworkEnsemble.load(NOTES_CNN)
         # instantiate a SequentialProcessor
@@ -374,21 +397,34 @@ class ADSRNoteTrackingProcessor(Processor):
            [ 3.42, 43. , 0.74]])
     """
 
-    def __init__(self, onset_prob=0.8, note_prob=0.8, offset_prob=0.5,
-                 attack_length=0.04, decay_length=0.04, release_length=0.02,
-                 complete=True, onset_threshold=0.5, note_threshold=0.5,
-                 fps=50, pitch_offset=21, **kwargs):
-        from .notes_hmm import (ADSRStateSpace, ADSRTransitionModel,
-                                ADSRObservationModel)
+    def __init__(
+        self,
+        onset_prob=0.8,
+        note_prob=0.8,
+        offset_prob=0.5,
+        attack_length=0.04,
+        decay_length=0.04,
+        release_length=0.02,
+        complete=True,
+        onset_threshold=0.5,
+        note_threshold=0.5,
+        fps=50,
+        pitch_offset=21,
+        **kwargs,
+    ):
         from ..ml.hmm import HiddenMarkovModel
+        from .notes_hmm import ADSRObservationModel, ADSRStateSpace, ADSRTransitionModel
+
         # state space
-        self.st = ADSRStateSpace(attack_length=int(attack_length * fps),
-                                 decay_length=int(decay_length * fps),
-                                 release_length=int(release_length * fps))
+        self.st = ADSRStateSpace(
+            attack_length=int(attack_length * fps),
+            decay_length=int(decay_length * fps),
+            release_length=int(release_length * fps),
+        )
         # transition model
-        self.tm = ADSRTransitionModel(self.st, onset_prob=onset_prob,
-                                      note_prob=note_prob,
-                                      offset_prob=offset_prob)
+        self.tm = ADSRTransitionModel(
+            self.st, onset_prob=onset_prob, note_prob=note_prob, offset_prob=offset_prob
+        )
         # observation model
         self.om = ADSRObservationModel(self.st)
         # instantiate a HMM
@@ -420,12 +456,11 @@ class ADSRNoteTrackingProcessor(Processor):
         # process each pitch individually
         for pitch in range(activations.shape[1]):
             # decode activations for this pitch with HMM
-            with np.errstate(divide='ignore'):
+            with np.errstate(divide="ignore"):
                 # ignore warnings when taking the log of 0
                 path, _ = self.hmm.viterbi(activations[:, pitch, :])
             # extract HMM note segments
-            segments = np.logical_and(path > self.st.attack,
-                                      path < self.st.release)
+            segments = np.logical_and(path > self.st.attack, path < self.st.release)
             # extract start and end positions (transition points)
             idx = np.nonzero(np.diff(segments.astype(int)))[0]
             # add end if needed
@@ -449,8 +484,9 @@ class ADSRNoteTrackingProcessor(Processor):
                 if onsets[onset:offset].max() < self.onset_threshold:
                     continue
                 # append segment as note
-                notes.append([onset / self.fps, pitch + self.pitch_offset,
-                              (offset - onset) / self.fps])
+                notes.append(
+                    [onset / self.fps, pitch + self.pitch_offset, (offset - onset) / self.fps]
+                )
         # if no note notes are detected, return empty array
         if len(notes) == 0:
             return np.empty((0, 3))
