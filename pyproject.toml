@@ -68,11 +68,15 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/CPJKU/madmom"
+# Severance residue, corrected 2026-08-29. Repository and Issues already pointed
+# here; Homepage and Changelog still advertised upstream, so `pip show madmom`
+# printed CPJKU as the home page of a repo that no longer tracks it. Changelog now
+# names this tree's own CHANGES.rst, on the branch that actually exists.
+Homepage = "https://github.com/sparklbarff/madmom"
 Documentation = "https://madmom.readthedocs.io"
 Repository = "https://github.com/sparklbarff/madmom.git"
 Issues = "https://github.com/sparklbarff/madmom/issues"
-Changelog = "https://github.com/CPJKU/madmom/blob/master/CHANGES.rst"
+Changelog = "https://github.com/sparklbarff/madmom/blob/consolidation-2025-12/CHANGES.rst"
 
 # CLI scripts are installed via setup.py scripts= directive
 # See bin/ directory for standalone command-line tools
@@ -186,6 +190,22 @@ ignore = [
     "F403",   # star import used
     "F405",   # name may be undefined, or defined from star imports
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# Two rules that are RIGHT in general and WRONG here, measured rather than assumed.
+#
+# F401 in a package __init__ is not an unused import, it is the public API. All 82
+# F401 findings in this tree are in __init__.py files and nowhere else, so ruff's
+# fix (delete them) would delete the API. Silencing it here is the accurate answer;
+# the alternative is 82 findings nobody may ever action, which trains the reader to
+# skip the report.
+"**/__init__.py" = ["F401"]
+# E721 wants isinstance() over type(a) == type(b). In these tests the exact-type
+# comparison is the POINT: `type(result) == type(sig_1d)` asserts that smooth()
+# returns a Signal and not a bare ndarray, and isinstance would let the ndarray
+# pass. 17 of the 18 E721 findings are this shape; the 18th was in library source
+# (features/tempo.py) and was fixed rather than ignored.
+"tests/*.py" = ["E721"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["madmom"]

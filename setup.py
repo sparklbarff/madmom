@@ -89,7 +89,12 @@ setup(
     "University, Linz, Austria and Austrian Research Institute for "
     "Artificial Intelligence (OFAI), Vienna, Austria",
     author_email="madmom-users@googlegroups.com",
-    url="https://github.com/CPJKU/madmom",
+    # Severance residue, corrected 2026-08-29: this pointed at CPJKU/madmom, which
+    # this tree no longer tracks. The author fields above are DELIBERATELY left as
+    # they are -- CPJKU and OFAI wrote this code, the licence is BSD plus
+    # CC BY-NC-SA, and both require attribution. Severing a fork changes where the
+    # code lives, not who wrote it.
+    url="https://github.com/sparklbarff/madmom",
     license="BSD, CC BY-NC-SA",
     packages=find_packages(exclude=["tests", "docs"]),
     ext_modules=cythonize(extensions),
