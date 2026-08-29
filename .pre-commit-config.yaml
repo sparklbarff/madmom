@@ -33,7 +33,17 @@
 # one. A gate that is wrong and toothless is a nuisance; wrong and armed is an
 # outage. Type checking here is a project, not a hook.
 
-exclude: '^tests/data/'
+# tests/data/ is excluded by path; .pkl is excluded by extension, deliberately NOT by directory.
+# The 92 model files vendored out of the CPJKU submodule on 2026-08-28 are serialized weights, and
+# codespell reads them as prose: it reported "fO ==> of, for, to, do, go" against binary floats and
+# would have blocked every commit forever. check-added-large-files would also have refused them, at
+# up to 3.8MB against its 500KB default.
+#
+# Excluding `^madmom/models/` instead would have been the obvious fix and the wrong one: it would
+# also exclude madmom/models/__init__.py, which is SOURCE and is the entire reason those files were
+# vendored rather than left in the submodule. That file declares all 20 model constants and, while
+# it sat behind a gitlink, was the one Python file in this repo no gate could see.
+exclude: '^tests/data/|\.pkl$'
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
