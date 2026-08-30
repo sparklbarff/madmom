@@ -304,10 +304,10 @@ def load_segments(filename):
 
     with open_file(filename) as f:
         for line in f:
-            s, e, l = line.split()
+            s, e, lab = line.split()
             start.append(float(s))
             end.append(float(e))
-            label.append(l)
+            label.append(lab)
 
     segments = np.zeros(len(start), dtype=SEGMENT_DTYPE)
     segments["start"] = start

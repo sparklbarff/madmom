@@ -63,18 +63,36 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
-  # ruff is deliberately NOT armed here, for the same reason as mypy below, and
-  # this was measured rather than assumed. Arming it was the first thing tried:
-  # `ruff check` reports 4212 errors on this tree. 3920 of those (93%) are
-  # F403/F405 star-import complaints against a library whose package layout is
-  # built on `from .x import *`, so they are a style disagreement rather than a
-  # defect list. Those two are now ignored in pyproject.toml, which leaves 292
-  # genuine items: 110 UP031 printf-formatting, 82 F401 unused imports, 58 UP008,
-  # 18 E721 type comparisons, and a real one worth its own change (F821 in
-  # madmom/models/__init__.py, where `del os, glob` unbinds the global that the
-  # public models() function reads, so calling it after import raises NameError).
-  # Clearing 292 findings is a project with its own tests, not a prerequisite for
-  # having a formatter. Run `ruff check` by hand until that project is done.
+  # ruff is ARMED as of 2026-08-29. It was not, and the reason it now can be is that
+  # the backlog was triaged by RULE CLASS instead of by count.
+  #
+  # The history: arming it was the first thing tried and it reported 4212 errors.
+  # 3920 of those (93%) were F403/F405 against a package layout deliberately built
+  # on `from .x import *`. Ignoring those two left 292, which read as an
+  # insurmountable backlog and kept the linter off. Per-file-ignores for F401 in
+  # __init__.py (that is the public API, and ruff's fix deletes it) and E721 in
+  # tests (the exact-type comparison is the assertion) took it to 187.
+  #
+  # Then the decisive measurement: 183 of those 187 were just three cosmetic rules,
+  # UP031, UP008 and E402. They are now accepted backlog in pyproject.toml, with the
+  # reasoning recorded there. That left FOUR findings, every one of them real, and
+  # all four are fixed: an always-true `sys.version_info >= (3, 2)` guard, a stale
+  # utf-8 coding line, a dead `__future__` import, and an ambiguous `l`.
+  #
+  # So the choice was never "clear 292 or stay unarmed". Sorting by rule class
+  # turned a project into an afternoon, and the linter is now load-bearing: it
+  # stops every NEW finding rather than documenting old ones. An earlier F821 it
+  # found this way was a genuine runtime bug (models() raising NameError after
+  # import); nothing else in the tree called that function, so no test could have
+  # caught it.
+  # rev pinned to the ruff on PATH (0.14.6) so the hook and a manual `ruff check`
+  # cannot disagree. This repo already paid for that lesson with black, where three
+  # installed copies at three versions meant "it passes locally" proved nothing.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.6
+    hooks:
+      - id: ruff
+        name: ruff check
 
   - repo: https://github.com/psf/black
     rev: 25.11.0
