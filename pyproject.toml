@@ -186,9 +186,26 @@ ignore = [
     # F403/F405 are mis-specified for this codebase rather than tolerated in it.
     # madmom's package layout is deliberately built on `from .x import *`, so
     # these two fire 3920 times across the tree: 93% of every finding ruff had.
-    # Left on, they bury the 292 findings that are actually about defects.
+    # Left on, they bury the findings that are actually about defects.
     "F403",   # star import used
     "F405",   # name may be undefined, or defined from star imports
+    #
+    # The three below are ACCEPTED BACKLOG, not disagreements with the rule. Once
+    # F403/F405 and the per-file-ignores were settled the tree held 187 findings and
+    # 183 of them were these three. They are cosmetic modernisation: none changes
+    # behaviour, 145 of the fixes need --unsafe-fixes, and applying them would be a
+    # 183-site diff across a library for zero functional gain while burying real
+    # history in blame.
+    #
+    # Silencing them is what let ruff be ARMED at all (see .pre-commit-config.yaml).
+    # An unarmed linter with a 187-item backlog stops nothing; an armed one with
+    # three accepted rules stops every NEW finding from the rules that matter. The
+    # four findings that were not these three were all real and are fixed.
+    # Taking a chunk of the backlog on later means deleting one entry here, fixing
+    # what it reports, and leaving it deleted.
+    "UP031",  # printf-string-formatting (110)
+    "UP008",  # super-call-with-parameters (58)
+    "E402",   # module-import-not-at-top-of-file (15, largely deliberate here)
 ]
 
 [tool.ruff.lint.per-file-ignores]

@@ -5,7 +5,6 @@ This file contains tests for the madmom.ml.hmm module.
 """
 
 
-import sys
 import unittest
 
 from madmom.ml.hmm import *
@@ -182,10 +181,10 @@ class TestHiddenMarkovModelClass(unittest.TestCase):
         state_seq, log_p = hmm.viterbi([0, 1, 0, 2])
         self.assertTrue(np.allclose(state_seq, []))
         self.assertAlmostEqual(log_p, -np.inf)
-        # NOTE: assertWarns exist only for Python 3.2+, test in all versions
-        if sys.version_info >= (3, 2):
-            with self.assertWarns(RuntimeWarning):
-                hmm.viterbi([0, 1, 0, 2])
+        # This guarded assertWarns on Python 3.2+; requires-python is >=3.12, so the
+        # condition was always true and the branch is now unconditional.
+        with self.assertWarns(RuntimeWarning):
+            hmm.viterbi([0, 1, 0, 2])
         state_seq, log_p = hmm.viterbi([0, 0, 1, 1])
         self.assertTrue((state_seq == [1, 1, 1, 1]).all())
         self.assertAlmostEqual(log_p, -4.219907785197447)

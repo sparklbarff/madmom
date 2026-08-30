@@ -1,12 +1,9 @@
-# encoding: utf-8
 """
 Models package.
 
 Please see the LICENSE file for licensing details of this package.
 
 """
-
-from __future__ import absolute_import, division, print_function
 
 import os
 
