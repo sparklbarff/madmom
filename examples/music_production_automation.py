@@ -24,6 +24,7 @@ import numpy as np
 
 from madmom.audio import SignalProcessor
 from madmom.features import (
+    CNNChordFeatureProcessor,
     CNNKeyRecognitionProcessor,
     CRFChordRecognitionProcessor,
     DBNBeatTrackingProcessor,
@@ -34,7 +35,8 @@ from madmom.features import (
     RNNOnsetProcessor,
     TempoEstimationProcessor,
 )
-from madmom.io import write_beats, write_chords, write_key, write_onsets
+from madmom.features.key import KEY_LABELS
+from madmom.io import SEGMENT_DTYPE, write_beats, write_chords, write_key, write_onsets
 
 
 def analyze_audio_file(audio_file: Path | str) -> dict[str, Any]:
@@ -78,7 +80,9 @@ def analyze_audio_file(audio_file: Path | str) -> dict[str, Any]:
     beat_processor = RNNBeatProcessor()
     beat_activations = beat_processor(audio)
 
-    tempo_processor = TempoEstimationProcessor()
+    # The RNN processors emit activations at 100 fps, and these trackers default to
+    # fps=None, which raises. Every one of them has to be told the rate.
+    tempo_processor = TempoEstimationProcessor(fps=100)
     tempi = tempo_processor(beat_activations)
     primary_tempo = float(tempi[0][0])
     primary_strength = float(tempi[0][1])
@@ -89,15 +93,18 @@ def analyze_audio_file(audio_file: Path | str) -> dict[str, Any]:
     }
     print(f"  ✓ Detected tempo: {primary_tempo:.2f} BPM (strength: {primary_strength:.2f})")
 
-    beat_tracker = DBNBeatTrackingProcessor()
+    beat_tracker = DBNBeatTrackingProcessor(fps=100)
     beats = beat_tracker(beat_activations)
     results["beats"] = beats.tolist()
     print(f"  ✓ Detected {len(beats)} beats")
 
     # 3. Detect chords and key for harmonic arrangement
     print("Detecting chords and key...")
+    # The CRF decodes from CNN chord features; passing audio straight in raises a
+    # broadcast error, so this script never got past step 3.
+    chord_features = CNNChordFeatureProcessor()(audio)
     chord_processor = CRFChordRecognitionProcessor()
-    chords = chord_processor(audio)
+    chords = chord_processor(chord_features)
     results["chords"] = [
         {"start": float(c["start"]), "end": float(c["end"]), "chord": str(c["label"])}
         for c in chords
@@ -105,7 +112,12 @@ def analyze_audio_file(audio_file: Path | str) -> dict[str, Any]:
     print(f"  ✓ Detected {len(chords)} chord segments")
 
     key_processor = CNNKeyRecognitionProcessor()
-    key = str(key_processor(audio))
+    # The processor returns per-class probabilities, not a name. str()-ing them wrote a
+    # 24-element array into the key file where a key label belongs.
+    key_probabilities = key_processor(audio)
+    if key_probabilities.ndim == 2:
+        key_probabilities = key_probabilities[0]
+    key = KEY_LABELS[int(np.argmax(key_probabilities))]
     results["key"] = key
     print(f"  ✓ Detected key: {key}")
 
@@ -113,11 +125,11 @@ def analyze_audio_file(audio_file: Path | str) -> dict[str, Any]:
     print("Detecting downbeats for measure alignment...")
     downbeat_processor = RNNDownBeatProcessor()
     downbeat_activations = downbeat_processor(audio)
-    downbeat_tracker = DBNDownBeatTrackingProcessor()
+    downbeat_tracker = DBNDownBeatTrackingProcessor(fps=100, beats_per_bar=[4])
     beats_downbeats = downbeat_tracker(downbeat_activations)
 
-    # Separate beats and downbeats
-    all_beats = beats_downbeats[:, 0]
+    # Keep only the downbeats; results["beats"] already holds the full beat grid
+    # from the dedicated beat tracker above.
     downbeats = beats_downbeats[beats_downbeats[:, 1] == 1][:, 0]
     results["downbeats"] = downbeats.tolist()
     print(f"  ✓ Detected {len(downbeats)} downbeats (measure boundaries)")
@@ -156,7 +168,13 @@ def export_for_ableton(results: dict[str, Any], output_dir: Path) -> None:
 
     if results["chords"]:
         chords_file = output_dir / f"{base_name}_chords.txt"
-        write_chords(results["chords"], str(chords_file))
+        # results["chords"] holds JSON-shaped dicts so the analysis can be serialised;
+        # the writer needs SEGMENT_DTYPE rows, so convert back at the write boundary.
+        segments = np.array(
+            [(c["start"], c["end"], c["chord"]) for c in results["chords"]],
+            dtype=SEGMENT_DTYPE,
+        )
+        write_chords(segments, str(chords_file))
         print(f"  ✓ Exported chords to {chords_file}")
 
     if results["key"]:
@@ -181,9 +199,9 @@ def create_slicing_plan(results: dict[str, Any]) -> list[dict[str, Any]]:
     Returns:
         List of slice definitions with timing and quantization info
     """
+    # Quantization runs against the detected beat grid, not against the tempo figure.
     onsets = np.array(results["onsets"])
     beats = np.array(results["beats"])
-    tempo = results["tempo"]["primary"]
 
     slices = []
     for i, onset_time in enumerate(onsets):

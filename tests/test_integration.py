@@ -13,6 +13,7 @@ import numpy as np
 
 from madmom.audio import SignalProcessor
 from madmom.features import (
+    CNNChordFeatureProcessor,
     CNNKeyRecognitionProcessor,
     CRFChordRecognitionProcessor,
     DBNBeatTrackingProcessor,
@@ -119,28 +120,18 @@ class TestCompleteWorkflow(unittest.TestCase):
         # Load audio
         audio = SignalProcessor()(str(sample_file))
 
-        # Detect chords (CRFChordRecognitionProcessor can process audio directly)
-        # It internally uses CNNChordFeatureProcessor if needed
-        try:
-            chord_processor = CRFChordRecognitionProcessor()
-            chords = chord_processor(audio)
+        # The CRF decodes a chord sequence from CNN features; it does NOT accept audio.
+        # Feeding it a Signal raises "could not broadcast input array from shape (25,25)
+        # into shape (25,)". This test used to wrap its whole body in a try/except that
+        # turned that into a skipTest, so it never once ran an assertion.
+        chords = CRFChordRecognitionProcessor()(CNNChordFeatureProcessor()(audio))
 
-            # Verify results
-            self.assertIsInstance(chords, np.ndarray)
-            if len(chords) > 0:
-                # Check structure if chords are detected
-                # Chords may be structured array or regular array depending on processor
-                if chords.dtype.names:
-                    self.assertIn("start", chords.dtype.names)
-                    self.assertIn("end", chords.dtype.names)
-                    self.assertIn("label", chords.dtype.names)
-                else:
-                    # If not structured array, at least verify it's not empty
-                    self.assertGreater(len(chords), 0)
-        except (ValueError, TypeError) as e:
-            # Some chord processors may require specific feature extraction
-            # Skip test if processor doesn't support direct audio input
-            self.skipTest(f"Chord recognition requires features: {e}")
+        # Verify results
+        self.assertIsInstance(chords, np.ndarray)
+        self.assertGreater(len(chords), 0)
+        self.assertEqual(chords.dtype.names, ("start", "end", "label"))
+        self.assertLess(chords["start"][0], chords["end"][0])
+        self.assertIsInstance(str(chords["label"][0]), str)
 
     def test_key_detection_workflow(self):
         """Test key detection workflow."""
@@ -182,11 +173,7 @@ class TestCompleteWorkflow(unittest.TestCase):
         tempi = TempoEstimationProcessor(fps=100)(beat_activations)
 
         # 3. Detect chords and key for harmonic arrangement
-        try:
-            chords = CRFChordRecognitionProcessor()(audio)
-        except (ValueError, TypeError):
-            # Skip chord detection if processor requires features
-            chords = np.array([])
+        chords = CRFChordRecognitionProcessor()(CNNChordFeatureProcessor()(audio))
 
         key_result = CNNKeyRecognitionProcessor()(audio)
         # Extract key name from result
@@ -210,6 +197,7 @@ class TestCompleteWorkflow(unittest.TestCase):
         self.assertGreater(len(onsets), 0)
         self.assertGreater(len(beats), 0)
         self.assertGreater(len(tempi), 0)
+        self.assertGreater(len(chords), 0)
         self.assertIsInstance(key, str)
         self.assertGreater(len(downbeats), 0)
 
