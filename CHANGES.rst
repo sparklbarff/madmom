@@ -8,15 +8,14 @@ New features:
 
 * Python 3.12+ support (dropped Python 2.7 and 3.9-3.11)
 * Modernized build system (removed requirements.txt, using pyproject.toml only)
-* GitHub Actions CI/CD workflow for automated testing (`.github/workflows/test.yml`)
+* A GitHub Actions test workflow (`.github/workflows/test.yml`). GitHub Actions is
+  not enabled on this repository, so the test suite is run locally with `pytest`.
 * Enhanced type hints for public APIs:
   * Added type hints to `BeatTrackingProcessor.process()`, `DBNBeatTrackingProcessor.process_offline()`, `DBNBeatTrackingProcessor.process_online()`
   * Added type hints to `TempoEstimationProcessor.process_offline()`, `TempoEstimationProcessor.process_online()`
   * Added type hints to `RNNDownBeatProcessor.process()`, `DBNDownBeatTrackingProcessor.process()`
   * Added `from __future__ import annotations` to all feature modules (beats, tempo, downbeats, onsets, chords, key)
 * Comprehensive music production automation example (`examples/music_production_automation.py`)
-* Integration with AEM_I project (`/GitHub/AEM_I/src/aem_i/integration/madmom_analysis.py`)
-* Integration with ADE project (`/GitHub/ADE/services/audio_analysis/analyzers/madmom.py` and MCP server endpoint)
 
 Bug fixes:
 
