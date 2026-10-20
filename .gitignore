@@ -40,3 +40,10 @@ MTL346/
 
 # Hookify rules (local, not committed)
 .claude/*.local.md
+
+# Local agent configuration and working notes (kept on disk, not published)
+/.claude/
+/CLAUDE.md
+/PROJECT_ANALYSIS.md
+/TODOS.md
+/VERIFICATION_REPORT.md

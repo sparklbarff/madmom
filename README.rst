@@ -2,6 +2,43 @@
 madmom
 ======
 
+About this fork
+===============
+
+This is a maintained fork of `CPJKU/madmom <https://github.com/CPJKU/madmom>`_.
+The last upstream release, 0.16.1, dates from November 2018; this fork keeps
+madmom working on current Python and NumPy.
+
+All credit for madmom's algorithms, code and trained models belongs to its
+authors at the Department of Computational Perception, Johannes Kepler
+University Linz, and the Austrian Research Institute for Artificial
+Intelligence (OFAI), Vienna. If you use it in research, cite their papers (see
+`References`_).
+
+What this fork changes:
+
+- Builds and runs on Python 3.12 and later with NumPy 2.x, using a
+  ``pyproject.toml`` build.
+- Ships the trained models inside the package (``madmom/models``), copied from
+  ``CPJKU/madmom_models``, so no git submodule is needed.
+- Packages the 2019 beat-tracking (TCN) models, which the packaging had left
+  out.
+- Fixes ``madmom.models.models()`` raising ``NameError`` after import.
+- Fixes a chord example that never ran and a chord test that only ever skipped.
+- Includes the first and last beat in downbeat tracking when the gap matches
+  the expected interval.
+
+Details are in `CHANGES.rst <CHANGES.rst>`_. This fork is not on PyPI:
+``pip install madmom`` still installs upstream 0.16.1. To use the fork, clone
+it and run ``pip install .`` (Cython and NumPy 2.0 or later are build
+requirements; see `INSTALL_DEV.md <INSTALL_DEV.md>`_ for development setup).
+
+The licenses are unchanged from upstream: BSD for the source code and
+CC BY-NC-SA 4.0 (non-commercial) for the model and data files.
+
+About madmom
+============
+
 Madmom is an audio signal processing library written in Python with a strong
 focus on music information retrieval (MIR) tasks.
 
